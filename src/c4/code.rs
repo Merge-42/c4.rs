@@ -138,29 +138,29 @@ impl CodeElementBuilder {
 
     /// Builds the CodeElement.
     pub fn build(self) -> Result<CodeElement, CodeElementError> {
-        let identifier = self.identifier.unwrap_or_else(ElementIdentifier::new);
+        let identifier = self.identifier.unwrap_or_default();
         let name = self.name.ok_or(CodeElementError::MissingName)?;
         let description = self
             .description
             .ok_or(CodeElementError::MissingDescription)?;
         let code_type = self.code_type.ok_or(CodeElementError::MissingType)?;
 
-        if let Some(ref lang) = self.language {
-            if lang.len() > 255 {
-                return Err(CodeElementError::LanguageTooLong {
-                    max: 255,
-                    actual: lang.len(),
-                });
-            }
+        if let Some(ref lang) = self.language
+            && lang.len() > 255
+        {
+            return Err(CodeElementError::LanguageTooLong {
+                max: 255,
+                actual: lang.len(),
+            });
         }
 
-        if let Some(ref path) = self.file_path {
-            if path.len() > 512 {
-                return Err(CodeElementError::FilePathTooLong {
-                    max: 512,
-                    actual: path.len(),
-                });
-            }
+        if let Some(ref path) = self.file_path
+            && path.len() > 512
+        {
+            return Err(CodeElementError::FilePathTooLong {
+                max: 512,
+                actual: path.len(),
+            });
         }
 
         Ok(CodeElement {

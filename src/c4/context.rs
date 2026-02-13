@@ -127,17 +127,17 @@ impl PersonBuilder {
     ///
     /// Returns an error if any required field is missing or invalid.
     pub fn build(self) -> Result<Person, PersonError> {
-        let identifier = self.identifier.unwrap_or_else(ElementIdentifier::new);
+        let identifier = self.identifier.unwrap_or_default();
         let name = self.name.ok_or(PersonError::MissingName)?;
         let description = self.description.ok_or(PersonError::MissingDescription)?;
 
-        if let Some(ref tech) = self.technology {
-            if tech.len() > 255 {
-                return Err(PersonError::TechnologyTooLong {
-                    max: 255,
-                    actual: tech.len(),
-                });
-            }
+        if let Some(ref tech) = self.technology
+            && tech.len() > 255
+        {
+            return Err(PersonError::TechnologyTooLong {
+                max: 255,
+                actual: tech.len(),
+            });
         }
 
         Ok(Person {
@@ -293,7 +293,7 @@ impl SoftwareSystemBuilder {
 
     /// Builds the SoftwareSystem.
     pub fn build(self) -> Result<SoftwareSystem, SoftwareSystemError> {
-        let identifier = self.identifier.unwrap_or_else(ElementIdentifier::new);
+        let identifier = self.identifier.unwrap_or_default();
         let name = self.name.ok_or(SoftwareSystemError::MissingName)?;
         let description = self
             .description

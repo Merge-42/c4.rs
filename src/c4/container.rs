@@ -146,18 +146,18 @@ impl ContainerBuilder {
 
     /// Builds the Container.
     pub fn build(self) -> Result<Container, ContainerError> {
-        let identifier = self.identifier.unwrap_or_else(ElementIdentifier::new);
+        let identifier = self.identifier.unwrap_or_default();
         let name = self.name.ok_or(ContainerError::MissingName)?;
         let description = self.description.ok_or(ContainerError::MissingDescription)?;
         let container_type = self.container_type.ok_or(ContainerError::MissingType)?;
 
-        if let Some(ref tech) = self.technology {
-            if tech.len() > 255 {
-                return Err(ContainerError::TechnologyTooLong {
-                    max: 255,
-                    actual: tech.len(),
-                });
-            }
+        if let Some(ref tech) = self.technology
+            && tech.len() > 255
+        {
+            return Err(ContainerError::TechnologyTooLong {
+                max: 255,
+                actual: tech.len(),
+            });
         }
 
         Ok(Container {

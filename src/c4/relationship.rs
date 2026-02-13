@@ -107,6 +107,18 @@ pub struct RelationshipBuilder<S: Element, T: Element> {
     interaction_style: InteractionStyle,
 }
 
+impl<S: Element, T: Element> Default for RelationshipBuilder<S, T> {
+    fn default() -> Self {
+        Self {
+            source: None,
+            target: None,
+            description: None,
+            technology: None,
+            interaction_style: InteractionStyle::Synchronous,
+        }
+    }
+}
+
 impl<S: Element, T: Element> RelationshipBuilder<S, T> {
     /// Creates a new RelationshipBuilder.
     pub fn new() -> Self {
@@ -157,13 +169,13 @@ impl<S: Element, T: Element> RelationshipBuilder<S, T> {
             .description
             .ok_or(RelationshipError::MissingDescription)?;
 
-        if let Some(ref tech) = self.technology {
-            if tech.len() > 255 {
-                return Err(RelationshipError::TechnologyTooLong {
-                    max: 255,
-                    actual: tech.len(),
-                });
-            }
+        if let Some(ref tech) = self.technology
+            && tech.len() > 255
+        {
+            return Err(RelationshipError::TechnologyTooLong {
+                max: 255,
+                actual: tech.len(),
+            });
         }
 
         Ok(Relationship {

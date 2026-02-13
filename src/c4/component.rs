@@ -155,17 +155,17 @@ impl ComponentBuilder {
 
     /// Builds the Component.
     pub fn build(self) -> Result<Component, ComponentError> {
-        let identifier = self.identifier.unwrap_or_else(ElementIdentifier::new);
+        let identifier = self.identifier.unwrap_or_default();
         let name = self.name.ok_or(ComponentError::MissingName)?;
         let description = self.description.ok_or(ComponentError::MissingDescription)?;
 
-        if let Some(ref tech) = self.technology {
-            if tech.len() > 255 {
-                return Err(ComponentError::TechnologyTooLong {
-                    max: 255,
-                    actual: tech.len(),
-                });
-            }
+        if let Some(ref tech) = self.technology
+            && tech.len() > 255
+        {
+            return Err(ComponentError::TechnologyTooLong {
+                max: 255,
+                actual: tech.len(),
+            });
         }
 
         Ok(Component {

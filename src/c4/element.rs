@@ -52,9 +52,10 @@ impl fmt::Display for ElementType {
 }
 
 /// Location classification for elements (internal vs external).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum Location {
     /// Elements within the system boundary being described
+    #[default]
     Internal,
     /// Elements outside the system boundary
     External,
@@ -66,12 +67,6 @@ impl fmt::Display for Location {
             Location::Internal => write!(f, "Internal"),
             Location::External => write!(f, "External"),
         }
-    }
-}
-
-impl Default for Location {
-    fn default() -> Self {
-        Location::Internal
     }
 }
 
