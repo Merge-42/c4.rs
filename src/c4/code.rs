@@ -77,7 +77,8 @@ impl Element for CodeElement {
 }
 
 /// Builder for constructing CodeElement instances.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct CodeElementBuilder {
     identifier: Option<ElementIdentifier>,
     name: Option<NonEmptyString>,

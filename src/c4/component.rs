@@ -94,7 +94,8 @@ impl Element for Component {
 }
 
 /// Builder for constructing Component instances.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct ComponentBuilder {
     identifier: Option<ElementIdentifier>,
     name: Option<NonEmptyString>,

@@ -85,7 +85,8 @@ impl Element for Container {
 }
 
 /// Builder for constructing Container instances.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct ContainerBuilder {
     identifier: Option<ElementIdentifier>,
     name: Option<NonEmptyString>,

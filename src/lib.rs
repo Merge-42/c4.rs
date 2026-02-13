@@ -15,6 +15,9 @@
 //!     .with_location(Location::Internal)
 //!     .build()
 //!     .unwrap();
+//!
+//! // Types implement serde::Serialize
+//! // With serde_json: to_string_pretty(&person)
 //! ```
 
 pub mod c4;

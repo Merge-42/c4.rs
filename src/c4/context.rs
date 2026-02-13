@@ -72,7 +72,8 @@ impl Element for Person {
 }
 
 /// Builder for constructing Person instances with validation.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct PersonBuilder {
     identifier: Option<ElementIdentifier>,
     name: Option<NonEmptyString>,
@@ -240,7 +241,8 @@ impl Element for SoftwareSystem {
 }
 
 /// Builder for constructing SoftwareSystem instances.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct SoftwareSystemBuilder {
     identifier: Option<ElementIdentifier>,
     name: Option<NonEmptyString>,
