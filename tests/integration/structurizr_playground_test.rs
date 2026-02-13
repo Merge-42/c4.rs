@@ -113,3 +113,38 @@ fn test_integration_performance() {
     );
     assert!(!dsl.is_empty());
 }
+
+#[test]
+fn test_integration_hierarchy_serialization() {
+    use c4rs::serialization::HierarchySerializer;
+
+    let mut hierarchy = HierarchySerializer::new();
+    hierarchy
+        .serialize_parent_reference("WebApp", "API")
+        .unwrap();
+
+    let output = hierarchy.as_output();
+    assert_eq!(output, r#"WebApp <- API "<- contained""#);
+}
+
+#[test]
+fn test_integration_hierarchy_validation() {
+    use c4rs::serialization::HierarchySerializer;
+
+    let mut hierarchy = HierarchySerializer::new();
+    hierarchy.register_software_system("API");
+
+    let result = hierarchy.validate_container_parent("WebApp", Some("API"));
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_integration_invalid_hierarchy() {
+    use c4rs::serialization::HierarchySerializer;
+
+    let hierarchy = HierarchySerializer::new();
+    hierarchy.register_software_system("API");
+
+    let result = hierarchy.validate_container_parent("WebApp", Some("Database"));
+    assert!(result.is_err());
+}
