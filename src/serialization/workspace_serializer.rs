@@ -1,4 +1,4 @@
-use crate::c4::{Container, Person, SoftwareSystem};
+use crate::c4::{Component, Container, Person, SoftwareSystem};
 use crate::serialization::{
     StylesSerializer, ViewsSerializer, error::StructurizrDslError,
     identifier_generator::IdentifierGenerator, writer::DslWriter,
@@ -147,9 +147,27 @@ impl WorkspaceSerializer {
                     let container_identifier =
                         IdentifierGenerator::generate_unique(cname, &self.used_identifiers);
                     self.used_identifiers.insert(container_identifier.clone());
+
+                    let has_components = !container.components().is_empty();
                     let container_dsl =
-                        Self::serialize_container(container, &container_identifier)?;
+                        Self::serialize_container(container, &container_identifier, has_components);
                     self.writer.add_line(&container_dsl);
+
+                    if has_components {
+                        self.writer.indent();
+                        for component in container.components() {
+                            let component_identifier = IdentifierGenerator::generate_unique(
+                                component.name(),
+                                &self.used_identifiers,
+                            );
+                            self.used_identifiers.insert(component_identifier.clone());
+                            let component_dsl =
+                                Self::serialize_component(component, &component_identifier)?;
+                            self.writer.add_line(&component_dsl);
+                        }
+                        self.writer.unindent();
+                        self.writer.add_line("}");
+                    }
                 }
                 self.writer.unindent();
                 self.writer.add_line("}");
@@ -219,12 +237,36 @@ impl WorkspaceSerializer {
     fn serialize_container(
         container: &Container,
         identifier: &str,
+        has_components: bool,
+    ) -> String {
+        if has_components {
+            format!(
+                r#"{} = container "{}" "{}" {{"#,
+                identifier,
+                container.name(),
+                container.description()
+            )
+        } else {
+            format!(
+                r#"{} = container "{}" "{}" {{}}"#,
+                identifier,
+                container.name(),
+                container.description()
+            )
+        }
+    }
+
+    fn serialize_component(
+        component: &Component,
+        identifier: &str,
     ) -> Result<String, StructurizrDslError> {
+        let technology = component.technology().unwrap_or("");
         Ok(format!(
-            r#"{} = container "{}" "{}" {{}}"#,
+            r#"{} = component "{}" "{}" "{}""#,
             identifier,
-            container.name(),
-            container.description()
+            component.name(),
+            component.description(),
+            technology
         ))
     }
 
