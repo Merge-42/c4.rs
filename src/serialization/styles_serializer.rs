@@ -1,6 +1,5 @@
 //! Styles serialization for Structurizr DSL.
 
-use crate::c4::ElementType;
 use crate::serialization::writer::DslWriter;
 use serde::{Deserialize, Serialize};
 
@@ -8,7 +7,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ElementStyle {
     pub identifier: String,
-    pub element_type: ElementType,
     pub background: Option<String>,
     pub color: Option<String>,
     pub shape: Option<String>,
@@ -19,10 +17,9 @@ pub struct ElementStyle {
 
 impl ElementStyle {
     /// Create a new element style.
-    pub fn new(identifier: &str, element_type: ElementType) -> Self {
+    pub fn new(identifier: &str) -> Self {
         Self {
             identifier: identifier.to_string(),
-            element_type,
             background: None,
             color: None,
             shape: None,
@@ -164,10 +161,7 @@ impl StylesSerializer {
         writer.indent();
 
         for style in &self.element_styles {
-            writer.add_line(&format!(
-                "    {} {{",
-                style.element_type.to_string().to_lowercase()
-            ));
+            writer.add_line(&format!("    element \"{}\" {{", style.identifier));
             writer.indent();
 
             if let Some(bg) = &style.background {
@@ -232,7 +226,7 @@ mod tests {
     fn test_element_style() {
         let mut styles = StylesSerializer::new();
         styles.add_element_style(
-            ElementStyle::new("person", ElementType::Person)
+            ElementStyle::new("Person")
                 .with_background("#ffcc00")
                 .with_color("#000000")
                 .with_shape("Person"),
@@ -240,7 +234,7 @@ mod tests {
 
         let dsl = styles.serialize();
         assert!(dsl.contains("styles {"));
-        assert!(dsl.contains("person {"));
+        assert!(dsl.contains(r#"element "Person""#));
         assert!(dsl.contains("background #ffcc00"));
         assert!(dsl.contains("shape Person"));
     }
@@ -273,13 +267,51 @@ mod tests {
     fn test_container_style() {
         let mut styles = StylesSerializer::new();
         styles.add_element_style(
-            ElementStyle::new("container", ElementType::Container)
+            ElementStyle::new("Database")
                 .with_background("#ffffff")
-                .with_shape("Rectangle"),
+                .with_shape("cylinder"),
         );
 
         let dsl = styles.serialize();
-        assert!(dsl.contains("container {"));
-        assert!(dsl.contains("shape Rectangle"));
+        assert!(dsl.contains(r#"element "Database""#));
+        assert!(dsl.contains("shape cylinder"));
+    }
+
+    #[test]
+    fn test_us5_element_styles_from_spec() {
+        let mut styles = StylesSerializer::new();
+        styles.add_element_style(
+            ElementStyle::new("Element")
+                .with_color("#9a28f8")
+                .with_stroke("#9a28f8")
+                .with_stroke_width("7")
+                .with_shape("roundedbox"),
+        );
+        styles.add_element_style(ElementStyle::new("Person").with_shape("person"));
+        styles.add_element_style(ElementStyle::new("Database").with_shape("cylinder"));
+        styles.add_element_style(ElementStyle::new("Boundary").with_stroke_width("5"));
+
+        let dsl = styles.serialize();
+        assert!(dsl.contains(r#"element "Element""#));
+        assert!(dsl.contains("color #9a28f8"));
+        assert!(dsl.contains("stroke #9a28f8"));
+        assert!(dsl.contains("strokeWidth 7"));
+        assert!(dsl.contains("shape roundedbox"));
+        assert!(dsl.contains(r#"element "Person""#));
+        assert!(dsl.contains("shape person"));
+        assert!(dsl.contains(r#"element "Database""#));
+        assert!(dsl.contains("shape cylinder"));
+        assert!(dsl.contains(r#"element "Boundary""#));
+        assert!(dsl.contains("strokeWidth 5"));
+    }
+
+    #[test]
+    fn test_us5_relationship_style_from_spec() {
+        let mut styles = StylesSerializer::new();
+        styles.add_relationship_style(RelationshipStyle::new().with_thickness("4"));
+
+        let dsl = styles.serialize();
+        assert!(dsl.contains("relationship {"));
+        assert!(dsl.contains("thickness 4"));
     }
 }

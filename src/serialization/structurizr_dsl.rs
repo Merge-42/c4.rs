@@ -175,7 +175,7 @@ mod tests {
         let mut serializer = StructurizrDslSerializer::new();
         serializer.add_person(person);
         serializer.add_element_style(
-            ElementStyle::new("person", ElementType::Person)
+            ElementStyle::new("Person")
                 .with_background("#ffcc00")
                 .with_color("#000000"),
         );
@@ -183,7 +183,7 @@ mod tests {
         let result = serializer.serialize().unwrap();
 
         assert!(result.contains("styles {"));
-        assert!(result.contains("person {"));
+        assert!(result.contains(r#"element "Person""#));
         assert!(result.contains("background #ffcc00"));
     }
 }
