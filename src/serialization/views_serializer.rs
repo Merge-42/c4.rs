@@ -1,25 +1,51 @@
 //! Views serialization for Structurizr DSL.
 
-use crate::c4::ElementType;
-use crate::serialization::writer::DslWriter;
+/// Represents a view type in Structurizr DSL.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ViewType {
+    #[default]
+    SystemContext,
+    Container,
+    Component,
+    SystemLandscape,
+    Filtered,
+    Dynamic,
+    Deployment,
+    Custom,
+}
+
+impl std::fmt::Display for ViewType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ViewType::SystemContext => write!(f, "systemContext"),
+            ViewType::Container => write!(f, "container"),
+            ViewType::Component => write!(f, "component"),
+            ViewType::SystemLandscape => write!(f, "systemLandscape"),
+            ViewType::Filtered => write!(f, "filtered"),
+            ViewType::Dynamic => write!(f, "dynamic"),
+            ViewType::Deployment => write!(f, "deployment"),
+            ViewType::Custom => write!(f, "custom"),
+        }
+    }
+}
 
 /// Represents a Structurizr view configuration.
 #[derive(Debug, Clone)]
 pub struct ViewConfiguration {
-    pub name: String,
+    pub view_type: ViewType,
+    pub element_identifier: String,
     pub title: String,
-    pub element_type: ElementType,
     pub include_elements: Vec<String>,
     pub exclude_elements: Vec<String>,
 }
 
 impl ViewConfiguration {
     /// Create a new view configuration.
-    pub fn new(name: &str, title: &str, element_type: ElementType) -> Self {
+    pub fn new(view_type: ViewType, element_identifier: &str, title: &str) -> Self {
         Self {
-            name: name.to_string(),
+            view_type,
+            element_identifier: element_identifier.to_string(),
             title: title.to_string(),
-            element_type,
             include_elements: Vec::new(),
             exclude_elements: Vec::new(),
         }
@@ -41,6 +67,8 @@ impl ViewConfiguration {
 pub struct ViewsSerializer {
     views: Vec<ViewConfiguration>,
     external_output: Option<String>,
+    styles_output: Option<String>,
+    configuration_output: Option<String>,
 }
 
 impl ViewsSerializer {
@@ -49,6 +77,8 @@ impl ViewsSerializer {
         Self {
             views: Vec::new(),
             external_output: None,
+            styles_output: None,
+            configuration_output: None,
         }
     }
 
@@ -62,6 +92,26 @@ impl ViewsSerializer {
         self.external_output = Some(output);
     }
 
+    /// Set styles output to be included inside views.
+    pub fn set_styles_output(&mut self, output: String) {
+        self.styles_output = Some(output);
+    }
+
+    /// Set configuration output to be included inside views.
+    pub fn set_configuration_output(&mut self, output: String) {
+        self.configuration_output = Some(output);
+    }
+
+    /// Check if styles output is set.
+    pub fn styles_output(&self) -> Option<&String> {
+        self.styles_output.as_ref()
+    }
+
+    /// Check if configuration output is set.
+    pub fn configuration_output(&self) -> Option<&String> {
+        self.configuration_output.as_ref()
+    }
+
     /// Serialize all views to DSL format.
     pub fn serialize(&self) -> String {
         if let Some(ref output) = self.external_output
@@ -70,74 +120,80 @@ impl ViewsSerializer {
             return output.clone();
         }
 
-        if self.views.is_empty() {
+        if self.views.is_empty()
+            && self.styles_output.is_none()
+            && self.configuration_output.is_none()
+        {
             return String::new();
         }
 
-        let mut writer = DslWriter::new();
-        writer.add_line("views {");
-        writer.indent();
+        let mut lines = Vec::new();
+        lines.push("views {".to_string());
 
         for view in &self.views {
-            writer.add_line(&format!(
-                "    {} {} {{",
-                view.element_type.to_string().to_lowercase(),
-                view.name
+            lines.push(format!(
+                "    {} {} \"{}\" {{",
+                view.view_type, view.element_identifier, view.title
             ));
-            writer.indent();
-            writer.add_line(&format!("        title \"{}\"", view.title));
 
             for element in &view.include_elements {
-                writer.add_line(&format!("            include {}", element));
+                lines.push(format!("        include {}", element));
             }
 
             for element in &view.exclude_elements {
-                writer.add_line(&format!("            exclude {}", element));
+                lines.push(format!("        exclude {}", element));
             }
 
-            writer.unindent();
-            writer.add_line("    }");
+            lines.push("    }".to_string());
         }
 
-        writer.unindent();
-        writer.add_line("}");
+        if let Some(ref styles) = self.styles_output {
+            lines.push(String::new());
+            for line in styles.lines() {
+                lines.push(line.to_string());
+            }
+        }
 
-        writer.as_output()
+        if let Some(ref config) = self.configuration_output {
+            lines.push(String::new());
+            for line in config.lines() {
+                lines.push(line.to_string());
+            }
+        }
+
+        lines.push("}".to_string());
+        lines.join("\n")
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::c4::ElementType;
 
     #[test]
     fn test_system_context_view() {
         let mut views = ViewsSerializer::new();
-        let mut view =
-            ViewConfiguration::new("context", "System Context", ElementType::SoftwareSystem);
-        view.include_element("User");
-        view.include_element("API");
+        let mut view = ViewConfiguration::new(ViewType::SystemContext, "a", "System Context");
+        view.include_element("*");
         views.add_view(view);
 
         let dsl = views.serialize();
         assert!(dsl.contains("views {"));
-        assert!(dsl.contains("softwaresystem context {"));
-        assert!(dsl.contains("include User"));
+        assert!(dsl.contains("systemContext a \"System Context\" {"));
+        assert!(dsl.contains("include *"));
     }
 
     #[test]
     fn test_container_view() {
         let mut views = ViewsSerializer::new();
-        let mut view =
-            ViewConfiguration::new("containers", "Container Diagram", ElementType::Container);
+        let mut view = ViewConfiguration::new(ViewType::Container, "api", "Container Diagram");
         view.include_element("Web_App");
         view.include_element("API");
         view.exclude_element("Database");
         views.add_view(view);
 
         let dsl = views.serialize();
-        assert!(dsl.contains("container containers {"));
+        assert!(dsl.contains("container api \"Container Diagram\" {"));
         assert!(dsl.contains("exclude Database"));
     }
 

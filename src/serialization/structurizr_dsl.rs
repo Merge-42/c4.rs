@@ -12,6 +12,8 @@ pub struct StructurizrDslSerializer {
     workspace_serializer: WorkspaceSerializer,
     views_serializer: ViewsSerializer,
     styles_serializer: StylesSerializer,
+    name: Option<String>,
+    description: Option<String>,
 }
 
 impl StructurizrDslSerializer {
@@ -21,7 +23,21 @@ impl StructurizrDslSerializer {
             workspace_serializer: WorkspaceSerializer::new(),
             views_serializer: ViewsSerializer::new(),
             styles_serializer: StylesSerializer::new(),
+            name: None,
+            description: None,
         }
+    }
+
+    /// Set the workspace name.
+    pub fn with_name(mut self, name: &str) -> Self {
+        self.name = Some(name.to_string());
+        self
+    }
+
+    /// Set the workspace description.
+    pub fn with_description(mut self, description: &str) -> Self {
+        self.description = Some(description.to_string());
+        self
     }
 
     /// Add a person to the workspace.
@@ -41,8 +57,9 @@ impl StructurizrDslSerializer {
     }
 
     /// Add a view configuration.
-    pub fn add_view(&mut self, view: ViewConfiguration) {
-        self.views_serializer.add_view(view);
+    pub fn add_view(&mut self, view: &ViewConfiguration) {
+        self.views_serializer.add_view(view.clone());
+        self.workspace_serializer.add_view(view);
     }
 
     /// Add an element style.
@@ -55,9 +72,15 @@ impl StructurizrDslSerializer {
         self.styles_serializer.add_relationship_style(style);
     }
 
-    /// Set the workspace scope.
-    pub fn set_scope(&mut self, scope: &str) {
-        self.workspace_serializer.set_scope(scope);
+    pub fn add_relationship(
+        &mut self,
+        source_id: &str,
+        target_id: &str,
+        description: &str,
+        technology: Option<&str>,
+    ) {
+        self.workspace_serializer
+            .add_relationship(source_id, target_id, description, technology);
     }
 
     /// Serialize the workspace to Structurizr DSL.
@@ -70,14 +93,16 @@ impl StructurizrDslSerializer {
     ///
     /// Returns a `StructurizrDslError` if serialization fails.
     pub fn serialize(&mut self) -> Result<String, StructurizrDslError> {
-        let views_dsl = self.views_serializer.serialize();
-        if !views_dsl.is_empty() {
-            self.workspace_serializer.set_views_output(views_dsl);
+        if let Some(ref name) = self.name {
+            self.workspace_serializer.set_name(name);
+        }
+        if let Some(ref desc) = self.description {
+            self.workspace_serializer.set_description(desc);
         }
 
         let styles_dsl = self.styles_serializer.serialize();
         if !styles_dsl.is_empty() {
-            self.workspace_serializer.set_styles_output(styles_dsl);
+            self.workspace_serializer.add_element_styles(&styles_dsl);
         }
 
         self.workspace_serializer.serialize()
@@ -87,13 +112,14 @@ impl StructurizrDslSerializer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::c4::{Container, ContainerType, ElementType, Person, SoftwareSystem};
+    use crate::c4::{Container, ContainerType, Person, SoftwareSystem};
+    use crate::serialization::views_serializer::ViewType;
 
     #[test]
     fn test_serialize_empty_model() {
         let mut serializer = StructurizrDslSerializer::new();
         let result = serializer.serialize().unwrap();
-        assert!(result.contains("workspace {"));
+        assert!(result.starts_with("workspace "));
         assert!(result.contains("model {"));
     }
 
@@ -154,15 +180,15 @@ mod tests {
 
         let mut serializer = StructurizrDslSerializer::new();
         serializer.add_person(person);
-        let mut view = ViewConfiguration::new("context", "System Context", ElementType::Person);
-        view.include_element("u");
-        serializer.add_view(view);
+        let mut view = ViewConfiguration::new(ViewType::SystemContext, "u", "System Context");
+        view.include_element("*");
+        serializer.add_view(&view);
 
         let result = serializer.serialize().unwrap();
 
         assert!(result.contains("views {"));
-        assert!(result.contains("person context {"));
-        assert!(result.contains("include u"));
+        assert!(result.contains("systemContext u \"System Context\" {"));
+        assert!(result.contains("include *"));
     }
 
     #[test]

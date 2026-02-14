@@ -1,6 +1,5 @@
 //! Styles serialization for Structurizr DSL.
 
-use crate::serialization::writer::DslWriter;
 use serde::{Deserialize, Serialize};
 
 /// Represents a style for elements in Structurizr DSL.
@@ -144,6 +143,11 @@ impl StylesSerializer {
         self.external_output = Some(output);
     }
 
+    /// Add element styles from serialized DSL string.
+    pub fn add_element_styles_from_string(&mut self, dsl: &str) {
+        self.external_output = Some(dsl.to_string());
+    }
+
     /// Serialize styles to DSL format.
     pub fn serialize(&self) -> String {
         if let Some(ref output) = self.external_output
@@ -156,65 +160,58 @@ impl StylesSerializer {
             return String::new();
         }
 
-        let mut writer = DslWriter::new();
-        writer.add_line("styles {");
-        writer.indent();
+        let mut lines = Vec::new();
+        lines.push("styles {".to_string());
 
         for style in &self.element_styles {
-            writer.add_line(&format!("    element \"{}\" {{", style.identifier));
-            writer.indent();
+            lines.push(format!("    element \"{}\" {{", style.identifier));
 
             if let Some(bg) = &style.background {
-                writer.add_line(&format!("        background {}", bg));
+                lines.push(format!("        background {}", bg));
             }
             if let Some(color) = &style.color {
-                writer.add_line(&format!("        color {}", color));
+                lines.push(format!("        color {}", color));
             }
             if let Some(shape) = &style.shape {
-                writer.add_line(&format!("        shape {}", shape));
+                lines.push(format!("        shape {}", shape));
             }
             if let Some(size) = &style.size {
-                writer.add_line(&format!("        size {}", size));
+                lines.push(format!("        size {}", size));
             }
             if let Some(stroke) = &style.stroke {
-                writer.add_line(&format!("        stroke {}", stroke));
+                lines.push(format!("        stroke {}", stroke));
             }
             if let Some(stroke_width) = &style.stroke_width {
-                writer.add_line(&format!("        strokeWidth {}", stroke_width));
+                lines.push(format!("        strokeWidth {}", stroke_width));
             }
 
-            writer.unindent();
-            writer.add_line("    }");
+            lines.push("    }".to_string());
         }
 
         for style in &self.relationship_styles {
-            writer.add_line("    relationship {");
-            writer.indent();
+            lines.push("    relationship {".to_string());
 
             if let Some(thickness) = &style.thickness {
-                writer.add_line(&format!("        thickness {}", thickness));
+                lines.push(format!("        thickness {}", thickness));
             }
             if let Some(color) = &style.color {
-                writer.add_line(&format!("        color {}", color));
+                lines.push(format!("        color {}", color));
             }
             if let Some(router) = &style.router {
-                writer.add_line(&format!("        router {}", router));
+                lines.push(format!("        router {}", router));
             }
             if let Some(dashed) = &style.dashed {
-                writer.add_line(&format!(
+                lines.push(format!(
                     "        dashed {}",
                     if *dashed { "true" } else { "false" }
                 ));
             }
 
-            writer.unindent();
-            writer.add_line("    }");
+            lines.push("    }".to_string());
         }
 
-        writer.unindent();
-        writer.add_line("}");
-
-        writer.as_output()
+        lines.push("}".to_string());
+        lines.join("\n")
     }
 }
 

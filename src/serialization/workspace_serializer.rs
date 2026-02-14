@@ -1,10 +1,11 @@
 use crate::c4::{Component, Container, Person, SoftwareSystem};
 use crate::serialization::{
-    StylesSerializer, ViewsSerializer, error::StructurizrDslError,
+    StylesSerializer, ViewConfiguration, ViewsSerializer, error::StructurizrDslError,
     identifier_generator::IdentifierGenerator, writer::DslWriter,
 };
 use std::collections::{HashMap, HashSet};
 
+/// Workspace serializer - handles all serialization for the Structurizr DSL.
 #[derive(Debug)]
 pub struct WorkspaceSerializer {
     writer: DslWriter,
@@ -15,8 +16,8 @@ pub struct WorkspaceSerializer {
     relationships: Vec<SerializedRelationship>,
     views_serializer: ViewsSerializer,
     styles_serializer: StylesSerializer,
-    has_configuration: bool,
-    configuration_scope: Option<String>,
+    name: Option<String>,
+    description: Option<String>,
 }
 
 #[derive(Debug)]
@@ -44,9 +45,17 @@ impl WorkspaceSerializer {
             relationships: Vec::new(),
             views_serializer: ViewsSerializer::new(),
             styles_serializer: StylesSerializer::new(),
-            has_configuration: false,
-            configuration_scope: None,
+            name: None,
+            description: None,
         }
+    }
+
+    pub fn set_name(&mut self, name: &str) {
+        self.name = Some(name.to_string());
+    }
+
+    pub fn set_description(&mut self, description: &str) {
+        self.description = Some(description.to_string());
     }
 
     pub fn add_person(&mut self, person: Person) {
@@ -75,17 +84,31 @@ impl WorkspaceSerializer {
             technology: technology.map(|s| s.to_string()),
         });
     }
-    pub fn set_scope(&mut self, scope: &str) {
-        self.has_configuration = true;
-        self.configuration_scope = Some(scope.to_string());
-    }
 
     pub fn set_views_output(&mut self, views_dsl: String) {
         self.views_serializer.set_external_output(views_dsl);
     }
 
-    pub fn set_styles_output(&mut self, styles_dsl: String) {
-        self.styles_serializer.set_external_output(styles_dsl);
+    pub fn add_view(&mut self, view: &ViewConfiguration) {
+        self.views_serializer.add_view(view.clone());
+    }
+
+    pub fn set_styles_output(&mut self, styles_dsl: &str) {
+        self.styles_serializer
+            .set_external_output(styles_dsl.to_string());
+        self.views_serializer
+            .set_styles_output(styles_dsl.to_string());
+    }
+
+    pub fn set_views_styles_output(&mut self, styles_dsl: String) {
+        self.views_serializer.set_styles_output(styles_dsl);
+    }
+
+    pub fn add_element_styles(&mut self, styles_dsl: &str) {
+        self.styles_serializer
+            .set_external_output(styles_dsl.to_string());
+        self.views_serializer
+            .set_styles_output(styles_dsl.to_string());
     }
 
     pub fn serialize(&mut self) -> Result<String, StructurizrDslError> {
@@ -95,16 +118,18 @@ impl WorkspaceSerializer {
         self.write_model_section()?;
         self.writer.unindent();
         self.writer.add_line("}");
+
         self.write_views_section()?;
-        self.write_styles_section()?;
-        self.write_configuration_section()?;
         self.writer.unindent();
         self.writer.add_line("}");
         Ok(self.writer.as_output())
     }
 
     fn write_workspace_header(&mut self) -> Result<(), StructurizrDslError> {
-        self.writer.add_line("workspace {");
+        let name = self.name.as_deref().unwrap_or("Name");
+        let description = self.description.as_deref().unwrap_or("Description");
+        self.writer
+            .add_line(&format!(r#"workspace "{}" "{}" {{"#, name, description));
         self.writer.indent();
         self.writer.add_line("!identifiers hierarchical");
         self.writer.add_empty_line();
@@ -275,32 +300,9 @@ impl WorkspaceSerializer {
         if !views_dsl.is_empty() {
             self.writer.unindent();
             self.writer.add_empty_line();
-            self.writer.add_line(&views_dsl);
-        }
-        Ok(())
-    }
-
-    fn write_styles_section(&mut self) -> Result<(), StructurizrDslError> {
-        let styles_dsl = self.styles_serializer.serialize();
-        if !styles_dsl.is_empty() {
-            self.writer.unindent();
-            self.writer.add_empty_line();
-            self.writer.add_line(&styles_dsl);
-        }
-        Ok(())
-    }
-
-    fn write_configuration_section(&mut self) -> Result<(), StructurizrDslError> {
-        if self.has_configuration {
-            self.writer.unindent();
-            self.writer.add_empty_line();
-            self.writer.add_line("configuration {");
-            self.writer.indent();
-            if let Some(scope) = &self.configuration_scope {
-                self.writer.add_line(&format!("scope {}", scope));
+            for line in views_dsl.lines() {
+                self.writer.add_line(line);
             }
-            self.writer.unindent();
-            self.writer.add_line("}");
         }
         Ok(())
     }
@@ -315,7 +317,10 @@ mod tests {
     fn test_workspace_serializer_empty() {
         let mut serializer = WorkspaceSerializer::new();
         let result = serializer.serialize().unwrap();
-        assert!(result.contains("workspace {"));
+        println!("=== OUTPUT ===");
+        println!("{}", result);
+        println!("=== END ===");
+        assert!(result.starts_with("workspace "));
         assert!(result.contains("!identifiers"));
         assert!(result.contains("hierarchical"));
         assert!(result.contains("model {"));
@@ -348,15 +353,6 @@ mod tests {
     }
 
     #[test]
-    fn test_workspace_serializer_with_configuration() {
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.set_scope("softwaresystem");
-        let result = serializer.serialize().unwrap();
-        assert!(result.contains("configuration {"));
-        assert!(result.contains("scope softwaresystem"));
-    }
-
-    #[test]
     fn test_identifier_uniqueness() {
         let mut serializer = WorkspaceSerializer::new();
         let person1 = Person::builder()
@@ -382,8 +378,8 @@ mod tests {
         let result = serializer.serialize().unwrap();
 
         assert!(
-            result.contains("workspace {"),
-            "Output should contain workspace block opening"
+            result.starts_with("workspace "),
+            "Output should start with workspace declaration"
         );
         assert!(
             result.contains("!identifiers"),
@@ -463,7 +459,7 @@ mod tests {
         let result = serializer.serialize().unwrap();
 
         assert!(
-            result.contains("workspace {"),
+            result.starts_with("workspace "),
             "Should contain workspace opening"
         );
         assert!(result.contains("model {"), "Should contain model opening");

@@ -73,7 +73,9 @@ fn main() {
         .unwrap();
 
     // Serialize to Structurizr DSL
-    let mut serializer = StructurizrDslSerializer::new();
+    let mut serializer = StructurizrDslSerializer::new()
+        .with_name("Example System")
+        .with_description("An example C4 model");
     serializer.add_person(person);
 
     // Add first software system with its containers
@@ -85,6 +87,28 @@ fn main() {
     // Add second software system with its container
     serializer.add_software_system(web_system);
     serializer.add_container("Web Portal", portal_frontend);
+
+    serializer.add_relationship("u", "a", "Uses", None);
+
+    // Add views
+    use c4rs::serialization::views_serializer::ViewType;
+
+    let mut ctx_view = c4rs::serialization::views_serializer::ViewConfiguration::new(
+        ViewType::SystemContext,
+        "a",
+        "SystemContext",
+    );
+    ctx_view.include_element("*");
+    serializer.add_view(&ctx_view);
+
+    // Add styles
+    serializer.add_element_style(
+        c4rs::serialization::styles_serializer::ElementStyle::new("Person").with_shape("person"),
+    );
+    serializer.add_element_style(
+        c4rs::serialization::styles_serializer::ElementStyle::new("Database")
+            .with_shape("cylinder"),
+    );
 
     let dsl = serializer.serialize().unwrap();
 
