@@ -12,10 +12,19 @@ pub struct WorkspaceSerializer {
     persons: Vec<Person>,
     software_systems: Vec<SoftwareSystem>,
     containers: Vec<Container>,
+    relationships: Vec<SerializedRelationship>,
     views_serializer: ViewsSerializer,
     styles_serializer: StylesSerializer,
     has_configuration: bool,
     configuration_scope: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct SerializedRelationship {
+    pub source_id: String,
+    pub target_id: String,
+    pub description: String,
+    pub technology: Option<String>,
 }
 
 impl Default for WorkspaceSerializer {
@@ -32,6 +41,7 @@ impl WorkspaceSerializer {
             persons: Vec::new(),
             software_systems: Vec::new(),
             containers: Vec::new(),
+            relationships: Vec::new(),
             views_serializer: ViewsSerializer::new(),
             styles_serializer: StylesSerializer::new(),
             has_configuration: false,
@@ -47,6 +57,20 @@ impl WorkspaceSerializer {
     }
     pub fn add_container(&mut self, container: Container) {
         self.containers.push(container);
+    }
+    pub fn add_relationship(
+        &mut self,
+        source_id: &str,
+        target_id: &str,
+        description: &str,
+        technology: Option<&str>,
+    ) {
+        self.relationships.push(SerializedRelationship {
+            source_id: source_id.to_string(),
+            target_id: target_id.to_string(),
+            description: description.to_string(),
+            technology: technology.map(|s| s.to_string()),
+        });
     }
     pub fn set_scope(&mut self, scope: &str) {
         self.has_configuration = true;
@@ -118,7 +142,33 @@ impl WorkspaceSerializer {
             self.writer.add_line(&dsl);
         }
 
+        for rel in &self.relationships {
+            let dsl = Self::serialize_relationship(
+                &rel.source_id,
+                &rel.target_id,
+                &rel.description,
+                rel.technology.as_deref(),
+            );
+            self.writer.add_line(&dsl);
+        }
+
         Ok(())
+    }
+
+    fn serialize_relationship(
+        source_id: &str,
+        target_id: &str,
+        description: &str,
+        technology: Option<&str>,
+    ) -> String {
+        if let Some(tech) = technology {
+            format!(
+                r#"{} -> {} "{}" "{}""#,
+                source_id, target_id, description, tech
+            )
+        } else {
+            format!(r#"{} -> {} "{}""#, source_id, target_id, description)
+        }
     }
 
     fn serialize_person(person: &Person, identifier: &str) -> Result<String, StructurizrDslError> {
@@ -458,5 +508,58 @@ mod tests {
             result.contains("a1 = softwareSystem"),
             "Second system should have 'a1' identifier"
         );
+    }
+
+    #[test]
+    fn test_us3_relationship_syntax() {
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_relationship("u", "ss", "Uses", None);
+        let result = serializer.serialize().unwrap();
+
+        assert!(
+            result.contains("u -> ss \"Uses\""),
+            "Relationship should have correct syntax: source -> target \"description\""
+        );
+    }
+
+    #[test]
+    fn test_us3_relationship_with_technology() {
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_relationship("u", "ss", "Uses", Some("HTTPS"));
+        let result = serializer.serialize().unwrap();
+
+        assert!(
+            result.contains("u -> ss \"Uses\" \"HTTPS\""),
+            "Relationship with technology should include technology in output"
+        );
+    }
+
+    #[test]
+    fn test_us3_multiple_relationships() {
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_relationship("u", "a", "Uses", Some("HTTPS"));
+        serializer.add_relationship("a", "d", "Queries", Some("TCP"));
+        let result = serializer.serialize().unwrap();
+
+        assert!(
+            result.contains("u -> a \"Uses\" \"HTTPS\""),
+            "First relationship should be present"
+        );
+        assert!(
+            result.contains("a -> d \"Queries\" \"TCP\""),
+            "Second relationship should be present"
+        );
+    }
+
+    #[test]
+    fn test_us3_relationship_order() {
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_relationship("s2", "s1", "Depends on", None);
+        serializer.add_relationship("s1", "s3", "Calls", None);
+        let result = serializer.serialize().unwrap();
+
+        let pos1 = result.find("s2 -> s1").unwrap();
+        let pos2 = result.find("s1 -> s3").unwrap();
+        assert!(pos1 < pos2, "Relationships should appear in order added");
     }
 }
