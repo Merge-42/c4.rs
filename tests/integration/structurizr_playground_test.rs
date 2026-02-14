@@ -148,3 +148,45 @@ fn test_integration_invalid_hierarchy() {
     let result = hierarchy.validate_container_parent("WebApp", Some("Database"));
     assert!(result.is_err());
 }
+
+#[test]
+fn test_integration_views_serialization() {
+    use c4rs::c4::ElementType;
+    use c4rs::serialization::{ViewConfiguration, ViewsSerializer};
+
+    let mut views = ViewsSerializer::new();
+    let mut view = ViewConfiguration::new("context", "System Context", ElementType::SoftwareSystem);
+    view.include_element("User");
+    view.include_element("API");
+    views.add_view(view);
+
+    let dsl = views.serialize();
+    assert!(dsl.contains("views {"));
+    assert!(dsl.contains("systemcontext context {"));
+    assert!(dsl.contains("include User"));
+}
+
+#[test]
+fn test_integration_styles_serialization() {
+    use c4rs::c4::ElementType;
+    use c4rs::serialization::{ElementStyle, RelationshipStyle, StylesSerializer};
+
+    let mut styles = StylesSerializer::new();
+    styles.add_element_style(
+        ElementStyle::new("person", ElementType::Person)
+            .with_background("#ffcc00")
+            .with_color("#000000"),
+    );
+    styles.add_relationship_style(
+        RelationshipStyle::new()
+            .with_thickness("2")
+            .with_color("#999999"),
+    );
+
+    let dsl = styles.serialize();
+    assert!(dsl.contains("styles {"));
+    assert!(dsl.contains("person {"));
+    assert!(dsl.contains("background #ffcc00"));
+    assert!(dsl.contains("relationship {"));
+    assert!(dsl.contains("thickness 2"));
+}
