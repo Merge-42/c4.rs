@@ -90,6 +90,8 @@ impl WorkspaceSerializer {
         self.used_identifiers.clear();
         self.write_workspace_header()?;
         self.write_model_section()?;
+        self.writer.unindent();
+        self.writer.add_line("}");
         self.write_views_section()?;
         self.write_styles_section()?;
         self.write_configuration_section()?;
@@ -561,5 +563,34 @@ mod tests {
         let pos1 = result.find("s2 -> s1").unwrap();
         let pos2 = result.find("s1 -> s3").unwrap();
         assert!(pos1 < pos2, "Relationships should appear in order added");
+    }
+
+    #[test]
+    fn test_us7_brace_balance() {
+        let person = Person::builder()
+            .with_name("User".try_into().unwrap())
+            .with_description("A system user".try_into().unwrap())
+            .build()
+            .unwrap();
+
+        let system = SoftwareSystem::builder()
+            .with_name("API".try_into().unwrap())
+            .with_description("Backend API".try_into().unwrap())
+            .build()
+            .unwrap();
+
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_person(person);
+        serializer.add_software_system(system);
+        serializer.add_relationship("u", "a", "Uses", None);
+        let result = serializer.serialize().unwrap();
+
+        let opens = result.matches('{').count();
+        let closes = result.matches('}').count();
+        assert_eq!(
+            opens, closes,
+            "Braces should be balanced: {} opens, {} closes",
+            opens, closes
+        );
     }
 }
