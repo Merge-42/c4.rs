@@ -22,7 +22,7 @@ fn main() {
         .build()
         .unwrap();
 
-    let component = Component::builder()
+    let _component = Component::builder()
         .with_name("UserController".into())
         .with_description("Handles user requests".into())
         .with_technology("Rust".into())
@@ -31,9 +31,11 @@ fn main() {
 
     // Serialize to Structurizr DSL
     let mut serializer = StructurizrDslSerializer::new();
-    let dsl = serializer
-        .serialize(&[&person, &system, &container, &component])
-        .unwrap();
+    serializer.add_person(person);
+    serializer.add_software_system(system);
+    serializer.add_container(container);
+    // Note: Component is not directly added - it belongs to a Container
+    let dsl = serializer.serialize().unwrap();
 
     println!("Structurizr DSL Output:\n");
     println!("{}", dsl);

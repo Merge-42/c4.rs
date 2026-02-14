@@ -119,6 +119,7 @@ impl RelationshipStyle {
 pub struct StylesSerializer {
     element_styles: Vec<ElementStyle>,
     relationship_styles: Vec<RelationshipStyle>,
+    external_output: Option<String>,
 }
 
 impl StylesSerializer {
@@ -127,6 +128,7 @@ impl StylesSerializer {
         Self {
             element_styles: Vec::new(),
             relationship_styles: Vec::new(),
+            external_output: None,
         }
     }
 
@@ -140,8 +142,19 @@ impl StylesSerializer {
         self.relationship_styles.push(style);
     }
 
+    /// Set external pre-serialized output (for integration with WorkspaceSerializer).
+    pub fn set_external_output(&mut self, output: String) {
+        self.external_output = Some(output);
+    }
+
     /// Serialize styles to DSL format.
     pub fn serialize(&self) -> String {
+        if let Some(ref output) = self.external_output
+            && !output.is_empty()
+        {
+            return output.clone();
+        }
+
         if self.element_styles.is_empty() && self.relationship_styles.is_empty() {
             return String::new();
         }

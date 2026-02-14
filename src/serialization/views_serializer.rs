@@ -40,12 +40,16 @@ impl ViewConfiguration {
 #[derive(Debug, Default)]
 pub struct ViewsSerializer {
     views: Vec<ViewConfiguration>,
+    external_output: Option<String>,
 }
 
 impl ViewsSerializer {
     /// Create a new views serializer.
     pub fn new() -> Self {
-        Self { views: Vec::new() }
+        Self {
+            views: Vec::new(),
+            external_output: None,
+        }
     }
 
     /// Add a view configuration.
@@ -53,8 +57,19 @@ impl ViewsSerializer {
         self.views.push(view);
     }
 
+    /// Set external pre-serialized output (for integration with WorkspaceSerializer).
+    pub fn set_external_output(&mut self, output: String) {
+        self.external_output = Some(output);
+    }
+
     /// Serialize all views to DSL format.
     pub fn serialize(&self) -> String {
+        if let Some(ref output) = self.external_output
+            && !output.is_empty()
+        {
+            return output.clone();
+        }
+
         if self.views.is_empty() {
             return String::new();
         }

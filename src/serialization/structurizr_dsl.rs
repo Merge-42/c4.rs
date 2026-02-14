@@ -1,15 +1,15 @@
 //! Main Structurizr DSL Serializer.
 
+use crate::c4::{Container, Person, SoftwareSystem};
 use crate::serialization::error::StructurizrDslError;
 use crate::serialization::styles_serializer::{ElementStyle, RelationshipStyle, StylesSerializer};
-use crate::serialization::traits::ElementSerializer;
 use crate::serialization::views_serializer::{ViewConfiguration, ViewsSerializer};
-use crate::serialization::writer::DslWriter;
+use crate::serialization::workspace_serializer::WorkspaceSerializer;
 
 /// Serializer for converting C4 models to Structurizr DSL format.
 #[derive(Debug, Default)]
 pub struct StructurizrDslSerializer {
-    writer: DslWriter,
+    workspace_serializer: WorkspaceSerializer,
     views_serializer: ViewsSerializer,
     styles_serializer: StylesSerializer,
 }
@@ -18,10 +18,25 @@ impl StructurizrDslSerializer {
     /// Create a new Structurizr DSL serializer.
     pub fn new() -> Self {
         Self {
-            writer: DslWriter::new(),
+            workspace_serializer: WorkspaceSerializer::new(),
             views_serializer: ViewsSerializer::new(),
             styles_serializer: StylesSerializer::new(),
         }
+    }
+
+    /// Add a person to the workspace.
+    pub fn add_person(&mut self, person: Person) {
+        self.workspace_serializer.add_person(person);
+    }
+
+    /// Add a software system to the workspace.
+    pub fn add_software_system(&mut self, system: SoftwareSystem) {
+        self.workspace_serializer.add_software_system(system);
+    }
+
+    /// Add a container to the workspace.
+    pub fn add_container(&mut self, container: Container) {
+        self.workspace_serializer.add_container(container);
     }
 
     /// Add a view configuration.
@@ -39,11 +54,12 @@ impl StructurizrDslSerializer {
         self.styles_serializer.add_relationship_style(style);
     }
 
-    /// Serialize a collection of elements to Structurizr DSL.
-    ///
-    /// # Arguments
-    ///
-    /// * `elements` - Slice of element serializers
+    /// Set the workspace scope.
+    pub fn set_scope(&mut self, scope: &str) {
+        self.workspace_serializer.set_scope(scope);
+    }
+
+    /// Serialize the workspace to Structurizr DSL.
     ///
     /// # Returns
     ///
@@ -52,49 +68,18 @@ impl StructurizrDslSerializer {
     /// # Errors
     ///
     /// Returns a `StructurizrDslError` if serialization fails.
-    pub fn serialize(
-        &mut self,
-        elements: &[&dyn ElementSerializer],
-    ) -> Result<String, StructurizrDslError> {
-        self.writer.clear();
-
-        // Write workspace block with !identifiers
-        self.writer.add_line("workspace {");
-        self.writer.indent();
-        self.writer
-            .add_line("!identifiers people systems containers components");
-        self.writer.unindent();
-        self.writer.add_line("}");
-        self.writer.add_empty_line();
-
-        // Write model block
-        self.writer.add_line("model {");
-        self.writer.indent();
-
-        // Serialize elements
-        for element in elements {
-            let dsl = element.serialize_structurizr_dsl()?;
-            self.writer.add_line(&dsl);
-        }
-
-        self.writer.unindent();
-        self.writer.add_line("}");
-        self.writer.add_empty_line();
-
-        // Write views block if views configured
+    pub fn serialize(&mut self) -> Result<String, StructurizrDslError> {
         let views_dsl = self.views_serializer.serialize();
         if !views_dsl.is_empty() {
-            self.writer.add_line(&views_dsl);
-            self.writer.add_empty_line();
+            self.workspace_serializer.set_views_output(views_dsl);
         }
 
-        // Write styles block if styles configured
         let styles_dsl = self.styles_serializer.serialize();
         if !styles_dsl.is_empty() {
-            self.writer.add_line(&styles_dsl);
+            self.workspace_serializer.set_styles_output(styles_dsl);
         }
 
-        Ok(self.writer.as_output())
+        self.workspace_serializer.serialize()
     }
 }
 
@@ -106,7 +91,7 @@ mod tests {
     #[test]
     fn test_serialize_empty_model() {
         let mut serializer = StructurizrDslSerializer::new();
-        let result = serializer.serialize(&[]).unwrap();
+        let result = serializer.serialize().unwrap();
         assert!(result.contains("workspace {"));
         assert!(result.contains("model {"));
     }
@@ -120,9 +105,10 @@ mod tests {
             .unwrap();
 
         let mut serializer = StructurizrDslSerializer::new();
-        let result = serializer.serialize(&[&person]).unwrap();
+        serializer.add_person(person);
+        let result = serializer.serialize().unwrap();
 
-        assert!(result.contains(r#"User = person "User" "A system user""#));
+        assert!(result.contains(r#"u = person "User" "A system user""#));
     }
 
     #[test]
@@ -147,13 +133,14 @@ mod tests {
             .unwrap();
 
         let mut serializer = StructurizrDslSerializer::new();
-        let result = serializer
-            .serialize(&[&person, &system, &container])
-            .unwrap();
+        serializer.add_person(person);
+        serializer.add_software_system(system);
+        serializer.add_container(container);
+        let result = serializer.serialize().unwrap();
 
-        assert!(result.contains(r#"User = person "User""#));
-        assert!(result.contains(r#"API = softwareSystem "API""#));
-        assert!(result.contains(r#"Web_App = container "Web App""#));
+        assert!(result.contains(r#"u = person "User""#));
+        assert!(result.contains(r#"a = softwareSystem "API""#));
+        assert!(result.contains(r#"wa = container "Web App""#));
     }
 
     #[test]
@@ -165,15 +152,16 @@ mod tests {
             .unwrap();
 
         let mut serializer = StructurizrDslSerializer::new();
+        serializer.add_person(person);
         let mut view = ViewConfiguration::new("context", "System Context", ElementType::Person);
-        view.include_element("User");
+        view.include_element("u");
         serializer.add_view(view);
 
-        let result = serializer.serialize(&[&person]).unwrap();
+        let result = serializer.serialize().unwrap();
 
         assert!(result.contains("views {"));
         assert!(result.contains("person context {"));
-        assert!(result.contains("include User"));
+        assert!(result.contains("include u"));
     }
 
     #[test]
@@ -185,13 +173,14 @@ mod tests {
             .unwrap();
 
         let mut serializer = StructurizrDslSerializer::new();
+        serializer.add_person(person);
         serializer.add_element_style(
             ElementStyle::new("person", ElementType::Person)
                 .with_background("#ffcc00")
                 .with_color("#000000"),
         );
 
-        let result = serializer.serialize(&[&person]).unwrap();
+        let result = serializer.serialize().unwrap();
 
         assert!(result.contains("styles {"));
         assert!(result.contains("person {"));
