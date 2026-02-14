@@ -353,4 +353,110 @@ mod tests {
         assert!(result.contains("model {"), "Should contain model opening");
         assert!(result.contains("}"), "Should contain closing braces");
     }
+
+    #[test]
+    fn test_us2_element_syntax() {
+        let person = Person::builder()
+            .with_name("User".try_into().unwrap())
+            .with_description("A system user".try_into().unwrap())
+            .build()
+            .unwrap();
+
+        let system = SoftwareSystem::builder()
+            .with_name("API".try_into().unwrap())
+            .with_description("Backend API".try_into().unwrap())
+            .build()
+            .unwrap();
+
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_person(person);
+        serializer.add_software_system(system);
+        let result = serializer.serialize().unwrap();
+
+        assert!(
+            result.contains("u = person"),
+            "Person should have 'u' identifier"
+        );
+        assert!(
+            result.contains("a = softwareSystem"),
+            "SoftwareSystem should have 'a' identifier"
+        );
+        assert!(result.contains("\"API\""), "Should contain API name");
+    }
+
+    #[test]
+    fn test_us2_identifier_generation_collision() {
+        let person1 = Person::builder()
+            .with_name("Database".try_into().unwrap())
+            .with_description("Data store".try_into().unwrap())
+            .build()
+            .unwrap();
+
+        let person2 = Person::builder()
+            .with_name("Developer".try_into().unwrap())
+            .with_description("Software developer".try_into().unwrap())
+            .build()
+            .unwrap();
+
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_person(person1);
+        serializer.add_person(person2);
+        let result = serializer.serialize().unwrap();
+
+        assert!(
+            result.contains("d = person \"Database\""),
+            "First person 'Database' should have 'd' identifier"
+        );
+        assert!(
+            result.contains("d1 = person \"Developer\""),
+            "Second person 'Developer' should have 'd1' identifier (collision resolved)"
+        );
+    }
+
+    #[test]
+    fn test_us2_software_system_identifier() {
+        let system = SoftwareSystem::builder()
+            .with_name("API".try_into().unwrap())
+            .with_description("Backend API".try_into().unwrap())
+            .build()
+            .unwrap();
+
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_software_system(system);
+        let result = serializer.serialize().unwrap();
+
+        assert!(
+            result.contains("a = softwareSystem"),
+            "SoftwareSystem should have 'a' identifier"
+        );
+    }
+
+    #[test]
+    fn test_us2_multiple_software_systems() {
+        let system1 = SoftwareSystem::builder()
+            .with_name("API".try_into().unwrap())
+            .with_description("Backend API".try_into().unwrap())
+            .build()
+            .unwrap();
+
+        let system2 = SoftwareSystem::builder()
+            .with_name("API".try_into().unwrap())
+            .with_description("Another API".try_into().unwrap())
+            .build()
+            .unwrap();
+
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_software_system(system1);
+        serializer.add_software_system(system2);
+        let result = serializer.serialize().unwrap();
+
+        assert!(
+            result.contains("a = softwareSystem"),
+            "First system should have 'a' identifier"
+        );
+        assert!(
+            result.contains("a1 = softwareSystem"),
+            "Second system should have 'a1' identifier"
+        );
+    }
 }
