@@ -34,9 +34,10 @@ impl StructurizrDslSerializer {
         self.workspace_serializer.add_software_system(system);
     }
 
-    /// Add a container to the workspace.
-    pub fn add_container(&mut self, container: Container) {
-        self.workspace_serializer.add_container(container);
+    /// Add a container to a specific software system.
+    pub fn add_container(&mut self, system_name: &str, container: Container) {
+        self.workspace_serializer
+            .add_container_to_system(system_name, container);
     }
 
     /// Add a view configuration.
@@ -135,7 +136,7 @@ mod tests {
         let mut serializer = StructurizrDslSerializer::new();
         serializer.add_person(person);
         serializer.add_software_system(system);
-        serializer.add_container(container);
+        serializer.add_container("API", container);
         let result = serializer.serialize().unwrap();
 
         assert!(result.contains(r#"u = person "User""#));

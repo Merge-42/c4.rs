@@ -33,7 +33,7 @@ fn main() {
     let mut serializer = StructurizrDslSerializer::new();
     serializer.add_person(person);
     serializer.add_software_system(system);
-    serializer.add_container(container);
+    serializer.add_container("API", container);
     // Note: Component is not directly added - it belongs to a Container
     let dsl = serializer.serialize().unwrap();
 

@@ -3,7 +3,7 @@ use crate::serialization::{
     StylesSerializer, ViewsSerializer, error::StructurizrDslError,
     identifier_generator::IdentifierGenerator, writer::DslWriter,
 };
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug)]
 pub struct WorkspaceSerializer {
@@ -11,7 +11,7 @@ pub struct WorkspaceSerializer {
     used_identifiers: HashSet<String>,
     persons: Vec<Person>,
     software_systems: Vec<SoftwareSystem>,
-    containers: Vec<Container>,
+    containers: HashMap<String, Vec<Container>>,
     relationships: Vec<SerializedRelationship>,
     views_serializer: ViewsSerializer,
     styles_serializer: StylesSerializer,
@@ -40,7 +40,7 @@ impl WorkspaceSerializer {
             used_identifiers: HashSet::new(),
             persons: Vec::new(),
             software_systems: Vec::new(),
-            containers: Vec::new(),
+            containers: HashMap::new(),
             relationships: Vec::new(),
             views_serializer: ViewsSerializer::new(),
             styles_serializer: StylesSerializer::new(),
@@ -55,8 +55,11 @@ impl WorkspaceSerializer {
     pub fn add_software_system(&mut self, system: SoftwareSystem) {
         self.software_systems.push(system);
     }
-    pub fn add_container(&mut self, container: Container) {
-        self.containers.push(container);
+    pub fn add_container_to_system(&mut self, system_name: &str, container: Container) {
+        self.containers
+            .entry(system_name.to_string())
+            .or_default()
+            .push(container);
     }
     pub fn add_relationship(
         &mut self,
@@ -117,11 +120,6 @@ impl WorkspaceSerializer {
             .iter()
             .map(|s| s.name().to_string())
             .collect();
-        let container_names: Vec<String> = self
-            .containers
-            .iter()
-            .map(|c| c.name().to_string())
-            .collect();
 
         for (person, name) in self.persons.iter().zip(person_names.iter()) {
             let identifier = IdentifierGenerator::generate_unique(name, &self.used_identifiers);
@@ -131,17 +129,31 @@ impl WorkspaceSerializer {
         }
 
         for (system, name) in self.software_systems.iter().zip(system_names.iter()) {
-            let identifier = IdentifierGenerator::generate_unique(name, &self.used_identifiers);
-            self.used_identifiers.insert(identifier.clone());
-            let dsl = Self::serialize_software_system(system, &identifier)?;
-            self.writer.add_line(&dsl);
-        }
+            let system_identifier =
+                IdentifierGenerator::generate_unique(name, &self.used_identifiers);
+            self.used_identifiers.insert(system_identifier.clone());
 
-        for (container, name) in self.containers.iter().zip(container_names.iter()) {
-            let identifier = IdentifierGenerator::generate_unique(name, &self.used_identifiers);
-            self.used_identifiers.insert(identifier.clone());
-            let dsl = Self::serialize_container(container, &identifier)?;
+            let has_containers = self.containers.get(name).is_some_and(|c| !c.is_empty());
+
+            let dsl = Self::serialize_software_system(system, &system_identifier, has_containers);
             self.writer.add_line(&dsl);
+
+            if has_containers {
+                self.writer.indent();
+                let containers = self.containers.get(name).unwrap();
+                let container_names: Vec<String> =
+                    containers.iter().map(|c| c.name().to_string()).collect();
+                for (container, cname) in containers.iter().zip(container_names.iter()) {
+                    let container_identifier =
+                        IdentifierGenerator::generate_unique(cname, &self.used_identifiers);
+                    self.used_identifiers.insert(container_identifier.clone());
+                    let container_dsl =
+                        Self::serialize_container(container, &container_identifier)?;
+                    self.writer.add_line(&container_dsl);
+                }
+                self.writer.unindent();
+                self.writer.add_line("}");
+            }
         }
 
         for rel in &self.relationships {
@@ -185,13 +197,23 @@ impl WorkspaceSerializer {
     fn serialize_software_system(
         system: &SoftwareSystem,
         identifier: &str,
-    ) -> Result<String, StructurizrDslError> {
-        Ok(format!(
-            r#"{} = softwareSystem "{}" "{}" {{}}"#,
-            identifier,
-            system.name(),
-            system.description()
-        ))
+        has_containers: bool,
+    ) -> String {
+        if has_containers {
+            format!(
+                r#"{} = softwareSystem "{}" "{}" {{"#,
+                identifier,
+                system.name(),
+                system.description()
+            )
+        } else {
+            format!(
+                r#"{} = softwareSystem "{}" "{}" {{}}"#,
+                identifier,
+                system.name(),
+                system.description()
+            )
+        }
     }
 
     fn serialize_container(
