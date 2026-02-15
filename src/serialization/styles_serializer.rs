@@ -1,5 +1,7 @@
 //! Styles serialization for Structurizr DSL.
 
+use crate::serialization::templates::view::{ElementStyleTemplate, RelationshipStyleTemplate};
+use askama::Template;
 use serde::{Deserialize, Serialize};
 
 /// Represents a style for elements in Structurizr DSL.
@@ -164,50 +166,33 @@ impl StylesSerializer {
         lines.push("styles {".to_string());
 
         for style in &self.element_styles {
-            lines.push(format!("    element \"{}\" {{", style.identifier));
-
-            if let Some(bg) = &style.background {
-                lines.push(format!("        background {}", bg));
-            }
-            if let Some(color) = &style.color {
-                lines.push(format!("        color {}", color));
-            }
-            if let Some(shape) = &style.shape {
-                lines.push(format!("        shape {}", shape));
-            }
-            if let Some(size) = &style.size {
-                lines.push(format!("        size {}", size));
-            }
-            if let Some(stroke) = &style.stroke {
-                lines.push(format!("        stroke {}", stroke));
-            }
-            if let Some(stroke_width) = &style.stroke_width {
-                lines.push(format!("        strokeWidth {}", stroke_width));
-            }
-
-            lines.push("    }".to_string());
+            let template = ElementStyleTemplate {
+                identifier: &style.identifier,
+                background: style.background.as_deref(),
+                color: style.color.as_deref(),
+                shape: style.shape.as_deref(),
+                size: style.size.as_deref(),
+                stroke: style.stroke.as_deref(),
+                stroke_width: style.stroke_width.as_deref(),
+            };
+            lines.push(template.render().unwrap());
         }
 
         for style in &self.relationship_styles {
-            lines.push("    relationship {".to_string());
-
-            if let Some(thickness) = &style.thickness {
-                lines.push(format!("        thickness {}", thickness));
-            }
-            if let Some(color) = &style.color {
-                lines.push(format!("        color {}", color));
-            }
-            if let Some(router) = &style.router {
-                lines.push(format!("        router {}", router));
-            }
-            if let Some(dashed) = &style.dashed {
-                lines.push(format!(
-                    "        dashed {}",
-                    if *dashed { "true" } else { "false" }
-                ));
-            }
-
-            lines.push("    }".to_string());
+            let dashed_str = style.dashed.map(|d| {
+                if d {
+                    "true".to_string()
+                } else {
+                    "false".to_string()
+                }
+            });
+            let template = RelationshipStyleTemplate {
+                thickness: style.thickness.as_deref(),
+                color: style.color.as_deref(),
+                router: style.router.as_deref(),
+                dashed: dashed_str.as_deref(),
+            };
+            lines.push(template.render().unwrap());
         }
 
         lines.push("}".to_string());
