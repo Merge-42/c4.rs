@@ -2,8 +2,9 @@
 
 use crate::c4::SoftwareSystem;
 use crate::serialization::error::StructurizrDslError;
-use crate::serialization::traits::{ElementSerializer, format_identifier};
-use crate::serialization::writer::format_element_assignment;
+use crate::serialization::templates::elements::SoftwareSystemTemplate;
+use crate::serialization::traits::{ElementSerializer, escape_dsl_string, format_identifier};
+use askama::Template;
 
 /// Serializes a SoftwareSystem element to Structurizr DSL format.
 ///
@@ -11,16 +12,15 @@ use crate::serialization::writer::format_element_assignment;
 impl ElementSerializer for SoftwareSystem {
     fn serialize_structurizr_dsl(&self) -> Result<String, StructurizrDslError> {
         let identifier = format_identifier(self.name());
-        let name = self.name();
-        let description = self.description();
+        let name = escape_dsl_string(self.name());
+        let description = escape_dsl_string(self.description());
 
-        Ok(format_element_assignment(
-            &identifier,
-            "softwareSystem",
-            name,
-            description,
-            None,
-        ))
+        let template = SoftwareSystemTemplate {
+            identifier: &identifier,
+            name: &name,
+            description: &description,
+        };
+        Ok(template.render().unwrap())
     }
 }
 

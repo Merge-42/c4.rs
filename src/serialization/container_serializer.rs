@@ -2,8 +2,9 @@
 
 use crate::c4::Container;
 use crate::serialization::error::StructurizrDslError;
-use crate::serialization::traits::{ElementSerializer, format_identifier};
-use crate::serialization::writer::format_element_assignment;
+use crate::serialization::templates::elements::ContainerTemplate;
+use crate::serialization::traits::{ElementSerializer, escape_dsl_string, format_identifier};
+use askama::Template;
 
 /// Serializes a Container element to Structurizr DSL format.
 ///
@@ -11,17 +12,17 @@ use crate::serialization::writer::format_element_assignment;
 impl ElementSerializer for Container {
     fn serialize_structurizr_dsl(&self) -> Result<String, StructurizrDslError> {
         let identifier = format_identifier(self.name());
-        let name = self.name();
-        let description = self.description();
-        let technology = self.container_type().to_string();
+        let name = escape_dsl_string(self.name());
+        let description = escape_dsl_string(self.description());
+        let technology = escape_dsl_string(&self.container_type().to_string());
 
-        Ok(format_element_assignment(
-            &identifier,
-            "container",
-            name,
-            description,
-            Some(&technology),
-        ))
+        let template = ContainerTemplate {
+            identifier: &identifier,
+            name: &name,
+            description: &description,
+            technology: &technology,
+        };
+        Ok(template.render().unwrap())
     }
 }
 
