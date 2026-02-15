@@ -1,5 +1,8 @@
 //! Views serialization for Structurizr DSL.
 
+use crate::serialization::templates::view::ViewTemplate;
+use askama::Template;
+
 /// Represents a view type in Structurizr DSL.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ViewType {
@@ -131,20 +134,19 @@ impl ViewsSerializer {
         lines.push("views {".to_string());
 
         for view in &self.views {
-            lines.push(format!(
-                "    {} {} \"{}\" {{",
-                view.view_type, view.element_identifier, view.title
-            ));
+            let include_refs: Vec<&str> =
+                view.include_elements.iter().map(|s| s.as_str()).collect();
+            let exclude_refs: Vec<&str> =
+                view.exclude_elements.iter().map(|s| s.as_str()).collect();
 
-            for element in &view.include_elements {
-                lines.push(format!("        include {}", element));
-            }
-
-            for element in &view.exclude_elements {
-                lines.push(format!("        exclude {}", element));
-            }
-
-            lines.push("    }".to_string());
+            let template = ViewTemplate {
+                view_type: &view.view_type.to_string(),
+                identifier: &view.element_identifier,
+                title: &view.title,
+                include_elements: &include_refs,
+                exclude_elements: &exclude_refs,
+            };
+            lines.push(template.render().unwrap());
         }
 
         if let Some(ref styles) = self.styles_output {
