@@ -22,7 +22,7 @@ impl ElementSerializer for Container {
             description: &description,
             technology: Some(&technology),
         };
-        Ok(template.render().unwrap())
+        Ok(template.render()?)
     }
 }
 

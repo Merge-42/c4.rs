@@ -27,7 +27,7 @@ impl<S: Element, T: Element> ElementSerializer for Relationship<S, T> {
             description: &description,
             technology: technology.as_deref(),
         };
-        Ok(template.render().unwrap())
+        Ok(template.render()?)
     }
 }
 

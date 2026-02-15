@@ -20,7 +20,7 @@ impl ElementSerializer for SoftwareSystem {
             name: &name,
             description: &description,
         };
-        Ok(template.render().unwrap())
+        Ok(template.render()?)
     }
 }
 
