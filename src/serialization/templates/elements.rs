@@ -24,47 +24,36 @@ pub struct SoftwareSystemTemplate<'a> {
 
 #[derive(Template)]
 #[template(
-    source = r#"{{ identifier }} = container "{{ name }}" "{{ description }}" "{{ technology }}""#,
+    source = r#"{{ identifier }} = container "{{ name }}" "{{ description }}"{% if let Some(t) = technology %} "{{ t }}"{% else %} ""{% endif %}"#,
     ext = "txt"
 )]
 pub struct ContainerTemplate<'a> {
     pub identifier: &'a str,
     pub name: &'a str,
     pub description: &'a str,
-    pub technology: &'a str,
+    pub technology: Option<&'a str>,
 }
 
 #[derive(Template)]
 #[template(
-    source = r#"{{ identifier }} = component "{{ name }}" "{{ description }}" "{{ technology }}""#,
+    source = r#"{{ identifier }} = component "{{ name }}" "{{ description }}"{% if let Some(t) = technology %} "{{ t }}"{% else %} ""{% endif %}"#,
     ext = "txt"
 )]
 pub struct ComponentTemplate<'a> {
     pub identifier: &'a str,
     pub name: &'a str,
     pub description: &'a str,
-    pub technology: &'a str,
+    pub technology: Option<&'a str>,
 }
 
 #[derive(Template)]
 #[template(
-    source = r#"{{ source }} -> {{ target }} "{{ description }}" "{{ technology }}""#,
+    source = r#"{{ source }} -> {{ target }} "{{ description }}"{% if let Some(t) = technology %} "{{ t }}"{% endif %}"#,
     ext = "txt"
 )]
 pub struct RelationshipTemplate<'a> {
     pub source: &'a str,
     pub target: &'a str,
     pub description: &'a str,
-    pub technology: &'a str,
-}
-
-#[derive(Template)]
-#[template(
-    source = r#"{{ source }} -> {{ target }} "{{ description }}""#,
-    ext = "txt"
-)]
-pub struct RelationshipNoTechTemplate<'a> {
-    pub source: &'a str,
-    pub target: &'a str,
-    pub description: &'a str,
+    pub technology: Option<&'a str>,
 }

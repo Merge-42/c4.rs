@@ -20,7 +20,7 @@ impl ElementSerializer for Container {
             identifier: &identifier,
             name: &name,
             description: &description,
-            technology: &technology,
+            technology: Some(&technology),
         };
         Ok(template.render().unwrap())
     }

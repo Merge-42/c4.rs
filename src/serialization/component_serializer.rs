@@ -14,13 +14,13 @@ impl ElementSerializer for Component {
         let identifier = format_identifier(self.name());
         let name = escape_dsl_string(self.name());
         let description = escape_dsl_string(self.description());
-        let technology = escape_dsl_string(self.technology().unwrap_or(""));
+        let technology = self.technology().map(escape_dsl_string);
 
         let template = ComponentTemplate {
             identifier: &identifier,
             name: &name,
             description: &description,
-            technology: &technology,
+            technology: technology.as_deref(),
         };
         Ok(template.render().unwrap())
     }

@@ -2,7 +2,7 @@
 
 use crate::c4::{Element, Relationship};
 use crate::serialization::error::StructurizrDslError;
-use crate::serialization::templates::elements::{RelationshipNoTechTemplate, RelationshipTemplate};
+use crate::serialization::templates::elements::RelationshipTemplate;
 use crate::serialization::traits::{ElementSerializer, escape_dsl_string, format_identifier};
 use askama::Template;
 
@@ -19,26 +19,15 @@ impl<S: Element, T: Element> ElementSerializer for Relationship<S, T> {
         let source = format_identifier(self.source().name());
         let target = format_identifier(self.target().name());
         let description = escape_dsl_string(self.description());
-        let technology = self.technology();
+        let technology = self.technology().map(escape_dsl_string);
 
-        let dsl = if let Some(tech) = technology {
-            let tech = escape_dsl_string(tech);
-            let template = RelationshipTemplate {
-                source: &source,
-                target: &target,
-                description: &description,
-                technology: &tech,
-            };
-            template.render().unwrap()
-        } else {
-            let template = RelationshipNoTechTemplate {
-                source: &source,
-                target: &target,
-                description: &description,
-            };
-            template.render().unwrap()
+        let template = RelationshipTemplate {
+            source: &source,
+            target: &target,
+            description: &description,
+            technology: technology.as_deref(),
         };
-        Ok(dsl)
+        Ok(template.render().unwrap())
     }
 }
 
