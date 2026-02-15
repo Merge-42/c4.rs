@@ -95,8 +95,6 @@ impl HierarchySerializer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::c4::{Container, ContainerType, SoftwareSystem};
-
     #[test]
     fn test_hierarchy_serialization() {
         let mut serializer = HierarchySerializer::new();

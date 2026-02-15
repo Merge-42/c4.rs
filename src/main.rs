@@ -9,31 +9,108 @@ fn main() {
         .build()
         .unwrap();
 
-    let system = SoftwareSystem::builder()
+    // First software system with containers
+    let api_system = SoftwareSystem::builder()
         .with_name("API".into())
         .with_description("Backend API service".into())
         .build()
         .unwrap();
 
-    let container = Container::builder()
+    // Container in the API system
+    let api_container = Container::builder()
         .with_name("Web App".into())
         .with_description("Frontend application".into())
         .with_container_type(ContainerType::WebApplication)
         .build()
         .unwrap();
 
-    let component = Component::builder()
-        .with_name("UserController".into())
-        .with_description("Handles user requests".into())
-        .with_technology("Rust".into())
+    // Another container in the API system
+    let db_container = Container::builder()
+        .with_name("Database".into())
+        .with_description("PostgreSQL database".into())
+        .with_container_type(ContainerType::Database)
+        .with_technology("PostgreSQL 15".into())
+        .build()
+        .unwrap();
+
+    // Second software system (separate from API)
+    let web_system = SoftwareSystem::builder()
+        .with_name("Web Portal".into())
+        .with_description("Customer web portal".into())
+        .build()
+        .unwrap();
+
+    // Container in the Web Portal system
+    let portal_frontend = Container::builder()
+        .with_name("Frontend".into())
+        .with_description("React frontend".into())
+        .with_container_type(ContainerType::WebApplication)
+        .build()
+        .unwrap();
+
+    // Container WITH components (using builder pattern)
+    let api_container_with_components = Container::builder()
+        .with_name("API Service".into())
+        .with_description("Backend API".into())
+        .with_container_type(ContainerType::Api)
+        .add_component(
+            Component::builder()
+                .with_name("UserController".into())
+                .with_description("User handling".into())
+                .with_technology("Rust".into())
+                .build()
+                .unwrap(),
+        )
+        .add_component(
+            Component::builder()
+                .with_name("OrderController".into())
+                .with_description("Order handling".into())
+                .with_technology("Rust".into())
+                .build()
+                .unwrap(),
+        )
         .build()
         .unwrap();
 
     // Serialize to Structurizr DSL
-    let mut serializer = StructurizrDslSerializer::new();
-    let dsl = serializer
-        .serialize(&[&person, &system, &container, &component])
-        .unwrap();
+    let mut serializer = StructurizrDslSerializer::new()
+        .with_name("Example System")
+        .with_description("An example C4 model");
+    serializer.add_person(person);
+
+    // Add first software system with its containers
+    serializer.add_software_system(api_system);
+    serializer.add_container("API", api_container);
+    serializer.add_container("API", db_container);
+    serializer.add_container("API", api_container_with_components);
+
+    // Add second software system with its container
+    serializer.add_software_system(web_system);
+    serializer.add_container("Web Portal", portal_frontend);
+
+    serializer.add_relationship("u", "a", "Uses", None);
+
+    // Add views
+    use c4rs::serialization::views_serializer::ViewType;
+
+    let mut ctx_view = c4rs::serialization::views_serializer::ViewConfiguration::new(
+        ViewType::SystemContext,
+        "a",
+        "SystemContext",
+    );
+    ctx_view.include_element("*");
+    serializer.add_view(&ctx_view);
+
+    // Add styles
+    serializer.add_element_style(
+        c4rs::serialization::styles_serializer::ElementStyle::new("Person").with_shape("person"),
+    );
+    serializer.add_element_style(
+        c4rs::serialization::styles_serializer::ElementStyle::new("Database")
+            .with_shape("cylinder"),
+    );
+
+    let dsl = serializer.serialize().unwrap();
 
     println!("Structurizr DSL Output:\n");
     println!("{}", dsl);

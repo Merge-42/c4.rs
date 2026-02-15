@@ -1,14 +1,11 @@
 //! Styles serialization for Structurizr DSL.
 
-use crate::c4::ElementType;
-use crate::serialization::writer::DslWriter;
 use serde::{Deserialize, Serialize};
 
 /// Represents a style for elements in Structurizr DSL.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ElementStyle {
     pub identifier: String,
-    pub element_type: ElementType,
     pub background: Option<String>,
     pub color: Option<String>,
     pub shape: Option<String>,
@@ -19,10 +16,9 @@ pub struct ElementStyle {
 
 impl ElementStyle {
     /// Create a new element style.
-    pub fn new(identifier: &str, element_type: ElementType) -> Self {
+    pub fn new(identifier: &str) -> Self {
         Self {
             identifier: identifier.to_string(),
-            element_type,
             background: None,
             color: None,
             shape: None,
@@ -119,6 +115,7 @@ impl RelationshipStyle {
 pub struct StylesSerializer {
     element_styles: Vec<ElementStyle>,
     relationship_styles: Vec<RelationshipStyle>,
+    external_output: Option<String>,
 }
 
 impl StylesSerializer {
@@ -127,6 +124,7 @@ impl StylesSerializer {
         Self {
             element_styles: Vec::new(),
             relationship_styles: Vec::new(),
+            external_output: None,
         }
     }
 
@@ -140,74 +138,80 @@ impl StylesSerializer {
         self.relationship_styles.push(style);
     }
 
+    /// Set external pre-serialized output (for integration with WorkspaceSerializer).
+    pub fn set_external_output(&mut self, output: String) {
+        self.external_output = Some(output);
+    }
+
+    /// Add element styles from serialized DSL string.
+    pub fn add_element_styles_from_string(&mut self, dsl: &str) {
+        self.external_output = Some(dsl.to_string());
+    }
+
     /// Serialize styles to DSL format.
     pub fn serialize(&self) -> String {
+        if let Some(ref output) = self.external_output
+            && !output.is_empty()
+        {
+            return output.clone();
+        }
+
         if self.element_styles.is_empty() && self.relationship_styles.is_empty() {
             return String::new();
         }
 
-        let mut writer = DslWriter::new();
-        writer.add_line("styles {");
-        writer.indent();
+        let mut lines = Vec::new();
+        lines.push("styles {".to_string());
 
         for style in &self.element_styles {
-            writer.add_line(&format!(
-                "    {} {{",
-                style.element_type.to_string().to_lowercase()
-            ));
-            writer.indent();
+            lines.push(format!("    element \"{}\" {{", style.identifier));
 
             if let Some(bg) = &style.background {
-                writer.add_line(&format!("        background {}", bg));
+                lines.push(format!("        background {}", bg));
             }
             if let Some(color) = &style.color {
-                writer.add_line(&format!("        color {}", color));
+                lines.push(format!("        color {}", color));
             }
             if let Some(shape) = &style.shape {
-                writer.add_line(&format!("        shape {}", shape));
+                lines.push(format!("        shape {}", shape));
             }
             if let Some(size) = &style.size {
-                writer.add_line(&format!("        size {}", size));
+                lines.push(format!("        size {}", size));
             }
             if let Some(stroke) = &style.stroke {
-                writer.add_line(&format!("        stroke {}", stroke));
+                lines.push(format!("        stroke {}", stroke));
             }
             if let Some(stroke_width) = &style.stroke_width {
-                writer.add_line(&format!("        strokeWidth {}", stroke_width));
+                lines.push(format!("        strokeWidth {}", stroke_width));
             }
 
-            writer.unindent();
-            writer.add_line("    }");
+            lines.push("    }".to_string());
         }
 
         for style in &self.relationship_styles {
-            writer.add_line("    relationship {");
-            writer.indent();
+            lines.push("    relationship {".to_string());
 
             if let Some(thickness) = &style.thickness {
-                writer.add_line(&format!("        thickness {}", thickness));
+                lines.push(format!("        thickness {}", thickness));
             }
             if let Some(color) = &style.color {
-                writer.add_line(&format!("        color {}", color));
+                lines.push(format!("        color {}", color));
             }
             if let Some(router) = &style.router {
-                writer.add_line(&format!("        router {}", router));
+                lines.push(format!("        router {}", router));
             }
             if let Some(dashed) = &style.dashed {
-                writer.add_line(&format!(
+                lines.push(format!(
                     "        dashed {}",
                     if *dashed { "true" } else { "false" }
                 ));
             }
 
-            writer.unindent();
-            writer.add_line("    }");
+            lines.push("    }".to_string());
         }
 
-        writer.unindent();
-        writer.add_line("}");
-
-        writer.as_output()
+        lines.push("}".to_string());
+        lines.join("\n")
     }
 }
 
@@ -219,7 +223,7 @@ mod tests {
     fn test_element_style() {
         let mut styles = StylesSerializer::new();
         styles.add_element_style(
-            ElementStyle::new("person", ElementType::Person)
+            ElementStyle::new("Person")
                 .with_background("#ffcc00")
                 .with_color("#000000")
                 .with_shape("Person"),
@@ -227,7 +231,7 @@ mod tests {
 
         let dsl = styles.serialize();
         assert!(dsl.contains("styles {"));
-        assert!(dsl.contains("person {"));
+        assert!(dsl.contains(r#"element "Person""#));
         assert!(dsl.contains("background #ffcc00"));
         assert!(dsl.contains("shape Person"));
     }
@@ -260,13 +264,51 @@ mod tests {
     fn test_container_style() {
         let mut styles = StylesSerializer::new();
         styles.add_element_style(
-            ElementStyle::new("container", ElementType::Container)
+            ElementStyle::new("Database")
                 .with_background("#ffffff")
-                .with_shape("Rectangle"),
+                .with_shape("cylinder"),
         );
 
         let dsl = styles.serialize();
-        assert!(dsl.contains("container {"));
-        assert!(dsl.contains("shape Rectangle"));
+        assert!(dsl.contains(r#"element "Database""#));
+        assert!(dsl.contains("shape cylinder"));
+    }
+
+    #[test]
+    fn test_us5_element_styles_from_spec() {
+        let mut styles = StylesSerializer::new();
+        styles.add_element_style(
+            ElementStyle::new("Element")
+                .with_color("#9a28f8")
+                .with_stroke("#9a28f8")
+                .with_stroke_width("7")
+                .with_shape("roundedbox"),
+        );
+        styles.add_element_style(ElementStyle::new("Person").with_shape("person"));
+        styles.add_element_style(ElementStyle::new("Database").with_shape("cylinder"));
+        styles.add_element_style(ElementStyle::new("Boundary").with_stroke_width("5"));
+
+        let dsl = styles.serialize();
+        assert!(dsl.contains(r#"element "Element""#));
+        assert!(dsl.contains("color #9a28f8"));
+        assert!(dsl.contains("stroke #9a28f8"));
+        assert!(dsl.contains("strokeWidth 7"));
+        assert!(dsl.contains("shape roundedbox"));
+        assert!(dsl.contains(r#"element "Person""#));
+        assert!(dsl.contains("shape person"));
+        assert!(dsl.contains(r#"element "Database""#));
+        assert!(dsl.contains("shape cylinder"));
+        assert!(dsl.contains(r#"element "Boundary""#));
+        assert!(dsl.contains("strokeWidth 5"));
+    }
+
+    #[test]
+    fn test_us5_relationship_style_from_spec() {
+        let mut styles = StylesSerializer::new();
+        styles.add_relationship_style(RelationshipStyle::new().with_thickness("4"));
+
+        let dsl = styles.serialize();
+        assert!(dsl.contains("relationship {"));
+        assert!(dsl.contains("thickness 4"));
     }
 }
