@@ -12,6 +12,7 @@ pub mod relationship_serializer;
 pub mod software_system_serializer;
 pub mod structurizr_dsl;
 pub mod styles_serializer;
+pub mod templates;
 pub mod traits;
 pub mod validator;
 pub mod views_serializer;
