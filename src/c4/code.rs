@@ -99,6 +99,18 @@ pub struct CodeElementBuilder<N, D, T> {
     file_path: Option<NonEmptyString>,
 }
 
+impl Default
+    for CodeElementBuilder<
+        code_element_builder::NoName,
+        code_element_builder::NoDescription,
+        code_element_builder::NoCodeType,
+    >
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl
     CodeElementBuilder<
         code_element_builder::NoName,

@@ -98,6 +98,12 @@ pub struct PersonBuilder<N, D> {
     technology: Option<NonEmptyString>,
 }
 
+impl Default for PersonBuilder<person_builder::NoName, person_builder::NoDescription> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PersonBuilder<person_builder::NoName, person_builder::NoDescription> {
     pub fn new() -> Self {
         PersonBuilder {
@@ -293,6 +299,17 @@ pub struct SoftwareSystemBuilder<N, D> {
     description: Option<NonEmptyString>,
     location: Location,
     containers: Vec<Container>,
+}
+
+impl Default
+    for SoftwareSystemBuilder<
+        software_system_builder::NoName,
+        software_system_builder::NoDescription,
+    >
+{
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl

@@ -111,6 +111,12 @@ pub struct ComponentBuilder<N, D> {
     code_elements: Vec<CodeElement>,
 }
 
+impl Default for ComponentBuilder<component_builder::NoName, component_builder::NoDescription> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ComponentBuilder<component_builder::NoName, component_builder::NoDescription> {
     pub fn new() -> Self {
         ComponentBuilder {
