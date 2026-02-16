@@ -191,7 +191,7 @@ match result {
 
 ## Architecture
 
-```
+```text
 src/
 ├── lib.rs              # Library root
 └── c4/
