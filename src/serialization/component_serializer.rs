@@ -34,8 +34,7 @@ mod tests {
             .with_name("UserController".try_into().unwrap())
             .with_description("Handles user requests".try_into().unwrap())
             .with_technology("Rust".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let dsl = component.serialize_structurizr_dsl().unwrap();
         assert_eq!(
@@ -49,8 +48,7 @@ mod tests {
         let component = Component::builder()
             .with_name("UserController".try_into().unwrap())
             .with_description("Handles user requests".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let dsl = component.serialize_structurizr_dsl().unwrap();
         assert_eq!(

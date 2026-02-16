@@ -3,13 +3,11 @@ use c4rs::serialization::StructurizrDslSerializer;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // Create a C4 model
     let person = Person::builder()
         .with_name("User".into())
         .with_description("A user of the system".into())
-        .build()?;
+        .build();
 
-    // First software system with containers (built directly with containers inside)
     let api_system = SoftwareSystem::builder()
         .with_name("API".into())
         .with_description("Backend API service".into())
@@ -18,7 +16,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .with_name("Web App".into())
                 .with_description("Frontend application".into())
                 .with_container_type(ContainerType::WebApplication)
-                .build()?,
+                .build(),
         )
         .add_container(
             Container::builder()
@@ -26,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .with_description("PostgreSQL database".into())
                 .with_container_type(ContainerType::Database)
                 .with_technology("PostgreSQL 15".into())
-                .build()?,
+                .build(),
         )
         .add_container(
             Container::builder()
@@ -38,20 +36,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .with_name("UserController".into())
                         .with_description("User handling".into())
                         .with_technology("Rust".into())
-                        .build()?,
+                        .build(),
                 )
                 .add_component(
                     Component::builder()
                         .with_name("OrderController".into())
                         .with_description("Order handling".into())
                         .with_technology("Rust".into())
-                        .build()?,
+                        .build(),
                 )
-                .build()?,
+                .build(),
         )
-        .build()?;
+        .build();
 
-    // Second software system with its container
     let web_system = SoftwareSystem::builder()
         .with_name("Web Portal".into())
         .with_description("Customer web portal".into())
@@ -60,11 +57,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .with_name("Frontend".into())
                 .with_description("React frontend".into())
                 .with_container_type(ContainerType::WebApplication)
-                .build()?,
+                .build(),
         )
-        .build()?;
+        .build();
 
-    // Serialize to Structurizr DSL
     let mut serializer = StructurizrDslSerializer::new()
         .with_name("Example System")
         .with_description("An example C4 model");
@@ -74,7 +70,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     serializer.add_relationship("u", "a", "Uses", None);
 
-    // Add views
     use c4rs::serialization::views_serializer::ViewType;
 
     let mut ctx_view = c4rs::serialization::views_serializer::ViewConfiguration::new(
@@ -85,7 +80,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     ctx_view.include_element("*");
     serializer.add_view(&ctx_view);
 
-    // Add styles
     serializer.add_element_style(
         c4rs::serialization::styles_serializer::ElementStyle::new("Person").with_shape("person"),
     );

@@ -32,8 +32,7 @@ mod tests {
         let system = SoftwareSystem::builder()
             .with_name("API".try_into().unwrap())
             .with_description("Backend API service".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let dsl = system.serialize_structurizr_dsl().unwrap();
         assert_eq!(dsl, r#"API = softwareSystem "API" "Backend API service""#);
@@ -44,8 +43,7 @@ mod tests {
         let system = SoftwareSystem::builder()
             .with_name("Payment Gateway".try_into().unwrap())
             .with_description("Processes payments".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let dsl = system.serialize_structurizr_dsl().unwrap();
         assert_eq!(

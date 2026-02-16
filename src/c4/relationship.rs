@@ -24,14 +24,12 @@ use super::context::Person;
 /// let person1 = Person::builder()
 ///     .with_name("Alice".try_into().unwrap())
 ///     .with_description("User 1".try_into().unwrap())
-///     .build()
-///     .unwrap();
+///     .build();
 ///
 /// let person2 = Person::builder()
 ///     .with_name("Bob".try_into().unwrap())
 ///     .with_description("User 2".try_into().unwrap())
-///     .build()
-///     .unwrap();
+///     .build();
 ///
 /// let relationship: Relationship<Person, Person> = Relationship::builder()
 ///     .with_source(person1)
@@ -247,14 +245,12 @@ mod tests {
         let person1 = Person::builder()
             .with_name("Alice".try_into().unwrap())
             .with_description("User 1".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let person2 = Person::builder()
             .with_name("Bob".try_into().unwrap())
             .with_description("User 2".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let relationship: Relationship<Person, Person> = Relationship::builder()
             .with_source(person1)
@@ -276,15 +272,13 @@ mod tests {
         let person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("A user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let container = Container::builder()
             .with_name("Web API".try_into().unwrap())
             .with_description("API".try_into().unwrap())
             .with_container_type(super::super::element::ContainerType::Api)
-            .build()
-            .unwrap();
+            .build();
 
         let relationship: Relationship<Person, Container> = Relationship::builder()
             .with_source(person)
@@ -303,8 +297,7 @@ mod tests {
                 Person::builder()
                     .with_name("Target".try_into().unwrap())
                     .with_description("Target".try_into().unwrap())
-                    .build()
-                    .unwrap(),
+                    .build(),
             )
             .with_description("Has".try_into().unwrap())
             .build();

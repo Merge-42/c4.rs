@@ -37,14 +37,12 @@ mod tests {
         let source = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("A user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let target = Person::builder()
             .with_name("Admin".try_into().unwrap())
             .with_description("An admin".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let relationship = Relationship::builder()
             .with_source(source)
@@ -62,14 +60,12 @@ mod tests {
         let source = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("A user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let target = Person::builder()
             .with_name("API".try_into().unwrap())
             .with_description("Backend".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let relationship = Relationship::builder()
             .with_source(source)

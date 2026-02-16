@@ -1,14 +1,25 @@
 use serde::{Deserialize, Serialize};
+use std::marker::PhantomData;
 
+use super::component::Component;
 use super::element::{ContainerType, Element, ElementType, Location};
 use super::value_types::{ElementIdentifier, NonEmptyString};
 
-use super::component::Component;
+pub mod container_builder {
+    #[derive(Debug, Clone, Default)]
+    pub struct NoName;
+    #[derive(Debug, Clone, Default)]
+    pub struct HasName;
+    #[derive(Debug, Clone, Default)]
+    pub struct NoDescription;
+    #[derive(Debug, Clone, Default)]
+    pub struct HasDescription;
+    #[derive(Debug, Clone, Default)]
+    pub struct NoContainerType;
+    #[derive(Debug, Clone, Default)]
+    pub struct HasContainerType;
+}
 
-/// Represents a deployable unit within a software system.
-///
-/// Containers are the executable units that make up a software system.
-/// Examples include web applications, databases, file systems, or APIs.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Container {
     identifier: ElementIdentifier,
@@ -16,47 +27,52 @@ pub struct Container {
     description: NonEmptyString,
     container_type: ContainerType,
     technology: Option<NonEmptyString>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     components: Vec<Component>,
 }
 
 impl Container {
-    /// Creates a new ContainerBuilder.
-    pub fn builder() -> ContainerBuilder {
-        ContainerBuilder::new()
+    pub fn builder() -> ContainerBuilder<
+        container_builder::NoName,
+        container_builder::NoDescription,
+        container_builder::NoContainerType,
+    > {
+        ContainerBuilder {
+            _name: PhantomData,
+            _description: PhantomData,
+            _container_type: PhantomData,
+            identifier: None,
+            name: None,
+            description: None,
+            container_type: None,
+            technology: None,
+            components: Vec::new(),
+        }
     }
 
-    /// Returns a reference to the container's unique identifier.
     pub fn identifier(&self) -> &ElementIdentifier {
         &self.identifier
     }
 
-    /// Returns the container's name.
     pub fn name(&self) -> &str {
         self.name.as_str()
     }
 
-    /// Returns the container's description.
     pub fn description(&self) -> &str {
         self.description.as_str()
     }
 
-    /// Returns the container's type.
     pub fn container_type(&self) -> ContainerType {
         self.container_type.clone()
     }
 
-    /// Returns the technology used by this container.
     pub fn technology(&self) -> Option<&str> {
         self.technology.as_deref()
     }
 
-    /// Returns the components in this container.
     pub fn components(&self) -> &[Component] {
         &self.components
     }
 
-    /// Adds a component to this container.
     pub fn add_component(&mut self, component: Component) {
         self.components.push(component);
     }
@@ -80,14 +96,15 @@ impl Element for Container {
     }
 
     fn location(&self) -> Location {
-        Location::Internal // Containers are always internal to their software system
+        Location::Internal
     }
 }
 
-/// Builder for constructing Container instances.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(default)]
-pub struct ContainerBuilder {
+#[derive(Debug, Clone)]
+pub struct ContainerBuilder<N, D, T> {
+    _name: PhantomData<N>,
+    _description: PhantomData<D>,
+    _container_type: PhantomData<T>,
     identifier: Option<ElementIdentifier>,
     name: Option<NonEmptyString>,
     description: Option<NonEmptyString>,
@@ -96,10 +113,30 @@ pub struct ContainerBuilder {
     components: Vec<Component>,
 }
 
-impl ContainerBuilder {
-    /// Creates a new ContainerBuilder.
+impl Default
+    for ContainerBuilder<
+        container_builder::NoName,
+        container_builder::NoDescription,
+        container_builder::NoContainerType,
+    >
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl
+    ContainerBuilder<
+        container_builder::NoName,
+        container_builder::NoDescription,
+        container_builder::NoContainerType,
+    >
+{
     pub fn new() -> Self {
-        Self {
+        ContainerBuilder {
+            _name: PhantomData,
+            _description: PhantomData,
+            _container_type: PhantomData,
             identifier: None,
             name: None,
             description: None,
@@ -108,85 +145,114 @@ impl ContainerBuilder {
             components: Vec::new(),
         }
     }
+}
 
-    /// Sets the element identifier.
+impl<D, T> ContainerBuilder<container_builder::NoName, D, T> {
     pub fn with_identifier(mut self, identifier: ElementIdentifier) -> Self {
         self.identifier = Some(identifier);
         self
     }
 
-    /// Sets the container's name.
-    pub fn with_name(mut self, name: NonEmptyString) -> Self {
-        self.name = Some(name);
-        self
+    pub fn with_name(
+        self,
+        name: NonEmptyString,
+    ) -> ContainerBuilder<container_builder::HasName, D, T> {
+        ContainerBuilder {
+            _name: PhantomData,
+            _description: self._description,
+            _container_type: self._container_type,
+            identifier: self.identifier,
+            name: Some(name),
+            description: self.description,
+            container_type: self.container_type,
+            technology: self.technology,
+            components: self.components,
+        }
     }
+}
 
-    /// Sets the container's description.
-    pub fn with_description(mut self, description: NonEmptyString) -> Self {
-        self.description = Some(description);
-        self
+impl<N, T> ContainerBuilder<N, container_builder::NoDescription, T> {
+    pub fn with_description(
+        self,
+        description: NonEmptyString,
+    ) -> ContainerBuilder<N, container_builder::HasDescription, T> {
+        ContainerBuilder {
+            _name: self._name,
+            _description: PhantomData,
+            _container_type: self._container_type,
+            identifier: self.identifier,
+            name: self.name,
+            description: Some(description),
+            container_type: self.container_type,
+            technology: self.technology,
+            components: self.components,
+        }
     }
+}
 
-    /// Sets the container's type.
-    pub fn with_container_type(mut self, container_type: ContainerType) -> Self {
-        self.container_type = Some(container_type);
-        self
+impl<N, D> ContainerBuilder<N, D, container_builder::NoContainerType> {
+    pub fn with_container_type(
+        self,
+        container_type: ContainerType,
+    ) -> ContainerBuilder<N, D, container_builder::HasContainerType> {
+        ContainerBuilder {
+            _name: self._name,
+            _description: self._description,
+            _container_type: PhantomData,
+            identifier: self.identifier,
+            name: self.name,
+            description: self.description,
+            container_type: Some(container_type),
+            technology: self.technology,
+            components: self.components,
+        }
     }
+}
 
-    /// Sets the technology used by this container.
+impl<N, D, T> ContainerBuilder<N, D, T> {
     pub fn with_technology(mut self, technology: NonEmptyString) -> Self {
         self.technology = Some(technology);
         self
     }
 
-    /// Adds a component to the container.
     pub fn add_component(mut self, component: Component) -> Self {
         self.components.push(component);
         self
     }
+}
 
-    /// Builds the Container.
-    pub fn build(self) -> Result<Container, ContainerError> {
-        let identifier = self.identifier.unwrap_or_default();
-        let name = self.name.ok_or(ContainerError::MissingName)?;
-        let description = self.description.ok_or(ContainerError::MissingDescription)?;
-        let container_type = self.container_type.ok_or(ContainerError::MissingType)?;
-
+impl
+    ContainerBuilder<
+        container_builder::HasName,
+        container_builder::HasDescription,
+        container_builder::HasContainerType,
+    >
+{
+    pub fn build(self) -> Container {
         if let Some(ref tech) = self.technology
             && tech.len() > 255
         {
-            return Err(ContainerError::TechnologyTooLong {
-                max: 255,
-                actual: tech.len(),
-            });
+            panic!("technology string exceeds maximum length of 255 characters");
         }
-
-        Ok(Container {
-            identifier,
-            name,
-            description,
-            container_type,
+        Container {
+            identifier: self.identifier.unwrap_or_default(),
+            name: self.name.unwrap(),
+            description: self.description.unwrap(),
+            container_type: self.container_type.unwrap(),
             technology: self.technology,
             components: self.components,
-        })
+        }
     }
 }
 
-/// Error type for Container construction.
 #[derive(Debug, thiserror::Error)]
 pub enum ContainerError {
-    #[error("container identifier is required")]
-    MissingIdentifier,
-
     #[error("container name is required and cannot be empty")]
     MissingName,
-
     #[error("container description is required and cannot be empty")]
     MissingDescription,
-
     #[error("container type is required (e.g., Api, Database, WebApplication)")]
     MissingType,
-
     #[error("technology string exceeds maximum length of {max} characters (actual: {actual})")]
     TechnologyTooLong { max: usize, actual: usize },
 }
@@ -202,8 +268,7 @@ mod tests {
             .with_description("REST API endpoints".try_into().unwrap())
             .with_container_type(ContainerType::Api)
             .with_technology("Rust/Axum".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         assert_eq!(container.name(), "Web API");
         assert_eq!(container.container_type(), ContainerType::Api);
@@ -211,12 +276,21 @@ mod tests {
     }
 
     #[test]
-    fn test_container_error_missing_type() {
-        let result = Container::builder()
+    fn test_container_with_components() {
+        use super::super::Component;
+
+        let container = Container::builder()
             .with_name("API".try_into().unwrap())
-            .with_description("Missing type".try_into().unwrap())
+            .with_description("REST API".try_into().unwrap())
+            .with_container_type(ContainerType::Api)
+            .add_component(
+                Component::builder()
+                    .with_name("UserController".try_into().unwrap())
+                    .with_description("User handling".try_into().unwrap())
+                    .build(),
+            )
             .build();
 
-        assert!(result.is_err());
+        assert_eq!(container.components().len(), 1);
     }
 }

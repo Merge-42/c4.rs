@@ -122,8 +122,7 @@ mod tests {
         let person: Person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("A system user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let mut serializer = StructurizrDslSerializer::new();
         serializer.add_person(person);
@@ -137,8 +136,7 @@ mod tests {
         let person: Person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("A system user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
             .with_name("API".try_into().unwrap())
@@ -148,11 +146,9 @@ mod tests {
                     .with_name("Web App".try_into().unwrap())
                     .with_description("Frontend".try_into().unwrap())
                     .with_container_type(ContainerType::WebApplication)
-                    .build()
-                    .unwrap(),
+                    .build(),
             )
-            .build()
-            .unwrap();
+            .build();
 
         let mut serializer = StructurizrDslSerializer::new();
         serializer.add_person(person);
@@ -169,8 +165,7 @@ mod tests {
         let person: Person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("A system user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let mut serializer = StructurizrDslSerializer::new();
         serializer.add_person(person);
@@ -190,8 +185,7 @@ mod tests {
         let person: Person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("A system user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let mut serializer = StructurizrDslSerializer::new();
         serializer.add_person(person);
@@ -213,8 +207,7 @@ mod tests {
         let person: Person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("A user of the system".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
             .with_name("API".try_into().unwrap())
@@ -222,13 +215,11 @@ mod tests {
             .add_container(
                 Container::builder()
                     .with_name("Web App".try_into().unwrap())
-                    .with_description("Frontend application".try_into().unwrap())
+                    .with_description("Frontend".try_into().unwrap())
                     .with_container_type(ContainerType::WebApplication)
-                    .build()
-                    .unwrap(),
+                    .build(),
             )
-            .build()
-            .unwrap();
+            .build();
 
         let mut serializer = StructurizrDslSerializer::new()
             .with_name("Example System")
@@ -261,8 +252,7 @@ mod tests {
         let person: Person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("A user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
             .with_name("BankApp".try_into().unwrap())
@@ -272,11 +262,9 @@ mod tests {
                     .with_name("Web App".try_into().unwrap())
                     .with_description("Frontend".try_into().unwrap())
                     .with_container_type(ContainerType::WebApplication)
-                    .build()
-                    .unwrap(),
+                    .build(),
             )
-            .build()
-            .unwrap();
+            .build();
 
         let mut serializer = StructurizrDslSerializer::new()
             .with_name("Test Workspace")
@@ -310,8 +298,7 @@ mod tests {
                     .with_name("Web App".try_into().unwrap())
                     .with_description("Frontend".try_into().unwrap())
                     .with_container_type(ContainerType::WebApplication)
-                    .build()
-                    .unwrap(),
+                    .build(),
             )
             .add_container(
                 Container::builder()
@@ -319,11 +306,9 @@ mod tests {
                     .with_description("Data store".try_into().unwrap())
                     .with_container_type(ContainerType::Database)
                     .with_technology("PostgreSQL".into())
-                    .build()
-                    .unwrap(),
+                    .build(),
             )
-            .build()
-            .unwrap();
+            .build();
 
         let mut serializer = StructurizrDslSerializer::new()
             .with_name("Nested Test")
@@ -344,20 +329,17 @@ mod tests {
         let person: Person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("A user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let system1: SoftwareSystem = SoftwareSystem::builder()
             .with_name("SystemA".try_into().unwrap())
             .with_description("System A".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let system2: SoftwareSystem = SoftwareSystem::builder()
             .with_name("SystemB".try_into().unwrap())
             .with_description("System B".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let mut serializer = StructurizrDslSerializer::new()
             .with_name("Circular Test")
@@ -383,8 +365,7 @@ mod tests {
         let person: Person = Person::builder()
             .with_name("User's System".try_into().unwrap())
             .with_description("A \"special\" user & <test>".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
             .with_name("API-Service_v2".try_into().unwrap())
@@ -394,11 +375,9 @@ mod tests {
                     .with_name("Web/App".try_into().unwrap())
                     .with_description("Frontend - modern UI/UX".try_into().unwrap())
                     .with_container_type(ContainerType::WebApplication)
-                    .build()
-                    .unwrap(),
+                    .build(),
             )
-            .build()
-            .unwrap();
+            .build();
 
         let mut serializer = StructurizrDslSerializer::new()
             .with_name("Special Chars Test")
@@ -419,14 +398,12 @@ mod tests {
         let person: Person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("A user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
             .with_name("API".try_into().unwrap())
             .with_description("Backend API".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let mut serializer = StructurizrDslSerializer::new()
             .with_name("Tech Test")
@@ -447,20 +424,17 @@ mod tests {
         let person1: Person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("First user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let person2: Person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("Second user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let person3: Person = Person::builder()
             .with_name("User".try_into().unwrap())
             .with_description("Third user".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         let mut serializer = StructurizrDslSerializer::new()
             .with_name("Duplicate Names Test")

@@ -1,12 +1,25 @@
 use serde::{Deserialize, Serialize};
+use std::marker::PhantomData;
 
 use super::element::{CodeType, Element, ElementType, Location};
 use super::value_types::{ElementIdentifier, NonEmptyString};
 
+pub mod code_element_builder {
+    #[derive(Debug, Clone, Default)]
+    pub struct NoName;
+    #[derive(Debug, Clone, Default)]
+    pub struct HasName;
+    #[derive(Debug, Clone, Default)]
+    pub struct NoDescription;
+    #[derive(Debug, Clone, Default)]
+    pub struct HasDescription;
+    #[derive(Debug, Clone, Default)]
+    pub struct NoCodeType;
+    #[derive(Debug, Clone, Default)]
+    pub struct HasCodeType;
+}
+
 /// Represents an individual code unit within a component.
-///
-/// CodeElements are the lowest level of the C4 model, representing
-/// classes, functions, modules, or other code constructs.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CodeElement {
     identifier: ElementIdentifier,
@@ -18,37 +31,34 @@ pub struct CodeElement {
 }
 
 impl CodeElement {
-    /// Creates a new CodeElementBuilder.
-    pub fn builder() -> CodeElementBuilder {
+    pub fn builder() -> CodeElementBuilder<
+        code_element_builder::NoName,
+        code_element_builder::NoDescription,
+        code_element_builder::NoCodeType,
+    > {
         CodeElementBuilder::new()
     }
 
-    /// Returns a reference to the code element's unique identifier.
     pub fn identifier(&self) -> &ElementIdentifier {
         &self.identifier
     }
 
-    /// Returns the code element's name.
     pub fn name(&self) -> &str {
         self.name.as_str()
     }
 
-    /// Returns the code element's description.
     pub fn description(&self) -> &str {
         self.description.as_str()
     }
 
-    /// Returns the code element's type.
     pub fn code_type(&self) -> CodeType {
         self.code_type.clone()
     }
 
-    /// Returns the programming language.
     pub fn language(&self) -> Option<&str> {
         self.language.as_deref()
     }
 
-    /// Returns the file path where this code is located.
     pub fn file_path(&self) -> Option<&str> {
         self.file_path.as_deref()
     }
@@ -76,10 +86,11 @@ impl Element for CodeElement {
     }
 }
 
-/// Builder for constructing CodeElement instances.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(default)]
-pub struct CodeElementBuilder {
+#[derive(Debug, Clone)]
+pub struct CodeElementBuilder<N, D, T> {
+    _name: PhantomData<N>,
+    _description: PhantomData<D>,
+    _code_type: PhantomData<T>,
     identifier: Option<ElementIdentifier>,
     name: Option<NonEmptyString>,
     description: Option<NonEmptyString>,
@@ -88,10 +99,18 @@ pub struct CodeElementBuilder {
     file_path: Option<NonEmptyString>,
 }
 
-impl CodeElementBuilder {
-    /// Creates a new CodeElementBuilder.
+impl
+    CodeElementBuilder<
+        code_element_builder::NoName,
+        code_element_builder::NoDescription,
+        code_element_builder::NoCodeType,
+    >
+{
     pub fn new() -> Self {
-        Self {
+        CodeElementBuilder {
+            _name: PhantomData,
+            _description: PhantomData,
+            _code_type: PhantomData,
             identifier: None,
             name: None,
             description: None,
@@ -100,78 +119,108 @@ impl CodeElementBuilder {
             file_path: None,
         }
     }
+}
 
-    /// Sets the element identifier.
+impl<D, T> CodeElementBuilder<code_element_builder::NoName, D, T> {
     pub fn with_identifier(mut self, identifier: ElementIdentifier) -> Self {
         self.identifier = Some(identifier);
         self
     }
 
-    /// Sets the code element's name.
-    pub fn with_name(mut self, name: NonEmptyString) -> Self {
-        self.name = Some(name);
-        self
+    pub fn with_name(
+        self,
+        name: NonEmptyString,
+    ) -> CodeElementBuilder<code_element_builder::HasName, D, T> {
+        CodeElementBuilder {
+            _name: PhantomData,
+            _description: self._description,
+            _code_type: self._code_type,
+            identifier: self.identifier,
+            name: Some(name),
+            description: self.description,
+            code_type: self.code_type,
+            language: self.language,
+            file_path: self.file_path,
+        }
     }
+}
 
-    /// Sets the code element's description.
-    pub fn with_description(mut self, description: NonEmptyString) -> Self {
-        self.description = Some(description);
-        self
+impl<N, T> CodeElementBuilder<N, code_element_builder::NoDescription, T> {
+    pub fn with_description(
+        self,
+        description: NonEmptyString,
+    ) -> CodeElementBuilder<N, code_element_builder::HasDescription, T> {
+        CodeElementBuilder {
+            _name: self._name,
+            _description: PhantomData,
+            _code_type: self._code_type,
+            identifier: self.identifier,
+            name: self.name,
+            description: Some(description),
+            code_type: self.code_type,
+            language: self.language,
+            file_path: self.file_path,
+        }
     }
+}
 
-    /// Sets the code element's type.
-    pub fn with_code_type(mut self, code_type: CodeType) -> Self {
-        self.code_type = Some(code_type);
-        self
+impl<N, D> CodeElementBuilder<N, D, code_element_builder::NoCodeType> {
+    pub fn with_code_type(
+        self,
+        code_type: CodeType,
+    ) -> CodeElementBuilder<N, D, code_element_builder::HasCodeType> {
+        CodeElementBuilder {
+            _name: self._name,
+            _description: self._description,
+            _code_type: PhantomData,
+            identifier: self.identifier,
+            name: self.name,
+            description: self.description,
+            code_type: Some(code_type),
+            language: self.language,
+            file_path: self.file_path,
+        }
     }
+}
 
-    /// Sets the programming language.
+impl<N, D, T> CodeElementBuilder<N, D, T> {
     pub fn with_language(mut self, language: NonEmptyString) -> Self {
         self.language = Some(language);
         self
     }
 
-    /// Sets the file path.
     pub fn with_file_path(mut self, file_path: NonEmptyString) -> Self {
         self.file_path = Some(file_path);
         self
     }
+}
 
-    /// Builds the CodeElement.
-    pub fn build(self) -> Result<CodeElement, CodeElementError> {
-        let identifier = self.identifier.unwrap_or_default();
-        let name = self.name.ok_or(CodeElementError::MissingName)?;
-        let description = self
-            .description
-            .ok_or(CodeElementError::MissingDescription)?;
-        let code_type = self.code_type.ok_or(CodeElementError::MissingType)?;
-
+impl
+    CodeElementBuilder<
+        code_element_builder::HasName,
+        code_element_builder::HasDescription,
+        code_element_builder::HasCodeType,
+    >
+{
+    pub fn build(self) -> CodeElement {
         if let Some(ref lang) = self.language
             && lang.len() > 255
         {
-            return Err(CodeElementError::LanguageTooLong {
-                max: 255,
-                actual: lang.len(),
-            });
+            panic!("language string exceeds maximum length of 255 characters");
         }
-
         if let Some(ref path) = self.file_path
             && path.len() > 512
         {
-            return Err(CodeElementError::FilePathTooLong {
-                max: 512,
-                actual: path.len(),
-            });
+            panic!("file path exceeds maximum length of 512 characters");
         }
-
-        Ok(CodeElement {
-            identifier,
-            name,
-            description,
-            code_type,
+        CodeElement {
+            identifier: self.identifier.unwrap_or_default(),
+            name: self.name.unwrap(),
+            description: self.description.unwrap(),
+            code_type: self.code_type.unwrap(),
             language: self.language,
             file_path: self.file_path,
-        })
+        }
     }
 }
 
@@ -209,21 +258,10 @@ mod tests {
             .with_code_type(CodeType::Function)
             .with_language("Rust".try_into().unwrap())
             .with_file_path("src/orders/calculator.rs".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         assert_eq!(code_element.name(), "calculateTotal");
         assert_eq!(code_element.code_type(), CodeType::Function);
         assert_eq!(code_element.language(), Some("Rust"));
-    }
-
-    #[test]
-    fn test_code_element_error_missing_type() {
-        let result = CodeElement::builder()
-            .with_name("myFunction".try_into().unwrap())
-            .with_description("Missing type".try_into().unwrap())
-            .build();
-
-        assert!(result.is_err());
     }
 }

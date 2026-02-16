@@ -13,8 +13,7 @@
 //!     .with_name("Alice".try_into().unwrap())
 //!     .with_description("System administrator".try_into().unwrap())
 //!     .with_location(Location::Internal)
-//!     .build()
-//!     .unwrap();
+//!     .build();
 //!
 //! // Types implement serde::Serialize
 //! // With serde_json: to_string_pretty(&person)

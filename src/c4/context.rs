@@ -1,8 +1,20 @@
 use serde::{Deserialize, Serialize};
+use std::marker::PhantomData;
 
 use super::container::Container;
 use super::element::{Element, ElementType, Location};
 use super::value_types::{ElementIdentifier, NonEmptyString};
+
+pub mod person_builder {
+    #[derive(Debug, Clone, Default)]
+    pub struct NoName;
+    #[derive(Debug, Clone, Default)]
+    pub struct HasName;
+    #[derive(Debug, Clone, Default)]
+    pub struct NoDescription;
+    #[derive(Debug, Clone, Default)]
+    pub struct HasDescription;
+}
 
 /// Represents a user or actor in the system.
 ///
@@ -19,7 +31,7 @@ pub struct Person {
 
 impl Person {
     /// Creates a new PersonBuilder for constructing a Person.
-    pub fn builder() -> PersonBuilder {
+    pub fn builder() -> PersonBuilder<person_builder::NoName, person_builder::NoDescription> {
         PersonBuilder::new()
     }
 
@@ -72,20 +84,25 @@ impl Element for Person {
 }
 
 /// Builder for constructing Person instances with validation.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(default)]
-pub struct PersonBuilder {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonBuilder<N, D> {
+    #[serde(skip)]
+    _name: PhantomData<N>,
+    #[serde(skip)]
+    _description: PhantomData<D>,
     identifier: Option<ElementIdentifier>,
     name: Option<NonEmptyString>,
     description: Option<NonEmptyString>,
+    #[serde(default)]
     location: Location,
     technology: Option<NonEmptyString>,
 }
 
-impl PersonBuilder {
-    /// Creates a new PersonBuilder with default values.
+impl PersonBuilder<person_builder::NoName, person_builder::NoDescription> {
     pub fn new() -> Self {
-        Self {
+        PersonBuilder {
+            _name: PhantomData,
+            _description: PhantomData,
             identifier: None,
             name: None,
             description: None,
@@ -93,61 +110,70 @@ impl PersonBuilder {
             technology: None,
         }
     }
+}
 
-    /// Sets the element identifier.
+impl<D> PersonBuilder<person_builder::NoName, D> {
     pub fn with_identifier(mut self, identifier: ElementIdentifier) -> Self {
         self.identifier = Some(identifier);
         self
     }
 
-    /// Sets the person's name.
-    pub fn with_name(mut self, name: NonEmptyString) -> Self {
-        self.name = Some(name);
-        self
+    pub fn with_name(self, name: NonEmptyString) -> PersonBuilder<person_builder::HasName, D> {
+        PersonBuilder {
+            _name: PhantomData,
+            _description: self._description,
+            identifier: self.identifier,
+            name: Some(name),
+            description: self.description,
+            location: self.location,
+            technology: self.technology,
+        }
     }
+}
 
-    /// Sets the person's description.
-    pub fn with_description(mut self, description: NonEmptyString) -> Self {
-        self.description = Some(description);
-        self
+impl<N> PersonBuilder<N, person_builder::NoDescription> {
+    pub fn with_description(
+        self,
+        description: NonEmptyString,
+    ) -> PersonBuilder<N, person_builder::HasDescription> {
+        PersonBuilder {
+            _name: self._name,
+            _description: PhantomData,
+            identifier: self.identifier,
+            name: self.name,
+            description: Some(description),
+            location: self.location,
+            technology: self.technology,
+        }
     }
+}
 
-    /// Sets whether the person is internal or external.
+impl<N, D> PersonBuilder<N, D> {
     pub fn with_location(mut self, location: Location) -> Self {
         self.location = location;
         self
     }
 
-    /// Sets the technology used by this person.
     pub fn with_technology(mut self, technology: NonEmptyString) -> Self {
         self.technology = Some(technology);
         self
     }
+}
 
-    /// Builds the Person, validating all fields.
-    ///
-    /// Returns an error if any required field is missing or invalid.
-    pub fn build(self) -> Result<Person, PersonError> {
-        let identifier = self.identifier.unwrap_or_default();
-        let name = self.name.ok_or(PersonError::MissingName)?;
-        let description = self.description.ok_or(PersonError::MissingDescription)?;
-
+impl PersonBuilder<person_builder::HasName, person_builder::HasDescription> {
+    pub fn build(self) -> Person {
         if let Some(ref tech) = self.technology
             && tech.len() > 255
         {
-            return Err(PersonError::TechnologyTooLong {
-                max: 255,
-                actual: tech.len(),
-            });
+            panic!("technology string exceeds maximum length of 255 characters");
         }
-
-        Ok(Person {
-            identifier,
-            name,
-            description,
+        Person {
+            identifier: self.identifier.unwrap_or_default(),
+            name: self.name.unwrap(),
+            description: self.description.unwrap(),
             location: self.location,
             technology: self.technology,
-        })
+        }
     }
 }
 
@@ -167,6 +193,17 @@ pub enum PersonError {
     TechnologyTooLong { max: usize, actual: usize },
 }
 
+pub mod software_system_builder {
+    #[derive(Debug, Clone, Default)]
+    pub struct NoName;
+    #[derive(Debug, Clone, Default)]
+    pub struct HasName;
+    #[derive(Debug, Clone, Default)]
+    pub struct NoDescription;
+    #[derive(Debug, Clone, Default)]
+    pub struct HasDescription;
+}
+
 /// Represents a software system being described.
 ///
 /// A SoftwareSystem is a top-level container that groups related Containers.
@@ -183,7 +220,10 @@ pub struct SoftwareSystem {
 
 impl SoftwareSystem {
     /// Creates a new SoftwareSystemBuilder.
-    pub fn builder() -> SoftwareSystemBuilder {
+    pub fn builder() -> SoftwareSystemBuilder<
+        software_system_builder::NoName,
+        software_system_builder::NoDescription,
+    > {
         SoftwareSystemBuilder::new()
     }
 
@@ -241,9 +281,13 @@ impl Element for SoftwareSystem {
 }
 
 /// Builder for constructing SoftwareSystem instances.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
-pub struct SoftwareSystemBuilder {
+pub struct SoftwareSystemBuilder<N, D> {
+    #[serde(skip)]
+    _name: PhantomData<N>,
+    #[serde(skip)]
+    _description: PhantomData<D>,
     identifier: Option<ElementIdentifier>,
     name: Option<NonEmptyString>,
     description: Option<NonEmptyString>,
@@ -251,10 +295,13 @@ pub struct SoftwareSystemBuilder {
     containers: Vec<Container>,
 }
 
-impl SoftwareSystemBuilder {
-    /// Creates a new SoftwareSystemBuilder.
+impl
+    SoftwareSystemBuilder<software_system_builder::NoName, software_system_builder::NoDescription>
+{
     pub fn new() -> Self {
-        Self {
+        SoftwareSystemBuilder {
+            _name: PhantomData,
+            _description: PhantomData,
             identifier: None,
             name: None,
             description: None,
@@ -262,52 +309,70 @@ impl SoftwareSystemBuilder {
             containers: Vec::new(),
         }
     }
+}
 
-    /// Sets the element identifier.
+impl<D> SoftwareSystemBuilder<software_system_builder::NoName, D> {
     pub fn with_identifier(mut self, identifier: ElementIdentifier) -> Self {
         self.identifier = Some(identifier);
         self
     }
 
-    /// Sets the system's name.
-    pub fn with_name(mut self, name: NonEmptyString) -> Self {
-        self.name = Some(name);
-        self
+    pub fn with_name(
+        self,
+        name: NonEmptyString,
+    ) -> SoftwareSystemBuilder<software_system_builder::HasName, D> {
+        SoftwareSystemBuilder {
+            _name: PhantomData,
+            _description: self._description,
+            identifier: self.identifier,
+            name: Some(name),
+            description: self.description,
+            location: self.location,
+            containers: self.containers,
+        }
     }
+}
 
-    /// Sets the system's description.
-    pub fn with_description(mut self, description: NonEmptyString) -> Self {
-        self.description = Some(description);
-        self
+impl<N> SoftwareSystemBuilder<N, software_system_builder::NoDescription> {
+    pub fn with_description(
+        self,
+        description: NonEmptyString,
+    ) -> SoftwareSystemBuilder<N, software_system_builder::HasDescription> {
+        SoftwareSystemBuilder {
+            _name: self._name,
+            _description: PhantomData,
+            identifier: self.identifier,
+            name: self.name,
+            description: Some(description),
+            location: self.location,
+            containers: self.containers,
+        }
     }
+}
 
-    /// Sets whether the system is internal or external.
+impl<N, D> SoftwareSystemBuilder<N, D> {
     pub fn with_location(mut self, location: Location) -> Self {
         self.location = location;
         self
     }
 
-    /// Adds a container to the system.
     pub fn add_container(mut self, container: Container) -> Self {
         self.containers.push(container);
         self
     }
+}
 
-    /// Builds the SoftwareSystem.
-    pub fn build(self) -> Result<SoftwareSystem, SoftwareSystemError> {
-        let identifier = self.identifier.unwrap_or_default();
-        let name = self.name.ok_or(SoftwareSystemError::MissingName)?;
-        let description = self
-            .description
-            .ok_or(SoftwareSystemError::MissingDescription)?;
-
-        Ok(SoftwareSystem {
-            identifier,
-            name,
-            description,
+impl
+    SoftwareSystemBuilder<software_system_builder::HasName, software_system_builder::HasDescription>
+{
+    pub fn build(self) -> SoftwareSystem {
+        SoftwareSystem {
+            identifier: self.identifier.unwrap_or_default(),
+            name: self.name.unwrap(),
+            description: self.description.unwrap(),
             location: self.location,
             containers: self.containers,
-        })
+        }
     }
 }
 
@@ -334,8 +399,7 @@ mod tests {
             .with_name("Alice".try_into().unwrap())
             .with_description("System administrator".try_into().unwrap())
             .with_location(Location::Internal)
-            .build()
-            .unwrap();
+            .build();
 
         assert_eq!(person.name(), "Alice");
         assert_eq!(person.description(), "System administrator");
@@ -350,23 +414,9 @@ mod tests {
             .with_description("API consumer".try_into().unwrap())
             .with_location(Location::External)
             .with_technology("Python 3.11".try_into().unwrap())
-            .build()
-            .unwrap();
-
-        assert_eq!(person.technology(), Some("Python 3.11"));
-    }
-
-    #[test]
-    fn test_person_error_missing_name() {
-        let result = Person::builder()
-            .with_description("No name".try_into().unwrap())
             .build();
 
-        assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "person name is required and cannot be empty"
-        );
+        assert_eq!(person.technology(), Some("Python 3.11"));
     }
 
     #[test]
@@ -374,8 +424,7 @@ mod tests {
         let system = SoftwareSystem::builder()
             .with_name("E-Commerce Platform".try_into().unwrap())
             .with_description("Online shopping system".try_into().unwrap())
-            .build()
-            .unwrap();
+            .build();
 
         assert_eq!(system.name(), "E-Commerce Platform");
         assert!(system.containers().is_empty());
