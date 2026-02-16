@@ -22,7 +22,7 @@ impl ElementSerializer for Component {
             description: &description,
             technology: &technology,
         };
-        Ok(template.render().unwrap())
+        Ok(template.render()?)
     }
 }
 

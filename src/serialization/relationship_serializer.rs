@@ -29,14 +29,14 @@ impl<S: Element, T: Element> ElementSerializer for Relationship<S, T> {
                 description: &description,
                 technology: &tech,
             };
-            template.render().unwrap()
+            template.render()?
         } else {
             let template = RelationshipNoTechTemplate {
                 source: &source,
                 target: &target,
                 description: &description,
             };
-            template.render().unwrap()
+            template.render()?
         };
         Ok(dsl)
     }

@@ -36,4 +36,14 @@ pub enum StructurizrDslError {
     /// Unsupported element type for serialization.
     #[error("unsupported element type: {0}")]
     UnsupportedElementType(String),
+
+    /// Template rendering error.
+    #[error("template error: {0}")]
+    TemplateError(String),
+}
+
+impl From<askama::Error> for StructurizrDslError {
+    fn from(err: askama::Error) -> Self {
+        StructurizrDslError::TemplateError(err.to_string())
+    }
 }
