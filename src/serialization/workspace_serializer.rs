@@ -165,7 +165,10 @@ impl WorkspaceSerializer {
 
             if has_containers {
                 self.writer.indent();
-                let containers = self.containers.get(name).unwrap();
+                let containers = self
+                    .containers
+                    .get(name)
+                    .expect("containers should exist when has_containers is true");
                 let container_names: Vec<String> =
                     containers.iter().map(|c| c.name().to_string()).collect();
                 for (container, cname) in containers.iter().zip(container_names.iter()) {

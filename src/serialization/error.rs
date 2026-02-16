@@ -39,5 +39,11 @@ pub enum StructurizrDslError {
 
     /// Template rendering error.
     #[error("template error: {0}")]
-    TemplateError(#[from] askama::Error),
+    TemplateError(String),
+}
+
+impl From<askama::Error> for StructurizrDslError {
+    fn from(err: askama::Error) -> Self {
+        StructurizrDslError::TemplateError(err.to_string())
+    }
 }
