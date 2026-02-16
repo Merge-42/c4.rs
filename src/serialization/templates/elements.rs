@@ -3,57 +3,62 @@ use askama::Template;
 #[derive(Template)]
 #[template(
     source = r#"{{ identifier }} = person "{{ name }}" "{{ description }}""#,
-    ext = "txt"
+    ext = "txt",
+    escape = "none"
 )]
-pub struct PersonTemplate<'a> {
-    pub identifier: &'a str,
-    pub name: &'a str,
-    pub description: &'a str,
+pub struct PersonTemplate {
+    pub identifier: String,
+    pub name: String,
+    pub description: String,
 }
 
 #[derive(Template)]
 #[template(
     source = r#"{{ identifier }} = softwareSystem "{{ name }}" "{{ description }}""#,
-    ext = "txt"
+    ext = "txt",
+    escape = "none"
 )]
-pub struct SoftwareSystemTemplate<'a> {
-    pub identifier: &'a str,
-    pub name: &'a str,
-    pub description: &'a str,
+pub struct SoftwareSystemTemplate {
+    pub identifier: String,
+    pub name: String,
+    pub description: String,
 }
 
 #[derive(Template)]
 #[template(
-    source = r#"{{ identifier }} = container "{{ name }}" "{{ description }}"{% if let Some(t) = technology %} "{{ t }}"{% else %} ""{% endif %}"#,
-    ext = "txt"
+    source = "{{ identifier }} = container \"{{ name }}\" \"{{ description }}\"{% if let Some(t) = technology %} \"{{ t }}\"{% else %} \"\"{% endif %}",
+    ext = "txt",
+    escape = "none"
 )]
-pub struct ContainerTemplate<'a> {
-    pub identifier: &'a str,
-    pub name: &'a str,
-    pub description: &'a str,
-    pub technology: Option<&'a str>,
+pub struct ContainerTemplate {
+    pub identifier: String,
+    pub name: String,
+    pub description: String,
+    pub technology: Option<String>,
 }
 
 #[derive(Template)]
 #[template(
-    source = r#"{{ identifier }} = component "{{ name }}" "{{ description }}"{% if let Some(t) = technology %} "{{ t }}"{% else %} ""{% endif %}"#,
-    ext = "txt"
+    source = "{{ identifier }} = component \"{{ name }}\" \"{{ description }}\"{% if let Some(t) = technology %} \"{{ t }}\"{% else %} \"\"{% endif %}",
+    ext = "txt",
+    escape = "none"
 )]
-pub struct ComponentTemplate<'a> {
-    pub identifier: &'a str,
-    pub name: &'a str,
-    pub description: &'a str,
-    pub technology: Option<&'a str>,
+pub struct ComponentTemplate {
+    pub identifier: String,
+    pub name: String,
+    pub description: String,
+    pub technology: Option<String>,
 }
 
 #[derive(Template)]
 #[template(
-    source = r#"{{ source }} -> {{ target }} "{{ description }}"{% if let Some(t) = technology %} "{{ t }}"{% endif %}"#,
-    ext = "txt"
+    source = "{{ source }} -> {{ target }} \"{{ description }}\"{% if let Some(t) = technology %} \"{{ t }}\"{% endif %}",
+    ext = "txt",
+    escape = "none"
 )]
-pub struct RelationshipTemplate<'a> {
-    pub source: &'a str,
-    pub target: &'a str,
-    pub description: &'a str,
-    pub technology: Option<&'a str>,
+pub struct RelationshipTemplate {
+    pub source: String,
+    pub target: String,
+    pub description: String,
+    pub technology: Option<String>,
 }

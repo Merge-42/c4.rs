@@ -3,7 +3,8 @@
 use crate::c4::Person;
 use crate::serialization::error::StructurizrDslError;
 use crate::serialization::templates::elements::PersonTemplate;
-use crate::serialization::traits::{ElementSerializer, escape_dsl_string, format_identifier};
+use crate::serialization::templates::helpers::{escape_dsl_string, format_identifier};
+use crate::serialization::traits::ElementSerializer;
 use askama::Template;
 
 /// Serializes a Person element to Structurizr DSL format.
@@ -12,13 +13,10 @@ use askama::Template;
 impl ElementSerializer for Person {
     fn serialize_structurizr_dsl(&self) -> Result<String, StructurizrDslError> {
         let identifier = format_identifier(self.name());
-        let name = escape_dsl_string(self.name());
-        let description = escape_dsl_string(self.description());
-
         let template = PersonTemplate {
-            identifier: &identifier,
-            name: &name,
-            description: &description,
+            identifier,
+            name: escape_dsl_string(self.name()),
+            description: escape_dsl_string(self.description()),
         };
         Ok(template.render()?)
     }

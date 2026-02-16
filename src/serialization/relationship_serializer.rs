@@ -3,7 +3,8 @@
 use crate::c4::{Element, Relationship};
 use crate::serialization::error::StructurizrDslError;
 use crate::serialization::templates::elements::RelationshipTemplate;
-use crate::serialization::traits::{ElementSerializer, escape_dsl_string, format_identifier};
+use crate::serialization::templates::helpers::format_identifier;
+use crate::serialization::traits::ElementSerializer;
 use askama::Template;
 
 /// Serializes a Relationship to Structurizr DSL format.
@@ -16,16 +17,11 @@ use askama::Template;
 /// - `T`: Target element type
 impl<S: Element, T: Element> ElementSerializer for Relationship<S, T> {
     fn serialize_structurizr_dsl(&self) -> Result<String, StructurizrDslError> {
-        let source = format_identifier(self.source().name());
-        let target = format_identifier(self.target().name());
-        let description = escape_dsl_string(self.description());
-        let technology = self.technology().map(escape_dsl_string);
-
         let template = RelationshipTemplate {
-            source: &source,
-            target: &target,
-            description: &description,
-            technology: technology.as_deref(),
+            source: format_identifier(self.source().name()),
+            target: format_identifier(self.target().name()),
+            description: self.description().to_string(),
+            technology: self.technology().map(|s| s.to_string()),
         };
         Ok(template.render()?)
     }
