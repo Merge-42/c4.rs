@@ -3,7 +3,7 @@ use crate::serialization::{
     StylesSerializer, ViewConfiguration, ViewsSerializer, error::StructurizrDslError,
     identifier_generator::IdentifierGenerator, writer::DslWriter,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 /// Workspace serializer - handles all serialization for the Structurizr DSL.
 #[derive(Debug)]
@@ -12,7 +12,6 @@ pub struct WorkspaceSerializer {
     used_identifiers: HashSet<String>,
     persons: Vec<Person>,
     software_systems: Vec<SoftwareSystem>,
-    containers: HashMap<String, Vec<Container>>,
     relationships: Vec<SerializedRelationship>,
     views_serializer: ViewsSerializer,
     styles_serializer: StylesSerializer,
@@ -41,7 +40,6 @@ impl WorkspaceSerializer {
             used_identifiers: HashSet::new(),
             persons: Vec::new(),
             software_systems: Vec::new(),
-            containers: HashMap::new(),
             relationships: Vec::new(),
             views_serializer: ViewsSerializer::new(),
             styles_serializer: StylesSerializer::new(),
@@ -63,12 +61,6 @@ impl WorkspaceSerializer {
     }
     pub fn add_software_system(&mut self, system: SoftwareSystem) {
         self.software_systems.push(system);
-    }
-    pub fn add_container_to_system(&mut self, system_name: &str, container: Container) {
-        self.containers
-            .entry(system_name.to_string())
-            .or_default()
-            .push(container);
     }
     pub fn add_relationship(
         &mut self,
@@ -158,17 +150,14 @@ impl WorkspaceSerializer {
                 IdentifierGenerator::generate_unique(name, &self.used_identifiers);
             self.used_identifiers.insert(system_identifier.clone());
 
-            let has_containers = self.containers.get(name).is_some_and(|c| !c.is_empty());
+            let has_containers = !system.containers().is_empty();
 
             let dsl = Self::serialize_software_system(system, &system_identifier, has_containers);
             self.writer.add_line(&dsl);
 
             if has_containers {
                 self.writer.indent();
-                let containers = self
-                    .containers
-                    .get(name)
-                    .expect("containers should exist when has_containers is true");
+                let containers = system.containers();
                 let container_names: Vec<String> =
                     containers.iter().map(|c| c.name().to_string()).collect();
                 for (container, cname) in containers.iter().zip(container_names.iter()) {
@@ -232,12 +221,29 @@ impl WorkspaceSerializer {
     }
 
     fn serialize_person(person: &Person, identifier: &str) -> Result<String, StructurizrDslError> {
-        Ok(format!(
-            r#"{} = person "{}" "{}""#,
-            identifier,
-            person.name(),
-            person.description()
-        ))
+        let tags = if person.location() == crate::c4::Location::External {
+            r#" {
+    tags "External"
+}"#
+        } else {
+            ""
+        };
+        if tags.is_empty() {
+            Ok(format!(
+                r#"{} = person "{}" "{}""#,
+                identifier,
+                person.name(),
+                person.description()
+            ))
+        } else {
+            Ok(format!(
+                r#"{} = person "{}" "{}""{}"#,
+                identifier,
+                person.name(),
+                person.description(),
+                tags
+            ))
+        }
     }
 
     fn serialize_software_system(
@@ -245,12 +251,18 @@ impl WorkspaceSerializer {
         identifier: &str,
         has_containers: bool,
     ) -> String {
+        let external_tag = if system.location() == crate::c4::Location::External {
+            "\n    tags \"External\""
+        } else {
+            ""
+        };
         if has_containers {
             format!(
-                r#"{} = softwareSystem "{}" "{}" {{"#,
+                r#"{} = softwareSystem "{}" "{}" {{{}"#,
                 identifier,
                 system.name(),
-                system.description()
+                system.description(),
+                external_tag
             )
         } else {
             format!(

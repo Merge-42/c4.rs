@@ -1,6 +1,6 @@
 //! Main Structurizr DSL Serializer.
 
-use crate::c4::{Container, Person, SoftwareSystem};
+use crate::c4::{Person, SoftwareSystem};
 use crate::serialization::error::StructurizrDslError;
 use crate::serialization::styles_serializer::{ElementStyle, RelationshipStyle, StylesSerializer};
 use crate::serialization::views_serializer::{ViewConfiguration, ViewsSerializer};
@@ -48,12 +48,6 @@ impl StructurizrDslSerializer {
     /// Add a software system to the workspace.
     pub fn add_software_system(&mut self, system: SoftwareSystem) {
         self.workspace_serializer.add_software_system(system);
-    }
-
-    /// Add a container to a specific software system.
-    pub fn add_container(&mut self, system_name: &str, container: Container) {
-        self.workspace_serializer
-            .add_container_to_system(system_name, container);
     }
 
     /// Add a view configuration.
@@ -149,20 +143,20 @@ mod tests {
         let system: SoftwareSystem = SoftwareSystem::builder()
             .with_name("API".try_into().unwrap())
             .with_description("Backend API".try_into().unwrap())
-            .build()
-            .unwrap();
-
-        let container: Container = Container::builder()
-            .with_name("Web App".try_into().unwrap())
-            .with_description("Frontend".try_into().unwrap())
-            .with_container_type(ContainerType::WebApplication)
+            .add_container(
+                Container::builder()
+                    .with_name("Web App".try_into().unwrap())
+                    .with_description("Frontend".try_into().unwrap())
+                    .with_container_type(ContainerType::WebApplication)
+                    .build()
+                    .unwrap(),
+            )
             .build()
             .unwrap();
 
         let mut serializer = StructurizrDslSerializer::new();
         serializer.add_person(person);
         serializer.add_software_system(system);
-        serializer.add_container("API", container);
         let result = serializer.serialize().unwrap();
 
         assert!(result.contains(r#"u = person "User""#));
@@ -225,13 +219,14 @@ mod tests {
         let system: SoftwareSystem = SoftwareSystem::builder()
             .with_name("API".try_into().unwrap())
             .with_description("Backend API service".try_into().unwrap())
-            .build()
-            .unwrap();
-
-        let container: Container = Container::builder()
-            .with_name("Web App".try_into().unwrap())
-            .with_description("Frontend application".try_into().unwrap())
-            .with_container_type(ContainerType::WebApplication)
+            .add_container(
+                Container::builder()
+                    .with_name("Web App".try_into().unwrap())
+                    .with_description("Frontend application".try_into().unwrap())
+                    .with_container_type(ContainerType::WebApplication)
+                    .build()
+                    .unwrap(),
+            )
             .build()
             .unwrap();
 
@@ -240,7 +235,6 @@ mod tests {
             .with_description("An example C4 model");
         serializer.add_person(person);
         serializer.add_software_system(system);
-        serializer.add_container("API", container);
 
         let mut view = ViewConfiguration::new(ViewType::SystemContext, "a", "SystemContext");
         view.include_element("*");
@@ -273,13 +267,14 @@ mod tests {
         let system: SoftwareSystem = SoftwareSystem::builder()
             .with_name("BankApp".try_into().unwrap())
             .with_description("Banking App".try_into().unwrap())
-            .build()
-            .unwrap();
-
-        let container: Container = Container::builder()
-            .with_name("Web App".try_into().unwrap())
-            .with_description("Frontend".try_into().unwrap())
-            .with_container_type(ContainerType::WebApplication)
+            .add_container(
+                Container::builder()
+                    .with_name("Web App".try_into().unwrap())
+                    .with_description("Frontend".try_into().unwrap())
+                    .with_container_type(ContainerType::WebApplication)
+                    .build()
+                    .unwrap(),
+            )
             .build()
             .unwrap();
 
@@ -288,7 +283,6 @@ mod tests {
             .with_description("Test");
         serializer.add_person(person);
         serializer.add_software_system(system);
-        serializer.add_container("BankApp", container);
         serializer.add_relationship("u", "b", "Uses", None);
 
         let mut view = ViewConfiguration::new(ViewType::SystemContext, "b", "SystemContext");
@@ -311,21 +305,23 @@ mod tests {
         let system: SoftwareSystem = SoftwareSystem::builder()
             .with_name("API".try_into().unwrap())
             .with_description("Backend".try_into().unwrap())
-            .build()
-            .unwrap();
-
-        let web_container: Container = Container::builder()
-            .with_name("Web App".try_into().unwrap())
-            .with_description("Frontend".try_into().unwrap())
-            .with_container_type(ContainerType::WebApplication)
-            .build()
-            .unwrap();
-
-        let db_container: Container = Container::builder()
-            .with_name("Database".try_into().unwrap())
-            .with_description("Data store".try_into().unwrap())
-            .with_container_type(ContainerType::Database)
-            .with_technology("PostgreSQL".into())
+            .add_container(
+                Container::builder()
+                    .with_name("Web App".try_into().unwrap())
+                    .with_description("Frontend".try_into().unwrap())
+                    .with_container_type(ContainerType::WebApplication)
+                    .build()
+                    .unwrap(),
+            )
+            .add_container(
+                Container::builder()
+                    .with_name("Database".try_into().unwrap())
+                    .with_description("Data store".try_into().unwrap())
+                    .with_container_type(ContainerType::Database)
+                    .with_technology("PostgreSQL".into())
+                    .build()
+                    .unwrap(),
+            )
             .build()
             .unwrap();
 
@@ -333,8 +329,6 @@ mod tests {
             .with_name("Nested Test")
             .with_description("Test");
         serializer.add_software_system(system);
-        serializer.add_container("API", web_container);
-        serializer.add_container("API", db_container);
 
         let result = serializer.serialize().unwrap();
 
@@ -395,13 +389,14 @@ mod tests {
         let system: SoftwareSystem = SoftwareSystem::builder()
             .with_name("API-Service_v2".try_into().unwrap())
             .with_description("Backend API (version 2.0)".try_into().unwrap())
-            .build()
-            .unwrap();
-
-        let container: Container = Container::builder()
-            .with_name("Web/App".try_into().unwrap())
-            .with_description("Frontend - modern UI/UX".try_into().unwrap())
-            .with_container_type(ContainerType::WebApplication)
+            .add_container(
+                Container::builder()
+                    .with_name("Web/App".try_into().unwrap())
+                    .with_description("Frontend - modern UI/UX".try_into().unwrap())
+                    .with_container_type(ContainerType::WebApplication)
+                    .build()
+                    .unwrap(),
+            )
             .build()
             .unwrap();
 
@@ -410,7 +405,6 @@ mod tests {
             .with_description("Test with special characters");
         serializer.add_person(person);
         serializer.add_software_system(system);
-        serializer.add_container("API-Service_v2", container);
 
         let result = serializer.serialize().unwrap();
 

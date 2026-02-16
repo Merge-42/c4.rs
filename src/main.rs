@@ -9,57 +9,57 @@ fn main() -> Result<(), Box<dyn Error>> {
         .with_description("A user of the system".into())
         .build()?;
 
-    // First software system with containers
+    // First software system with containers (built directly with containers inside)
     let api_system = SoftwareSystem::builder()
         .with_name("API".into())
         .with_description("Backend API service".into())
+        .add_container(
+            Container::builder()
+                .with_name("Web App".into())
+                .with_description("Frontend application".into())
+                .with_container_type(ContainerType::WebApplication)
+                .build()?,
+        )
+        .add_container(
+            Container::builder()
+                .with_name("Database".into())
+                .with_description("PostgreSQL database".into())
+                .with_container_type(ContainerType::Database)
+                .with_technology("PostgreSQL 15".into())
+                .build()?,
+        )
+        .add_container(
+            Container::builder()
+                .with_name("API Service".into())
+                .with_description("Backend API".into())
+                .with_container_type(ContainerType::Api)
+                .add_component(
+                    Component::builder()
+                        .with_name("UserController".into())
+                        .with_description("User handling".into())
+                        .with_technology("Rust".into())
+                        .build()?,
+                )
+                .add_component(
+                    Component::builder()
+                        .with_name("OrderController".into())
+                        .with_description("Order handling".into())
+                        .with_technology("Rust".into())
+                        .build()?,
+                )
+                .build()?,
+        )
         .build()?;
 
-    // Container in the API system
-    let api_container = Container::builder()
-        .with_name("Web App".into())
-        .with_description("Frontend application".into())
-        .with_container_type(ContainerType::WebApplication)
-        .build()?;
-
-    // Another container in the API system
-    let db_container = Container::builder()
-        .with_name("Database".into())
-        .with_description("PostgreSQL database".into())
-        .with_container_type(ContainerType::Database)
-        .with_technology("PostgreSQL 15".into())
-        .build()?;
-
-    // Second software system (separate from API)
+    // Second software system with its container
     let web_system = SoftwareSystem::builder()
         .with_name("Web Portal".into())
         .with_description("Customer web portal".into())
-        .build()?;
-
-    // Container in the Web Portal system
-    let portal_frontend = Container::builder()
-        .with_name("Frontend".into())
-        .with_description("React frontend".into())
-        .with_container_type(ContainerType::WebApplication)
-        .build()?;
-
-    // Container WITH components (using builder pattern)
-    let api_container_with_components = Container::builder()
-        .with_name("API Service".into())
-        .with_description("Backend API".into())
-        .with_container_type(ContainerType::Api)
-        .add_component(
-            Component::builder()
-                .with_name("UserController".into())
-                .with_description("User handling".into())
-                .with_technology("Rust".into())
-                .build()?,
-        )
-        .add_component(
-            Component::builder()
-                .with_name("OrderController".into())
-                .with_description("Order handling".into())
-                .with_technology("Rust".into())
+        .add_container(
+            Container::builder()
+                .with_name("Frontend".into())
+                .with_description("React frontend".into())
+                .with_container_type(ContainerType::WebApplication)
                 .build()?,
         )
         .build()?;
@@ -69,16 +69,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .with_name("Example System")
         .with_description("An example C4 model");
     serializer.add_person(person);
-
-    // Add first software system with its containers
     serializer.add_software_system(api_system);
-    serializer.add_container("API", api_container);
-    serializer.add_container("API", db_container);
-    serializer.add_container("API", api_container_with_components);
-
-    // Add second software system with its container
     serializer.add_software_system(web_system);
-    serializer.add_container("Web Portal", portal_frontend);
 
     serializer.add_relationship("u", "a", "Uses", None);
 
