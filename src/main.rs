@@ -54,13 +54,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     use c4rs::serialization::views_serializer::ViewType;
 
-    let mut ctx_view = c4rs::serialization::views_serializer::ViewConfiguration::new(
-        ViewType::SystemContext,
-        "a",
-        "SystemContext",
-    );
-    ctx_view.include_element("*");
-    serializer.add_view(&ctx_view);
+    let ctx_view = c4rs::serialization::views_serializer::ViewConfiguration::builder()
+        .view_type(ViewType::SystemContext)
+        .element_identifier("a".to_string())
+        .title("SystemContext".to_string())
+        .include_elements(vec!["*".to_string()])
+        .build();
+    serializer.add_view(ctx_view);
 
     serializer.add_element_style(
         c4rs::serialization::styles_serializer::ElementStyle::new("Person").with_shape("person"),

@@ -21,7 +21,7 @@ impl StructurizrDslSerializer {
     pub fn new() -> Self {
         Self {
             workspace_serializer: WorkspaceSerializer::new(),
-            views_serializer: ViewsSerializer::new(),
+            views_serializer: ViewsSerializer::default(),
             styles_serializer: StylesSerializer::new(),
             name: None,
             description: None,
@@ -51,9 +51,9 @@ impl StructurizrDslSerializer {
     }
 
     /// Add a view configuration.
-    pub fn add_view(&mut self, view: &ViewConfiguration) {
+    pub fn add_view(&mut self, view: ViewConfiguration) {
         self.views_serializer.add_view(view.clone());
-        self.workspace_serializer.add_view(view);
+        self.workspace_serializer.add_view(&view);
     }
 
     /// Add an element style.
@@ -169,9 +169,13 @@ mod tests {
 
         let mut serializer = StructurizrDslSerializer::new();
         serializer.add_person(person);
-        let mut view = ViewConfiguration::new(ViewType::SystemContext, "u", "System Context");
-        view.include_element("*");
-        serializer.add_view(&view);
+        let view = ViewConfiguration::builder()
+            .view_type(ViewType::SystemContext)
+            .element_identifier("u".to_string())
+            .title("System Context".to_string())
+            .include_elements(vec!["*".to_string()])
+            .build();
+        serializer.add_view(view);
 
         let result = serializer.serialize().unwrap();
 
@@ -227,9 +231,13 @@ mod tests {
         serializer.add_person(person);
         serializer.add_software_system(system);
 
-        let mut view = ViewConfiguration::new(ViewType::SystemContext, "a", "SystemContext");
-        view.include_element("*");
-        serializer.add_view(&view);
+        let view = ViewConfiguration::builder()
+            .view_type(ViewType::SystemContext)
+            .element_identifier("a".to_string())
+            .title("SystemContext".to_string())
+            .include_elements(vec!["*".to_string()])
+            .build();
+        serializer.add_view(view);
 
         serializer.add_element_style(ElementStyle::new("Person").with_shape("person"));
 
@@ -273,9 +281,13 @@ mod tests {
         serializer.add_software_system(system);
         serializer.add_relationship("u", "b", "Uses", None);
 
-        let mut view = ViewConfiguration::new(ViewType::SystemContext, "b", "SystemContext");
-        view.include_element("*");
-        serializer.add_view(&view);
+        let view = ViewConfiguration::builder()
+            .view_type(ViewType::SystemContext)
+            .element_identifier("b".to_string())
+            .title("SystemContext".to_string())
+            .include_elements(vec!["*".to_string()])
+            .build();
+        serializer.add_view(view);
 
         let result = serializer.serialize().unwrap();
 

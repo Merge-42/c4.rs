@@ -151,18 +151,20 @@ fn test_integration_invalid_hierarchy() {
 
 #[test]
 fn test_integration_views_serialization() {
-    use c4rs::c4::ElementType;
-    use c4rs::serialization::{ViewConfiguration, ViewsSerializer};
+    use c4rs::serialization::views_serializer::{ViewConfiguration, ViewType, ViewsSerializer};
 
-    let mut views = ViewsSerializer::new();
-    let mut view = ViewConfiguration::new("context", "System Context", ElementType::SoftwareSystem);
-    view.include_element("User");
-    view.include_element("API");
+    let mut views = ViewsSerializer::builder().build();
+    let view = ViewConfiguration::builder()
+        .view_type(ViewType::SystemContext)
+        .element_identifier("context".to_string())
+        .title("System Context".to_string())
+        .include_elements(vec!["User".to_string(), "API".to_string()])
+        .build();
     views.add_view(view);
 
     let dsl = views.serialize();
     assert!(dsl.contains("views {"));
-    assert!(dsl.contains("systemcontext context {"));
+    assert!(dsl.contains("systemContext context {"));
     assert!(dsl.contains("include User"));
 }
 

@@ -41,7 +41,7 @@ impl WorkspaceSerializer {
             persons: Vec::new(),
             software_systems: Vec::new(),
             relationships: Vec::new(),
-            views_serializer: ViewsSerializer::new(),
+            views_serializer: ViewsSerializer::default(),
             styles_serializer: StylesSerializer::new(),
             name: None,
             description: None,

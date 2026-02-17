@@ -2,6 +2,7 @@
 
 use crate::serialization::templates::view::ViewTemplate;
 use askama::Template;
+use typed_builder::TypedBuilder;
 
 /// Represents a view type in Structurizr DSL.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -33,58 +34,31 @@ impl std::fmt::Display for ViewType {
 }
 
 /// Represents a Structurizr view configuration.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, TypedBuilder)]
 pub struct ViewConfiguration {
     pub view_type: ViewType,
     pub element_identifier: String,
     pub title: String,
+    #[builder(default)]
     pub include_elements: Vec<String>,
+    #[builder(default)]
     pub exclude_elements: Vec<String>,
 }
 
-impl ViewConfiguration {
-    /// Create a new view configuration.
-    pub fn new(view_type: ViewType, element_identifier: &str, title: &str) -> Self {
-        Self {
-            view_type,
-            element_identifier: element_identifier.to_string(),
-            title: title.to_string(),
-            include_elements: Vec::new(),
-            exclude_elements: Vec::new(),
-        }
-    }
-
-    /// Add an element to include in the view.
-    pub fn include_element(&mut self, identifier: &str) {
-        self.include_elements.push(identifier.to_string());
-    }
-
-    /// Add an element to exclude from the view.
-    pub fn exclude_element(&mut self, identifier: &str) {
-        self.exclude_elements.push(identifier.to_string());
-    }
-}
-
 /// Serializes Structurizr views to DSL format.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, TypedBuilder)]
 pub struct ViewsSerializer {
+    #[builder(default)]
     views: Vec<ViewConfiguration>,
+    #[builder(default)]
     external_output: Option<String>,
+    #[builder(default)]
     styles_output: Option<String>,
+    #[builder(default)]
     configuration_output: Option<String>,
 }
 
 impl ViewsSerializer {
-    /// Create a new views serializer.
-    pub fn new() -> Self {
-        Self {
-            views: Vec::new(),
-            external_output: None,
-            styles_output: None,
-            configuration_output: None,
-        }
-    }
-
     /// Add a view configuration.
     pub fn add_view(&mut self, view: ViewConfiguration) {
         self.views.push(view);
@@ -174,9 +148,13 @@ mod tests {
 
     #[test]
     fn test_system_context_view() {
-        let mut views = ViewsSerializer::new();
-        let mut view = ViewConfiguration::new(ViewType::SystemContext, "a", "System Context");
-        view.include_element("*");
+        let mut views = ViewsSerializer::builder().build();
+        let view = ViewConfiguration::builder()
+            .view_type(ViewType::SystemContext)
+            .element_identifier("a".to_string())
+            .title("System Context".to_string())
+            .include_elements(vec!["*".to_string()])
+            .build();
         views.add_view(view);
 
         let dsl = views.serialize();
@@ -187,11 +165,14 @@ mod tests {
 
     #[test]
     fn test_container_view() {
-        let mut views = ViewsSerializer::new();
-        let mut view = ViewConfiguration::new(ViewType::Container, "api", "Container Diagram");
-        view.include_element("Web_App");
-        view.include_element("API");
-        view.exclude_element("Database");
+        let mut views = ViewsSerializer::builder().build();
+        let view = ViewConfiguration::builder()
+            .view_type(ViewType::Container)
+            .element_identifier("api".to_string())
+            .title("Container Diagram".to_string())
+            .include_elements(vec!["Web_App".to_string(), "API".to_string()])
+            .exclude_elements(vec!["Database".to_string()])
+            .build();
         views.add_view(view);
 
         let dsl = views.serialize();
@@ -201,7 +182,7 @@ mod tests {
 
     #[test]
     fn test_empty_views() {
-        let views = ViewsSerializer::new();
+        let views = ViewsSerializer::builder().build();
         let dsl = views.serialize();
         assert!(dsl.is_empty());
     }
