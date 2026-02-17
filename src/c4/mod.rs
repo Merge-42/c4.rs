@@ -16,9 +16,9 @@
 //! use c4rs::c4::{Person, Location, ElementIdentifier};
 //!
 //! let person = Person::builder()
-//!     .with_name("Alice".try_into().unwrap())
-//!     .with_description("System administrator".try_into().unwrap())
-//!     .with_location(Location::Internal)
+//!     .name("Alice".try_into().unwrap())
+//!     .description("System administrator".try_into().unwrap())
+//!     .location(Location::Internal)
 //!     .build();
 //!
 //! assert_eq!(person.name(), "Alice");
@@ -35,10 +35,7 @@ pub mod value_types;
 pub use code::CodeElement;
 pub use component::{Component, ComponentError};
 pub use container::{Container, ContainerError};
-pub use context::{
-    Person, PersonError, SoftwareSystem, SoftwareSystemError, person_builder,
-    software_system_builder,
-};
+pub use context::{Person, PersonError, SoftwareSystem, SoftwareSystemError};
 pub use element::{CodeType, ContainerType, Element, ElementType, InteractionStyle, Location};
 pub use relationship::{Relationship, RelationshipBuilder, RelationshipError, create_relationship};
 pub use value_types::{ElementIdentifier, NonEmptyString, NonEmptyStringError};

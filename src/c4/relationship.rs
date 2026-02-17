@@ -22,13 +22,13 @@ use super::context::Person;
 ///
 /// // Same type relationship (Person → Person)
 /// let person1 = Person::builder()
-///     .with_name("Alice".try_into().unwrap())
-///     .with_description("User 1".try_into().unwrap())
+///     .name("Alice".try_into().unwrap())
+///     .description("User 1".try_into().unwrap())
 ///     .build();
 ///
 /// let person2 = Person::builder()
-///     .with_name("Bob".try_into().unwrap())
-///     .with_description("User 2".try_into().unwrap())
+///     .name("Bob".try_into().unwrap())
+///     .description("User 2".try_into().unwrap())
 ///     .build();
 ///
 /// let relationship: Relationship<Person, Person> = Relationship::builder()
@@ -243,13 +243,13 @@ mod tests {
     #[test]
     fn test_relationship_builder() {
         let person1 = Person::builder()
-            .with_name("Alice".try_into().unwrap())
-            .with_description("User 1".try_into().unwrap())
+            .name("Alice".try_into().unwrap())
+            .description("User 1".try_into().unwrap())
             .build();
 
         let person2 = Person::builder()
-            .with_name("Bob".try_into().unwrap())
-            .with_description("User 2".try_into().unwrap())
+            .name("Bob".try_into().unwrap())
+            .description("User 2".try_into().unwrap())
             .build();
 
         let relationship: Relationship<Person, Person> = Relationship::builder()
@@ -270,8 +270,8 @@ mod tests {
     #[test]
     fn test_cross_level_relationship() {
         let person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A user".try_into().unwrap())
             .build();
 
         let container = Container::builder()
@@ -295,8 +295,8 @@ mod tests {
         let result = Relationship::<Person, Person>::builder()
             .with_target(
                 Person::builder()
-                    .with_name("Target".try_into().unwrap())
-                    .with_description("Target".try_into().unwrap())
+                    .name("Target".try_into().unwrap())
+                    .description("Target".try_into().unwrap())
                     .build(),
             )
             .with_description("Has".try_into().unwrap())

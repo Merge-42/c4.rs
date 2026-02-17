@@ -30,8 +30,8 @@ mod tests {
     #[test]
     fn test_person_serialization() {
         let person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A system user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A system user".try_into().unwrap())
             .build();
 
         let dsl = person.serialize_structurizr_dsl().unwrap();
@@ -41,8 +41,8 @@ mod tests {
     #[test]
     fn test_person_serialization_special_chars() {
         let person = Person::builder()
-            .with_name("User\"Name".try_into().unwrap())
-            .with_description("A \"test\" user".try_into().unwrap())
+            .name("User\"Name".try_into().unwrap())
+            .description("A \"test\" user".try_into().unwrap())
             .build();
 
         let dsl = person.serialize_structurizr_dsl().unwrap();
@@ -52,8 +52,8 @@ mod tests {
     #[test]
     fn test_person_serialization_spaces() {
         let person = Person::builder()
-            .with_name("System User".try_into().unwrap())
-            .with_description("A system user".try_into().unwrap())
+            .name("System User".try_into().unwrap())
+            .description("A system user".try_into().unwrap())
             .build();
 
         let dsl = person.serialize_structurizr_dsl().unwrap();

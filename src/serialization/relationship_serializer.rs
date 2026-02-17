@@ -35,13 +35,13 @@ mod tests {
     #[test]
     fn test_relationship_serialization() {
         let source = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A user".try_into().unwrap())
             .build();
 
         let target = Person::builder()
-            .with_name("Admin".try_into().unwrap())
-            .with_description("An admin".try_into().unwrap())
+            .name("Admin".try_into().unwrap())
+            .description("An admin".try_into().unwrap())
             .build();
 
         let relationship = Relationship::builder()
@@ -58,13 +58,13 @@ mod tests {
     #[test]
     fn test_relationship_with_technology() {
         let source = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A user".try_into().unwrap())
             .build();
 
         let target = Person::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend".try_into().unwrap())
+            .name("API".try_into().unwrap())
+            .description("Backend".try_into().unwrap())
             .build();
 
         let relationship = Relationship::builder()

@@ -10,9 +10,9 @@
 //!
 //! // Create a person
 //! let person = Person::builder()
-//!     .with_name("Alice".try_into().unwrap())
-//!     .with_description("System administrator".try_into().unwrap())
-//!     .with_location(Location::Internal)
+//!     .name("Alice".try_into().unwrap())
+//!     .description("System administrator".try_into().unwrap())
+//!     .location(Location::Internal)
 //!     .build();
 //!
 //! // Types implement serde::Serialize

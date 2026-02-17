@@ -120,8 +120,8 @@ mod tests {
     #[test]
     fn test_serialize_single_person() {
         let person: Person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A system user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A system user".try_into().unwrap())
             .build();
 
         let mut serializer = StructurizrDslSerializer::new();
@@ -134,8 +134,8 @@ mod tests {
     #[test]
     fn test_serialize_full_model() {
         let person: Person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A system user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A system user".try_into().unwrap())
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
@@ -163,8 +163,8 @@ mod tests {
     #[test]
     fn test_serialize_with_views() {
         let person: Person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A system user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A system user".try_into().unwrap())
             .build();
 
         let mut serializer = StructurizrDslSerializer::new();
@@ -183,8 +183,8 @@ mod tests {
     #[test]
     fn test_serialize_with_styles() {
         let person: Person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A system user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A system user".try_into().unwrap())
             .build();
 
         let mut serializer = StructurizrDslSerializer::new();
@@ -205,8 +205,8 @@ mod tests {
     #[test]
     fn test_complete_workspace_serialization() {
         let person: Person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A user of the system".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A user of the system".try_into().unwrap())
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
@@ -250,8 +250,8 @@ mod tests {
     #[test]
     fn test_playground_format_structure() {
         let person: Person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A user".try_into().unwrap())
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
@@ -327,8 +327,8 @@ mod tests {
     #[test]
     fn test_circular_relationships() {
         let person: Person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A user".try_into().unwrap())
             .build();
 
         let system1: SoftwareSystem = SoftwareSystem::builder()
@@ -363,8 +363,8 @@ mod tests {
     #[test]
     fn test_special_characters_in_names() {
         let person: Person = Person::builder()
-            .with_name("User's System".try_into().unwrap())
-            .with_description("A \"special\" user & <test>".try_into().unwrap())
+            .name("User's System".try_into().unwrap())
+            .description("A \"special\" user & <test>".try_into().unwrap())
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
@@ -396,8 +396,8 @@ mod tests {
     #[test]
     fn test_relationship_with_technology() {
         let person: Person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A user".try_into().unwrap())
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
@@ -422,18 +422,18 @@ mod tests {
     #[test]
     fn test_multiple_identical_element_names() {
         let person1: Person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("First user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("First user".try_into().unwrap())
             .build();
 
         let person2: Person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("Second user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("Second user".try_into().unwrap())
             .build();
 
         let person3: Person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("Third user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("Third user".try_into().unwrap())
             .build();
 
         let mut serializer = StructurizrDslSerializer::new()

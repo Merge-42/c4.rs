@@ -4,8 +4,8 @@ use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let person = Person::builder()
-        .with_name("User".into())
-        .with_description("A user of the system".into())
+        .name("User".into())
+        .description("A user of the system".into())
         .build();
 
     let api_system = SoftwareSystem::builder()

@@ -344,8 +344,8 @@ mod tests {
     #[test]
     fn test_workspace_serializer_with_person() {
         let person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A system user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A system user".try_into().unwrap())
             .build();
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_person(person);
@@ -369,12 +369,12 @@ mod tests {
     fn test_identifier_uniqueness() {
         let mut serializer = WorkspaceSerializer::new();
         let person1 = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A user".try_into().unwrap())
             .build();
         let person2 = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("Another user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("Another user".try_into().unwrap())
             .build();
         serializer.add_person(person1);
         serializer.add_person(person2);
@@ -424,8 +424,8 @@ mod tests {
     #[test]
     fn test_us1_workspace_with_multiple_elements() {
         let person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A system user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A system user".try_into().unwrap())
             .build();
 
         let system = SoftwareSystem::builder()
@@ -451,8 +451,8 @@ mod tests {
     #[test]
     fn test_us1_workspace_blocks_properly_formed() {
         let person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A system user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A system user".try_into().unwrap())
             .build();
 
         let system = SoftwareSystem::builder()
@@ -476,8 +476,8 @@ mod tests {
     #[test]
     fn test_us2_element_syntax() {
         let person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A system user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A system user".try_into().unwrap())
             .build();
 
         let system = SoftwareSystem::builder()
@@ -504,13 +504,13 @@ mod tests {
     #[test]
     fn test_us2_identifier_generation_collision() {
         let person1 = Person::builder()
-            .with_name("Database".try_into().unwrap())
-            .with_description("Data store".try_into().unwrap())
+            .name("Database".try_into().unwrap())
+            .description("Data store".try_into().unwrap())
             .build();
 
         let person2 = Person::builder()
-            .with_name("Developer".try_into().unwrap())
-            .with_description("Software developer".try_into().unwrap())
+            .name("Developer".try_into().unwrap())
+            .description("Software developer".try_into().unwrap())
             .build();
 
         let mut serializer = WorkspaceSerializer::new();
@@ -628,8 +628,8 @@ mod tests {
     #[test]
     fn test_us7_brace_balance() {
         let person = Person::builder()
-            .with_name("User".try_into().unwrap())
-            .with_description("A system user".try_into().unwrap())
+            .name("User".try_into().unwrap())
+            .description("A system user".try_into().unwrap())
             .build();
 
         let system = SoftwareSystem::builder()
