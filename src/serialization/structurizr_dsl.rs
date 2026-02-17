@@ -143,9 +143,9 @@ mod tests {
             .description("Backend API".try_into().unwrap())
             .containers(vec![
                 Container::builder()
-                    .with_name("Web App".try_into().unwrap())
-                    .with_description("Frontend".try_into().unwrap())
-                    .with_container_type(ContainerType::WebApplication)
+                    .name("Web App".try_into().unwrap())
+                    .description("Frontend".try_into().unwrap())
+                    .container_type(ContainerType::WebApplication)
                     .build(),
             ])
             .build();
@@ -214,9 +214,9 @@ mod tests {
             .description("Backend API service".try_into().unwrap())
             .containers(vec![
                 Container::builder()
-                    .with_name("Web App".try_into().unwrap())
-                    .with_description("Frontend".try_into().unwrap())
-                    .with_container_type(ContainerType::WebApplication)
+                    .name("Web App".try_into().unwrap())
+                    .description("Frontend".try_into().unwrap())
+                    .container_type(ContainerType::WebApplication)
                     .build(),
             ])
             .build();
@@ -259,9 +259,9 @@ mod tests {
             .description("Banking App".try_into().unwrap())
             .containers(vec![
                 Container::builder()
-                    .with_name("Web App".try_into().unwrap())
-                    .with_description("Frontend".try_into().unwrap())
-                    .with_container_type(ContainerType::WebApplication)
+                    .name("Web App".try_into().unwrap())
+                    .description("Frontend".try_into().unwrap())
+                    .container_type(ContainerType::WebApplication)
                     .build(),
             ])
             .build();
@@ -295,15 +295,15 @@ mod tests {
             .description("Backend".try_into().unwrap())
             .containers(vec![
                 Container::builder()
-                    .with_name("Web App".try_into().unwrap())
-                    .with_description("Frontend".try_into().unwrap())
-                    .with_container_type(ContainerType::WebApplication)
+                    .name("Web App".try_into().unwrap())
+                    .description("Frontend".try_into().unwrap())
+                    .container_type(ContainerType::WebApplication)
                     .build(),
                 Container::builder()
-                    .with_name("Database".try_into().unwrap())
-                    .with_description("Data store".try_into().unwrap())
-                    .with_container_type(ContainerType::Database)
-                    .with_technology("PostgreSQL".into())
+                    .name("Database".try_into().unwrap())
+                    .description("Data store".try_into().unwrap())
+                    .container_type(ContainerType::Database)
+                    .technology(Some("PostgreSQL".into()))
                     .build(),
             ])
             .build();
@@ -370,9 +370,9 @@ mod tests {
             .description("Backend API (version 2.0)".try_into().unwrap())
             .containers(vec![
                 Container::builder()
-                    .with_name("Web/App".try_into().unwrap())
-                    .with_description("Frontend - modern UI/UX".try_into().unwrap())
-                    .with_container_type(ContainerType::WebApplication)
+                    .name("Web/App".try_into().unwrap())
+                    .description("Frontend".try_into().unwrap())
+                    .container_type(ContainerType::WebApplication)
                     .build(),
             ])
             .build();

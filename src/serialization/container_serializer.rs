@@ -31,9 +31,9 @@ mod tests {
     #[test]
     fn test_container_serialization() {
         let container = Container::builder()
-            .with_name("Web App".try_into().unwrap())
-            .with_description("Frontend application".try_into().unwrap())
-            .with_container_type(ContainerType::WebApplication)
+            .name("Web App".try_into().unwrap())
+            .description("Frontend application".try_into().unwrap())
+            .container_type(ContainerType::WebApplication)
             .build();
 
         let dsl = container.serialize_structurizr_dsl().unwrap();
@@ -46,9 +46,9 @@ mod tests {
     #[test]
     fn test_container_database() {
         let container = Container::builder()
-            .with_name("Database".try_into().unwrap())
-            .with_description("Stores data".try_into().unwrap())
-            .with_container_type(ContainerType::Database)
+            .name("Database".try_into().unwrap())
+            .description("Stores data".try_into().unwrap())
+            .container_type(ContainerType::Database)
             .build();
 
         let dsl = container.serialize_structurizr_dsl().unwrap();

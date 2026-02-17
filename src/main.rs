@@ -1,4 +1,4 @@
-use c4rs::c4::{Component, Container, ContainerType, Person, SoftwareSystem};
+use c4rs::c4::{Container, ContainerType, Person, SoftwareSystem};
 use c4rs::serialization::StructurizrDslSerializer;
 use std::error::Error;
 
@@ -13,34 +13,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         .description("Backend API service".into())
         .containers(vec![
             Container::builder()
-                .with_name("Web App".into())
-                .with_description("Frontend application".into())
-                .with_container_type(ContainerType::WebApplication)
+                .name("Web App".into())
+                .description("Frontend application".into())
+                .container_type(ContainerType::WebApplication)
                 .build(),
             Container::builder()
-                .with_name("Database".into())
-                .with_description("PostgreSQL database".into())
-                .with_container_type(ContainerType::Database)
-                .with_technology("PostgreSQL 15".into())
+                .name("Database".into())
+                .description("PostgreSQL database".into())
+                .container_type(ContainerType::Database)
+                .technology(Some("PostgreSQL 15".into()))
                 .build(),
             Container::builder()
-                .with_name("API Service".into())
-                .with_description("Backend API".into())
-                .with_container_type(ContainerType::Api)
-                .add_component(
-                    Component::builder()
-                        .with_name("UserController".into())
-                        .with_description("User handling".into())
-                        .with_technology("Rust".into())
-                        .build(),
-                )
-                .add_component(
-                    Component::builder()
-                        .with_name("OrderController".into())
-                        .with_description("Order handling".into())
-                        .with_technology("Rust".into())
-                        .build(),
-                )
+                .name("API Service".into())
+                .description("Backend API".into())
+                .container_type(ContainerType::Api)
                 .build(),
         ])
         .build();
@@ -50,9 +36,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .description("Customer web portal".into())
         .containers(vec![
             Container::builder()
-                .with_name("Frontend".into())
-                .with_description("React frontend".into())
-                .with_container_type(ContainerType::WebApplication)
+                .name("Frontend".into())
+                .description("React frontend".into())
+                .container_type(ContainerType::WebApplication)
                 .build(),
         ])
         .build();

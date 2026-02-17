@@ -275,9 +275,9 @@ mod tests {
             .build();
 
         let container = Container::builder()
-            .with_name("Web API".try_into().unwrap())
-            .with_description("API".try_into().unwrap())
-            .with_container_type(super::super::element::ContainerType::Api)
+            .name("Web API".try_into().unwrap())
+            .description("API".try_into().unwrap())
+            .container_type(super::super::element::ContainerType::Api)
             .build();
 
         let relationship: Relationship<Person, Container> = Relationship::builder()
