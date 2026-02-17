@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use typed_builder::TypedBuilder;
 
 use super::element::{Element, InteractionStyle};
 use super::value_types::{ElementIdentifier, NonEmptyString};
@@ -32,14 +33,13 @@ use super::context::Person;
 ///     .build();
 ///
 /// let relationship: Relationship<Person, Person> = Relationship::builder()
-///     .with_source(person1)
-///     .with_target(person2)
-///     .with_description("Communicates with".try_into().unwrap())
-///     .with_interaction_style(InteractionStyle::Synchronous)
-///     .build()
-///     .unwrap();
+///     .source(person1)
+///     .target(person2)
+///     .description("Communicates with".try_into().unwrap())
+///     .interaction_style(InteractionStyle::Synchronous)
+///     .build();
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 pub struct Relationship<S: Element, T: Element> {
     /// The source element of the relationship.
     #[serde(skip_serializing)]
@@ -50,17 +50,14 @@ pub struct Relationship<S: Element, T: Element> {
     /// Description of the relationship.
     description: NonEmptyString,
     /// Technology used for this relationship, if specified.
+    #[builder(default)]
     technology: Option<NonEmptyString>,
     /// How the elements interact.
+    #[builder(default)]
     interaction_style: InteractionStyle,
 }
 
 impl<S: Element, T: Element> Relationship<S, T> {
-    /// Creates a new RelationshipBuilder.
-    pub fn builder() -> RelationshipBuilder<S, T> {
-        RelationshipBuilder::new()
-    }
-
     /// Returns a reference to the source element.
     pub fn source(&self) -> &S {
         &self.source
@@ -95,97 +92,6 @@ impl<S: Element, T: Element> Relationship<S, T> {
     }
 }
 
-/// Builder for constructing Relationship instances.
-#[derive(Debug, Clone)]
-pub struct RelationshipBuilder<S: Element, T: Element> {
-    source: Option<S>,
-    target: Option<T>,
-    description: Option<NonEmptyString>,
-    technology: Option<NonEmptyString>,
-    interaction_style: InteractionStyle,
-}
-
-impl<S: Element, T: Element> Default for RelationshipBuilder<S, T> {
-    fn default() -> Self {
-        Self {
-            source: None,
-            target: None,
-            description: None,
-            technology: None,
-            interaction_style: InteractionStyle::Synchronous,
-        }
-    }
-}
-
-impl<S: Element, T: Element> RelationshipBuilder<S, T> {
-    /// Creates a new RelationshipBuilder.
-    pub fn new() -> Self {
-        Self {
-            source: None,
-            target: None,
-            description: None,
-            technology: None,
-            interaction_style: InteractionStyle::Synchronous,
-        }
-    }
-
-    /// Sets the source element.
-    pub fn with_source(mut self, source: S) -> Self {
-        self.source = Some(source);
-        self
-    }
-
-    /// Sets the target element.
-    pub fn with_target(mut self, target: T) -> Self {
-        self.target = Some(target);
-        self
-    }
-
-    /// Sets the relationship description.
-    pub fn with_description(mut self, description: NonEmptyString) -> Self {
-        self.description = Some(description);
-        self
-    }
-
-    /// Sets the technology.
-    pub fn with_technology(mut self, technology: Option<NonEmptyString>) -> Self {
-        self.technology = technology;
-        self
-    }
-
-    /// Sets the interaction style.
-    pub fn with_interaction_style(mut self, interaction_style: InteractionStyle) -> Self {
-        self.interaction_style = interaction_style;
-        self
-    }
-
-    /// Builds the Relationship.
-    pub fn build(self) -> Result<Relationship<S, T>, RelationshipError> {
-        let source = self.source.ok_or(RelationshipError::MissingSource)?;
-        let target = self.target.ok_or(RelationshipError::MissingTarget)?;
-        let description = self
-            .description
-            .ok_or(RelationshipError::MissingDescription)?;
-
-        if let Some(ref tech) = self.technology
-            && tech.len() > 255
-        {
-            return Err(RelationshipError::TechnologyTooLong {
-                max: 255,
-                actual: tech.len(),
-            });
-        }
-
-        Ok(Relationship {
-            source,
-            target,
-            description,
-            technology: self.technology,
-            interaction_style: self.interaction_style,
-        })
-    }
-}
-
 /// Creates a relationship between two elements.
 ///
 /// This is a convenience function that uses the builder internally.
@@ -195,13 +101,13 @@ pub fn create_relationship<S: Element, T: Element>(
     description: NonEmptyString,
     technology: Option<NonEmptyString>,
     interaction_style: InteractionStyle,
-) -> Result<Relationship<S, T>, RelationshipError> {
+) -> Relationship<S, T> {
     Relationship::builder()
-        .with_source(source)
-        .with_target(target)
-        .with_description(description)
-        .with_technology(technology)
-        .with_interaction_style(interaction_style)
+        .source(source)
+        .target(target)
+        .description(description)
+        .technology(technology)
+        .interaction_style(interaction_style)
         .build()
 }
 
@@ -253,12 +159,11 @@ mod tests {
             .build();
 
         let relationship: Relationship<Person, Person> = Relationship::builder()
-            .with_source(person1)
-            .with_target(person2)
-            .with_description("Communicates with".try_into().unwrap())
-            .with_interaction_style(InteractionStyle::Synchronous)
-            .build()
-            .unwrap();
+            .source(person1)
+            .target(person2)
+            .description("Communicates with".try_into().unwrap())
+            .interaction_style(InteractionStyle::Synchronous)
+            .build();
 
         assert_eq!(relationship.description(), "Communicates with");
         assert_eq!(
@@ -281,27 +186,11 @@ mod tests {
             .build();
 
         let relationship: Relationship<Person, Container> = Relationship::builder()
-            .with_source(person)
-            .with_target(container)
-            .with_description("Uses".try_into().unwrap())
-            .build()
-            .unwrap();
-
-        assert_eq!(relationship.description(), "Uses");
-    }
-
-    #[test]
-    fn test_relationship_error_missing_source() {
-        let result = Relationship::<Person, Person>::builder()
-            .with_target(
-                Person::builder()
-                    .name("Target".try_into().unwrap())
-                    .description("Target".try_into().unwrap())
-                    .build(),
-            )
-            .with_description("Has".try_into().unwrap())
+            .source(person)
+            .target(container)
+            .description("Uses".try_into().unwrap())
             .build();
 
-        assert!(result.is_err());
+        assert_eq!(relationship.description(), "Uses");
     }
 }

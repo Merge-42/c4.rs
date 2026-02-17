@@ -45,11 +45,10 @@ mod tests {
             .build();
 
         let relationship = Relationship::builder()
-            .with_source(source)
-            .with_target(target)
-            .with_description("Reports to".try_into().unwrap())
-            .build()
-            .unwrap();
+            .source(source)
+            .target(target)
+            .description("Reports to".try_into().unwrap())
+            .build();
 
         let dsl = relationship.serialize_structurizr_dsl().unwrap();
         assert_eq!(dsl, r#"User -> Admin "Reports to""#);
@@ -68,12 +67,11 @@ mod tests {
             .build();
 
         let relationship = Relationship::builder()
-            .with_source(source)
-            .with_target(target)
-            .with_description("Uses".try_into().unwrap())
-            .with_technology(Some("HTTPS".try_into().unwrap()))
-            .build()
-            .unwrap();
+            .source(source)
+            .target(target)
+            .description("Uses".try_into().unwrap())
+            .technology(Some("HTTPS".try_into().unwrap()))
+            .build();
 
         let dsl = relationship.serialize_structurizr_dsl().unwrap();
         assert_eq!(dsl, r#"User -> API "Uses" "HTTPS""#);

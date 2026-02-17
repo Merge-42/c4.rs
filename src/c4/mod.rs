@@ -37,5 +37,5 @@ pub use component::{Component, ComponentError};
 pub use container::{Container, ContainerError};
 pub use context::{Person, PersonError, SoftwareSystem, SoftwareSystemError};
 pub use element::{CodeType, ContainerType, Element, ElementType, InteractionStyle, Location};
-pub use relationship::{Relationship, RelationshipBuilder, RelationshipError, create_relationship};
+pub use relationship::{Relationship, RelationshipError, create_relationship};
 pub use value_types::{ElementIdentifier, NonEmptyString, NonEmptyStringError};

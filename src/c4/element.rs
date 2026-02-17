@@ -107,9 +107,10 @@ impl fmt::Display for ContainerType {
 }
 
 /// Interaction style between elements.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum InteractionStyle {
     /// Synchronous request-response interaction
+    #[default]
     Synchronous,
     /// Asynchronous message passing
     Asynchronous,
