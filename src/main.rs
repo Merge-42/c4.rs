@@ -11,36 +11,40 @@ fn main() -> Result<(), Box<dyn Error>> {
     let api_system = SoftwareSystem::builder()
         .name("API".into())
         .description("Backend API service".into())
-        .containers(vec![
+        .add_container(
             Container::builder()
                 .name("Web App".into())
                 .description("Frontend application".into())
                 .container_type(ContainerType::WebApplication)
                 .build(),
+        )
+        .add_container(
             Container::builder()
                 .name("Database".into())
                 .description("PostgreSQL database".into())
                 .container_type(ContainerType::Database)
                 .technology(Some("PostgreSQL 15".into()))
                 .build(),
+        )
+        .add_container(
             Container::builder()
                 .name("API Service".into())
                 .description("Backend API".into())
                 .container_type(ContainerType::Api)
                 .build(),
-        ])
+        )
         .build();
 
     let web_system = SoftwareSystem::builder()
         .name("Web Portal".into())
         .description("Customer web portal".into())
-        .containers(vec![
+        .add_container(
             Container::builder()
                 .name("Frontend".into())
                 .description("React frontend".into())
                 .container_type(ContainerType::WebApplication)
                 .build(),
-        ])
+        )
         .build();
 
     let mut serializer = StructurizrDslSerializer::new()

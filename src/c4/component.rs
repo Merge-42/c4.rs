@@ -6,6 +6,11 @@ use super::element::{Element, ElementType, Location};
 use super::value_types::{ElementIdentifier, NonEmptyString};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(mutators(
+    pub fn add_code_element(&mut self, code_element: CodeElement) {
+        self.code_elements.push(code_element);
+    }
+))]
 pub struct Component {
     #[builder(default)]
     identifier: Option<ElementIdentifier>,
@@ -15,7 +20,7 @@ pub struct Component {
     responsibilities: Vec<NonEmptyString>,
     #[builder(default)]
     technology: Option<NonEmptyString>,
-    #[builder(default)]
+    #[builder(via_mutators(init = Vec::new()))]
     code_elements: Vec<CodeElement>,
 }
 

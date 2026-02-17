@@ -85,6 +85,11 @@ pub enum PersonError {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(mutators(
+    pub fn add_container(&mut self, container: Container) {
+        self.containers.push(container);
+    }
+))]
 pub struct SoftwareSystem {
     #[builder(default)]
     identifier: Option<ElementIdentifier>,
@@ -93,7 +98,7 @@ pub struct SoftwareSystem {
     #[builder(default)]
     location: Option<Location>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    #[builder(default)]
+    #[builder(via_mutators(init = Vec::new()))]
     containers: Vec<Container>,
 }
 

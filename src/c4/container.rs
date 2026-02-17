@@ -6,6 +6,11 @@ use super::element::{ContainerType, Element, ElementType, Location};
 use super::value_types::{ElementIdentifier, NonEmptyString};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[builder(mutators(
+    pub fn add_component(&mut self, component: Component) {
+        self.components.push(component);
+    }
+))]
 pub struct Container {
     #[builder(default)]
     identifier: Option<ElementIdentifier>,
@@ -14,7 +19,7 @@ pub struct Container {
     container_type: ContainerType,
     #[builder(default)]
     technology: Option<NonEmptyString>,
-    #[builder(default)]
+    #[builder(via_mutators(init = Vec::new()))]
     components: Vec<Component>,
 }
 
