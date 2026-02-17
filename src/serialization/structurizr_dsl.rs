@@ -139,15 +139,15 @@ mod tests {
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend API".try_into().unwrap())
-            .add_container(
+            .name("API".try_into().unwrap())
+            .description("Backend API".try_into().unwrap())
+            .containers(vec![
                 Container::builder()
                     .with_name("Web App".try_into().unwrap())
                     .with_description("Frontend".try_into().unwrap())
                     .with_container_type(ContainerType::WebApplication)
                     .build(),
-            )
+            ])
             .build();
 
         let mut serializer = StructurizrDslSerializer::new();
@@ -210,15 +210,15 @@ mod tests {
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend API service".try_into().unwrap())
-            .add_container(
+            .name("API".try_into().unwrap())
+            .description("Backend API service".try_into().unwrap())
+            .containers(vec![
                 Container::builder()
                     .with_name("Web App".try_into().unwrap())
                     .with_description("Frontend".try_into().unwrap())
                     .with_container_type(ContainerType::WebApplication)
                     .build(),
-            )
+            ])
             .build();
 
         let mut serializer = StructurizrDslSerializer::new()
@@ -255,15 +255,15 @@ mod tests {
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .with_name("BankApp".try_into().unwrap())
-            .with_description("Banking App".try_into().unwrap())
-            .add_container(
+            .name("BankApp".try_into().unwrap())
+            .description("Banking App".try_into().unwrap())
+            .containers(vec![
                 Container::builder()
                     .with_name("Web App".try_into().unwrap())
                     .with_description("Frontend".try_into().unwrap())
                     .with_container_type(ContainerType::WebApplication)
                     .build(),
-            )
+            ])
             .build();
 
         let mut serializer = StructurizrDslSerializer::new()
@@ -291,23 +291,21 @@ mod tests {
     #[test]
     fn test_nested_container_serialization() {
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend".try_into().unwrap())
-            .add_container(
+            .name("API".try_into().unwrap())
+            .description("Backend".try_into().unwrap())
+            .containers(vec![
                 Container::builder()
                     .with_name("Web App".try_into().unwrap())
                     .with_description("Frontend".try_into().unwrap())
                     .with_container_type(ContainerType::WebApplication)
                     .build(),
-            )
-            .add_container(
                 Container::builder()
                     .with_name("Database".try_into().unwrap())
                     .with_description("Data store".try_into().unwrap())
                     .with_container_type(ContainerType::Database)
                     .with_technology("PostgreSQL".into())
                     .build(),
-            )
+            ])
             .build();
 
         let mut serializer = StructurizrDslSerializer::new()
@@ -332,13 +330,13 @@ mod tests {
             .build();
 
         let system1: SoftwareSystem = SoftwareSystem::builder()
-            .with_name("SystemA".try_into().unwrap())
-            .with_description("System A".try_into().unwrap())
+            .name("SystemA".try_into().unwrap())
+            .description("System A".try_into().unwrap())
             .build();
 
         let system2: SoftwareSystem = SoftwareSystem::builder()
-            .with_name("SystemB".try_into().unwrap())
-            .with_description("System B".try_into().unwrap())
+            .name("SystemB".try_into().unwrap())
+            .description("System B".try_into().unwrap())
             .build();
 
         let mut serializer = StructurizrDslSerializer::new()
@@ -368,15 +366,15 @@ mod tests {
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .with_name("API-Service_v2".try_into().unwrap())
-            .with_description("Backend API (version 2.0)".try_into().unwrap())
-            .add_container(
+            .name("API-Service_v2".try_into().unwrap())
+            .description("Backend API (version 2.0)".try_into().unwrap())
+            .containers(vec![
                 Container::builder()
                     .with_name("Web/App".try_into().unwrap())
                     .with_description("Frontend - modern UI/UX".try_into().unwrap())
                     .with_container_type(ContainerType::WebApplication)
                     .build(),
-            )
+            ])
             .build();
 
         let mut serializer = StructurizrDslSerializer::new()
@@ -401,8 +399,8 @@ mod tests {
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend API".try_into().unwrap())
+            .name("API".try_into().unwrap())
+            .description("Backend API".try_into().unwrap())
             .build();
 
         let mut serializer = StructurizrDslSerializer::new()

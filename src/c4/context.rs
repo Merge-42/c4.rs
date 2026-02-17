@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::marker::PhantomData;
 use typed_builder::TypedBuilder;
 
 use super::container::Container;
@@ -85,37 +84,26 @@ pub enum PersonError {
     TechnologyTooLong { max: usize, actual: usize },
 }
 
-pub mod software_system_builder {
-    #[derive(Debug, Clone, Default)]
-    pub struct NoName;
-    #[derive(Debug, Clone, Default)]
-    pub struct HasName;
-    #[derive(Debug, Clone, Default)]
-    pub struct NoDescription;
-    #[derive(Debug, Clone, Default)]
-    pub struct HasDescription;
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 pub struct SoftwareSystem {
-    identifier: ElementIdentifier,
+    #[builder(default)]
+    identifier: Option<ElementIdentifier>,
     name: NonEmptyString,
     description: NonEmptyString,
-    location: Location,
+    #[builder(default)]
+    location: Option<Location>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[builder(default)]
     containers: Vec<Container>,
 }
 
 impl SoftwareSystem {
-    pub fn builder() -> SoftwareSystemBuilder<
-        software_system_builder::NoName,
-        software_system_builder::NoDescription,
-    > {
-        SoftwareSystemBuilder::new()
-    }
-
     pub fn identifier(&self) -> &ElementIdentifier {
-        &self.identifier
+        self.identifier.as_ref().unwrap_or_else(|| {
+            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
+                std::sync::LazyLock::new(ElementIdentifier::default);
+            &DEFAULT
+        })
     }
 
     pub fn name(&self) -> &str {
@@ -127,7 +115,7 @@ impl SoftwareSystem {
     }
 
     pub fn location(&self) -> Location {
-        self.location.clone()
+        self.location.clone().unwrap_or(Location::Internal)
     }
 
     pub fn containers(&self) -> &[Container] {
@@ -137,11 +125,25 @@ impl SoftwareSystem {
     pub fn add_container(&mut self, container: Container) {
         self.containers.push(container);
     }
+
+    pub fn build(self) -> SoftwareSystem {
+        SoftwareSystem {
+            identifier: self.identifier,
+            name: self.name,
+            description: self.description,
+            location: self.location,
+            containers: self.containers,
+        }
+    }
 }
 
 impl Element for SoftwareSystem {
     fn identifier(&self) -> &ElementIdentifier {
-        &self.identifier
+        self.identifier.as_ref().unwrap_or_else(|| {
+            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
+                std::sync::LazyLock::new(ElementIdentifier::default);
+            &DEFAULT
+        })
     }
 
     fn name(&self) -> &str {
@@ -157,113 +159,7 @@ impl Element for SoftwareSystem {
     }
 
     fn location(&self) -> Location {
-        self.location.clone()
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(default)]
-pub struct SoftwareSystemBuilder<N, D> {
-    #[serde(skip)]
-    _name: PhantomData<N>,
-    #[serde(skip)]
-    _description: PhantomData<D>,
-    identifier: Option<ElementIdentifier>,
-    name: Option<NonEmptyString>,
-    description: Option<NonEmptyString>,
-    location: Location,
-    containers: Vec<Container>,
-}
-
-impl Default
-    for SoftwareSystemBuilder<
-        software_system_builder::NoName,
-        software_system_builder::NoDescription,
-    >
-{
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl
-    SoftwareSystemBuilder<software_system_builder::NoName, software_system_builder::NoDescription>
-{
-    pub fn new() -> Self {
-        SoftwareSystemBuilder {
-            _name: PhantomData,
-            _description: PhantomData,
-            identifier: None,
-            name: None,
-            description: None,
-            location: Location::Internal,
-            containers: Vec::new(),
-        }
-    }
-}
-
-impl<D> SoftwareSystemBuilder<software_system_builder::NoName, D> {
-    pub fn with_identifier(mut self, identifier: ElementIdentifier) -> Self {
-        self.identifier = Some(identifier);
-        self
-    }
-
-    pub fn with_name(
-        self,
-        name: NonEmptyString,
-    ) -> SoftwareSystemBuilder<software_system_builder::HasName, D> {
-        SoftwareSystemBuilder {
-            _name: PhantomData,
-            _description: self._description,
-            identifier: self.identifier,
-            name: Some(name),
-            description: self.description,
-            location: self.location,
-            containers: self.containers,
-        }
-    }
-}
-
-impl<N> SoftwareSystemBuilder<N, software_system_builder::NoDescription> {
-    pub fn with_description(
-        self,
-        description: NonEmptyString,
-    ) -> SoftwareSystemBuilder<N, software_system_builder::HasDescription> {
-        SoftwareSystemBuilder {
-            _name: self._name,
-            _description: PhantomData,
-            identifier: self.identifier,
-            name: self.name,
-            description: Some(description),
-            location: self.location,
-            containers: self.containers,
-        }
-    }
-}
-
-impl<N, D> SoftwareSystemBuilder<N, D> {
-    pub fn with_location(mut self, location: Location) -> Self {
-        self.location = location;
-        self
-    }
-
-    pub fn add_container(mut self, container: Container) -> Self {
-        self.containers.push(container);
-        self
-    }
-}
-
-impl
-    SoftwareSystemBuilder<software_system_builder::HasName, software_system_builder::HasDescription>
-{
-    pub fn build(self) -> SoftwareSystem {
-        SoftwareSystem {
-            identifier: self.identifier.unwrap_or_default(),
-            name: self.name.unwrap(),
-            description: self.description.unwrap(),
-            location: self.location,
-            containers: self.containers,
-        }
+        self.location.clone().unwrap_or(Location::Internal)
     }
 }
 
@@ -312,8 +208,8 @@ mod tests {
     #[test]
     fn test_software_system() {
         let system = SoftwareSystem::builder()
-            .with_name("E-Commerce Platform".try_into().unwrap())
-            .with_description("Online shopping system".try_into().unwrap())
+            .name("E-Commerce Platform".try_into().unwrap())
+            .description("Online shopping system".try_into().unwrap())
             .build();
 
         assert_eq!(system.name(), "E-Commerce Platform");

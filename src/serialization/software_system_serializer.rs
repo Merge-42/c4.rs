@@ -30,8 +30,8 @@ mod tests {
     #[test]
     fn test_software_system_serialization() {
         let system = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend API service".try_into().unwrap())
+            .name("API".try_into().unwrap())
+            .description("Backend API service".try_into().unwrap())
             .build();
 
         let dsl = system.serialize_structurizr_dsl().unwrap();
@@ -41,8 +41,8 @@ mod tests {
     #[test]
     fn test_software_system_with_spaces() {
         let system = SoftwareSystem::builder()
-            .with_name("Payment Gateway".try_into().unwrap())
-            .with_description("Processes payments".try_into().unwrap())
+            .name("Payment Gateway".try_into().unwrap())
+            .description("Processes payments".try_into().unwrap())
             .build();
 
         let dsl = system.serialize_structurizr_dsl().unwrap();

@@ -9,24 +9,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build();
 
     let api_system = SoftwareSystem::builder()
-        .with_name("API".into())
-        .with_description("Backend API service".into())
-        .add_container(
+        .name("API".into())
+        .description("Backend API service".into())
+        .containers(vec![
             Container::builder()
                 .with_name("Web App".into())
                 .with_description("Frontend application".into())
                 .with_container_type(ContainerType::WebApplication)
                 .build(),
-        )
-        .add_container(
             Container::builder()
                 .with_name("Database".into())
                 .with_description("PostgreSQL database".into())
                 .with_container_type(ContainerType::Database)
                 .with_technology("PostgreSQL 15".into())
                 .build(),
-        )
-        .add_container(
             Container::builder()
                 .with_name("API Service".into())
                 .with_description("Backend API".into())
@@ -46,19 +42,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .build(),
                 )
                 .build(),
-        )
+        ])
         .build();
 
     let web_system = SoftwareSystem::builder()
-        .with_name("Web Portal".into())
-        .with_description("Customer web portal".into())
-        .add_container(
+        .name("Web Portal".into())
+        .description("Customer web portal".into())
+        .containers(vec![
             Container::builder()
                 .with_name("Frontend".into())
                 .with_description("React frontend".into())
                 .with_container_type(ContainerType::WebApplication)
                 .build(),
-        )
+        ])
         .build();
 
     let mut serializer = StructurizrDslSerializer::new()

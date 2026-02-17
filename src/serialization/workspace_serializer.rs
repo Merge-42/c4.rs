@@ -356,8 +356,8 @@ mod tests {
     #[test]
     fn test_workspace_serializer_with_software_system() {
         let system = SoftwareSystem::builder()
-            .with_name("Software System".try_into().unwrap())
-            .with_description("Backend system".try_into().unwrap())
+            .name("Software System".try_into().unwrap())
+            .description("Backend system".try_into().unwrap())
             .build();
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_software_system(system);
@@ -429,8 +429,8 @@ mod tests {
             .build();
 
         let system = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend API".try_into().unwrap())
+            .name("API".try_into().unwrap())
+            .description("Backend API".try_into().unwrap())
             .build();
 
         let mut serializer = WorkspaceSerializer::new();
@@ -456,8 +456,8 @@ mod tests {
             .build();
 
         let system = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend API".try_into().unwrap())
+            .name("API".try_into().unwrap())
+            .description("Backend API".try_into().unwrap())
             .build();
 
         let mut serializer = WorkspaceSerializer::new();
@@ -481,8 +481,8 @@ mod tests {
             .build();
 
         let system = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend API".try_into().unwrap())
+            .name("API".try_into().unwrap())
+            .description("Backend API".try_into().unwrap())
             .build();
 
         let mut serializer = WorkspaceSerializer::new();
@@ -531,8 +531,8 @@ mod tests {
     #[test]
     fn test_us2_software_system_identifier() {
         let system = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend API".try_into().unwrap())
+            .name("API".try_into().unwrap())
+            .description("Backend API".try_into().unwrap())
             .build();
 
         let mut serializer = WorkspaceSerializer::new();
@@ -548,13 +548,13 @@ mod tests {
     #[test]
     fn test_us2_multiple_software_systems() {
         let system1 = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend API".try_into().unwrap())
+            .name("API".try_into().unwrap())
+            .description("Backend API".try_into().unwrap())
             .build();
 
         let system2 = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Another API".try_into().unwrap())
+            .name("API".try_into().unwrap())
+            .description("Another API".try_into().unwrap())
             .build();
 
         let mut serializer = WorkspaceSerializer::new();
@@ -633,8 +633,8 @@ mod tests {
             .build();
 
         let system = SoftwareSystem::builder()
-            .with_name("API".try_into().unwrap())
-            .with_description("Backend API".try_into().unwrap())
+            .name("API".try_into().unwrap())
+            .description("Backend API".try_into().unwrap())
             .build();
 
         let mut serializer = WorkspaceSerializer::new();
