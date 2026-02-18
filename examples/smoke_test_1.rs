@@ -68,7 +68,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         .add_element_style(c4rs::ElementStyle::new("Database").with_shape("cylinder"))
         .serialize()?;
 
-    println!("Structurizr DSL Output:\n");
     println!("{}", dsl);
 
     Ok(())
