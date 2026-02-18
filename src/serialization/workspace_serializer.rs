@@ -266,7 +266,7 @@ impl WorkspaceSerializer {
             )
         } else {
             format!(
-                r#"{} = softwareSystem "{}" "{}" {{}}"#,
+                r#"{} = softwareSystem "{}" "{}""#,
                 identifier,
                 system.name(),
                 system.description()
@@ -313,13 +313,40 @@ impl WorkspaceSerializer {
     fn write_views_section(&mut self) -> Result<(), StructurizrDslError> {
         let views_dsl = self.views_serializer.serialize();
         if !views_dsl.is_empty() {
-            self.writer.unindent();
             self.writer.add_empty_line();
-            for line in views_dsl.lines() {
-                self.writer.add_line(line);
+            let indented = Self::indent_block(&views_dsl);
+            for line in indented.lines() {
+                if line.trim().is_empty() {
+                    self.writer.add_empty_line();
+                } else {
+                    self.writer.add_line(line);
+                }
             }
         }
         Ok(())
+    }
+
+    fn indent_block(s: &str) -> String {
+        let mut lines = Vec::new();
+        let mut brace_depth = 0;
+        for line in s.lines() {
+            let trimmed = line.trim();
+            if trimmed.is_empty() {
+                lines.push(line.to_string());
+                continue;
+            }
+            let closing = trimmed.matches('}').count();
+            let opening = trimmed.matches('{').count();
+            if closing > 0 && brace_depth > 0 {
+                brace_depth = (brace_depth as i32 - closing as i32).max(0) as usize;
+            }
+            let indent = "    ".repeat(brace_depth);
+            lines.push(format!("{}{}", indent, trimmed));
+            if opening > 0 {
+                brace_depth += opening;
+            }
+        }
+        lines.join("\n")
     }
 }
 

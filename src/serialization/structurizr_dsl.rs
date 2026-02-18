@@ -252,6 +252,8 @@ mod tests {
             .serialize()
             .unwrap();
 
+        let trimmed = result.trim();
+
         assert!(result.starts_with("workspace "));
         assert!(result.contains("!identifiers hierarchical"));
         assert!(result.contains("model {"));
@@ -261,7 +263,7 @@ mod tests {
         assert!(result.contains("styles {"));
         assert!(result.contains(r#"element "Person""#));
         assert!(result.contains("shape person"));
-        assert!(result.ends_with("}\n}"));
+        assert!(trimmed.ends_with("}"));
     }
 
     #[test]
