@@ -35,19 +35,19 @@ mod tests {
     #[test]
     fn test_relationship_serialization() {
         let source = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("A user".try_into().unwrap())
+            .name("User".into())
+            .description("A user".into())
             .build();
 
         let target = Person::builder()
-            .name("Admin".try_into().unwrap())
-            .description("An admin".try_into().unwrap())
+            .name("Admin".into())
+            .description("An admin".into())
             .build();
 
         let relationship = Relationship::builder()
             .source(source)
             .target(target)
-            .description("Reports to".try_into().unwrap())
+            .description("Reports to".into())
             .build();
 
         let dsl = relationship.serialize_structurizr_dsl().unwrap();
@@ -57,20 +57,20 @@ mod tests {
     #[test]
     fn test_relationship_with_technology() {
         let source = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("A user".try_into().unwrap())
+            .name("User".into())
+            .description("A user".into())
             .build();
 
         let target = Person::builder()
-            .name("API".try_into().unwrap())
-            .description("Backend".try_into().unwrap())
+            .name("API".into())
+            .description("Backend".into())
             .build();
 
         let relationship = Relationship::builder()
             .source(source)
             .target(target)
-            .description("Uses".try_into().unwrap())
-            .technology(Some("HTTPS".try_into().unwrap()))
+            .description("Uses".into())
+            .technology(Some("HTTPS".into()))
             .build();
 
         let dsl = relationship.serialize_structurizr_dsl().unwrap();

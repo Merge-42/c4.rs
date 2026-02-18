@@ -6,8 +6,8 @@ use c4rs::serialization::StructurizrDslSerializer;
 #[test]
 fn test_integration_single_person() {
     let person: Person = Person::builder()
-        .with_name("User".try_into().unwrap())
-        .with_description("A system user".try_into().unwrap())
+        .with_name("User".into())
+        .with_description("A system user".into())
         .build()
         .unwrap();
 
@@ -23,20 +23,20 @@ fn test_integration_single_person() {
 #[test]
 fn test_integration_full_model() {
     let person: Person = Person::builder()
-        .with_name("User".try_into().unwrap())
-        .with_description("A system user".try_into().unwrap())
+        .with_name("User".into())
+        .with_description("A system user".into())
         .build()
         .unwrap();
 
     let system: SoftwareSystem = SoftwareSystem::builder()
-        .with_name("API".try_into().unwrap())
-        .with_description("Backend API service".try_into().unwrap())
+        .with_name("API".into())
+        .with_description("Backend API service".into())
         .build()
         .unwrap();
 
     let container: Container = Container::builder()
-        .with_name("Web App".try_into().unwrap())
-        .with_description("Frontend application".try_into().unwrap())
+        .with_name("Web App".into())
+        .with_description("Frontend application".into())
         .with_container_type(ContainerType::WebApplication)
         .build()
         .unwrap();
@@ -55,8 +55,8 @@ fn test_integration_full_model() {
 #[test]
 fn test_integration_special_characters() {
     let person: Person = Person::builder()
-        .with_name("User\"Name".try_into().unwrap())
-        .with_description("A \"test\" user".try_into().unwrap())
+        .with_name("User\"Name".into())
+        .with_description("A \"test\" user".into())
         .build()
         .unwrap();
 
@@ -84,16 +84,16 @@ fn test_integration_performance() {
 
     // Create a model with many elements
     let person: Person = Person::builder()
-        .with_name("User".try_into().unwrap())
-        .with_description("A system user".try_into().unwrap())
+        .with_name("User".into())
+        .with_description("A system user".into())
         .build()
         .unwrap();
 
     let mut systems: Vec<SoftwareSystem> = Vec::new();
     for i in 0..50 {
         let system = SoftwareSystem::builder()
-            .with_name(format!("System {}", i).try_into().unwrap())
-            .with_description(format!("System {} description", i).try_into().unwrap())
+            .with_name(format!("System {}", i).into())
+            .with_description(format!("System {} description", i).into())
             .build()
             .unwrap();
         systems.push(system);

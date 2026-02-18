@@ -17,7 +17,7 @@ pub struct Container {
     name: NonEmptyString,
     description: NonEmptyString,
     container_type: ContainerType,
-    #[builder(default)]
+    #[builder(default, setter(strip_option))]
     technology: Option<NonEmptyString>,
     #[builder(via_mutators(init = Vec::new()))]
     components: Vec<Component>,
@@ -118,10 +118,10 @@ mod tests {
     #[test]
     fn test_container_builder() {
         let container = Container::builder()
-            .name("Web API".try_into().unwrap())
-            .description("REST API endpoints".try_into().unwrap())
+            .name("Web API".into())
+            .description("REST API endpoints".into())
             .container_type(ContainerType::Api)
-            .technology(Some("Rust/Axum".try_into().unwrap()))
+            .technology("Rust/Axum".into())
             .build();
 
         assert_eq!(container.name(), "Web API");

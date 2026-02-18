@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .name("Database".into())
                 .description("PostgreSQL database".into())
                 .container_type(ContainerType::Database)
-                .technology(Some("PostgreSQL 15".into()))
+                .technology("PostgreSQL 15".into())
                 .build(),
         )
         .add_container(

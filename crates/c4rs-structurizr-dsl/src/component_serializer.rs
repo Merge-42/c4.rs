@@ -31,9 +31,9 @@ mod tests {
     #[test]
     fn test_component_serialization() {
         let component = Component::builder()
-            .name("UserController".try_into().unwrap())
-            .description("Handles user requests".try_into().unwrap())
-            .technology(Some("Rust".try_into().unwrap()))
+            .name("UserController".into())
+            .description("Handles user requests".into())
+            .technology("Rust".into())
             .build();
 
         let dsl = component.serialize_structurizr_dsl().unwrap();
@@ -46,8 +46,8 @@ mod tests {
     #[test]
     fn test_component_without_technology() {
         let component = Component::builder()
-            .name("UserController".try_into().unwrap())
-            .description("Handles user requests".try_into().unwrap())
+            .name("UserController".into())
+            .description("Handles user requests".into())
             .build();
 
         let dsl = component.serialize_structurizr_dsl().unwrap();

@@ -127,8 +127,8 @@ mod tests {
     #[test]
     fn test_serialize_single_person() {
         let person: Person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("A system user".try_into().unwrap())
+            .name("User".into())
+            .description("A system user".into())
             .build();
 
         let serializer = StructurizrDslSerializer::new();
@@ -140,17 +140,17 @@ mod tests {
     #[test]
     fn test_serialize_full_model() {
         let person: Person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("A system user".try_into().unwrap())
+            .name("User".into())
+            .description("A system user".into())
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .name("API".try_into().unwrap())
-            .description("Backend API".try_into().unwrap())
+            .name("API".into())
+            .description("Backend API".into())
             .add_container(
                 Container::builder()
-                    .name("Web App".try_into().unwrap())
-                    .description("Frontend".try_into().unwrap())
+                    .name("Web App".into())
+                    .description("Frontend".into())
                     .container_type(ContainerType::WebApplication)
                     .build(),
             )
@@ -171,8 +171,8 @@ mod tests {
     #[test]
     fn test_serialize_with_views() {
         let person: Person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("A system user".try_into().unwrap())
+            .name("User".into())
+            .description("A system user".into())
             .build();
 
         let serializer = StructurizrDslSerializer::new();
@@ -196,8 +196,8 @@ mod tests {
     #[test]
     fn test_serialize_with_styles() {
         let person: Person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("A system user".try_into().unwrap())
+            .name("User".into())
+            .description("A system user".into())
             .build();
 
         let serializer = StructurizrDslSerializer::new();
@@ -219,17 +219,17 @@ mod tests {
     #[test]
     fn test_complete_workspace_serialization() {
         let person: Person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("A user of the system".try_into().unwrap())
+            .name("User".into())
+            .description("A user of the system".into())
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .name("API".try_into().unwrap())
-            .description("Backend API service".try_into().unwrap())
+            .name("API".into())
+            .description("Backend API service".into())
             .add_container(
                 Container::builder()
-                    .name("Web App".try_into().unwrap())
-                    .description("Frontend".try_into().unwrap())
+                    .name("Web App".into())
+                    .description("Frontend".into())
                     .container_type(ContainerType::WebApplication)
                     .build(),
             )
@@ -269,17 +269,17 @@ mod tests {
     #[test]
     fn test_playground_format_structure() {
         let person: Person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("A user".try_into().unwrap())
+            .name("User".into())
+            .description("A user".into())
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .name("BankApp".try_into().unwrap())
-            .description("Banking App".try_into().unwrap())
+            .name("BankApp".into())
+            .description("Banking App".into())
             .add_container(
                 Container::builder()
-                    .name("Web App".try_into().unwrap())
-                    .description("Frontend".try_into().unwrap())
+                    .name("Web App".into())
+                    .description("Frontend".into())
                     .container_type(ContainerType::WebApplication)
                     .build(),
             )
@@ -314,21 +314,21 @@ mod tests {
     #[test]
     fn test_nested_container_serialization() {
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .name("API".try_into().unwrap())
-            .description("Backend".try_into().unwrap())
+            .name("API".into())
+            .description("Backend".into())
             .add_container(
                 Container::builder()
-                    .name("Web App".try_into().unwrap())
-                    .description("Frontend".try_into().unwrap())
+                    .name("Web App".into())
+                    .description("Frontend".into())
                     .container_type(ContainerType::WebApplication)
                     .build(),
             )
             .add_container(
                 Container::builder()
-                    .name("Database".try_into().unwrap())
-                    .description("Data store".try_into().unwrap())
+                    .name("Database".into())
+                    .description("Data store".into())
                     .container_type(ContainerType::Database)
-                    .technology(Some("PostgreSQL".into()))
+                    .technology("PostgreSQL".into())
                     .build(),
             )
             .build();
@@ -350,18 +350,18 @@ mod tests {
     #[test]
     fn test_circular_relationships() {
         let person: Person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("A user".try_into().unwrap())
+            .name("User".into())
+            .description("A user".into())
             .build();
 
         let system1: SoftwareSystem = SoftwareSystem::builder()
-            .name("SystemA".try_into().unwrap())
-            .description("System A".try_into().unwrap())
+            .name("SystemA".into())
+            .description("System A".into())
             .build();
 
         let system2: SoftwareSystem = SoftwareSystem::builder()
-            .name("SystemB".try_into().unwrap())
-            .description("System B".try_into().unwrap())
+            .name("SystemB".into())
+            .description("System B".into())
             .build();
 
         let result = StructurizrDslSerializer::new()
@@ -386,17 +386,17 @@ mod tests {
     #[test]
     fn test_special_characters_in_names() {
         let person: Person = Person::builder()
-            .name("User's System".try_into().unwrap())
-            .description("A \"special\" user & <test>".try_into().unwrap())
+            .name("User's System".into())
+            .description("A \"special\" user & <test>".into())
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .name("API-Service_v2".try_into().unwrap())
-            .description("Backend API (version 2.0)".try_into().unwrap())
+            .name("API-Service_v2".into())
+            .description("Backend API (version 2.0)".into())
             .add_container(
                 Container::builder()
-                    .name("Web/App".try_into().unwrap())
-                    .description("Frontend".try_into().unwrap())
+                    .name("Web/App".into())
+                    .description("Frontend".into())
                     .container_type(ContainerType::WebApplication)
                     .build(),
             )
@@ -419,13 +419,13 @@ mod tests {
     #[test]
     fn test_relationship_with_technology() {
         let person: Person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("A user".try_into().unwrap())
+            .name("User".into())
+            .description("A user".into())
             .build();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .name("API".try_into().unwrap())
-            .description("Backend API".try_into().unwrap())
+            .name("API".into())
+            .description("Backend API".into())
             .build();
 
         let result = StructurizrDslSerializer::new()
@@ -445,18 +445,18 @@ mod tests {
     #[test]
     fn test_multiple_identical_element_names() {
         let person1: Person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("First user".try_into().unwrap())
+            .name("User".into())
+            .description("First user".into())
             .build();
 
         let person2: Person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("Second user".try_into().unwrap())
+            .name("User".into())
+            .description("Second user".into())
             .build();
 
         let person3: Person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("Third user".try_into().unwrap())
+            .name("User".into())
+            .description("Third user".into())
             .build();
 
         let result = StructurizrDslSerializer::new()

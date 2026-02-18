@@ -31,8 +31,8 @@ mod tests {
     #[test]
     fn test_container_serialization() {
         let container = Container::builder()
-            .name("Web App".try_into().unwrap())
-            .description("Frontend application".try_into().unwrap())
+            .name("Web App".into())
+            .description("Frontend application".into())
             .container_type(ContainerType::WebApplication)
             .build();
 
@@ -46,8 +46,8 @@ mod tests {
     #[test]
     fn test_container_database() {
         let container = Container::builder()
-            .name("Database".try_into().unwrap())
-            .description("Stores data".try_into().unwrap())
+            .name("Database".into())
+            .description("Stores data".into())
             .container_type(ContainerType::Database)
             .build();
 

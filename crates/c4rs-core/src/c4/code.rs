@@ -12,9 +12,9 @@ pub struct CodeElement {
     name: NonEmptyString,
     description: NonEmptyString,
     code_type: CodeType,
-    #[builder(default)]
+    #[builder(default, setter(strip_option))]
     language: Option<NonEmptyString>,
-    #[builder(default)]
+    #[builder(default, setter(strip_option))]
     file_path: Option<NonEmptyString>,
 }
 
@@ -123,11 +123,11 @@ mod tests {
     #[test]
     fn test_code_element_builder() {
         let code_element = CodeElement::builder()
-            .name("calculateTotal".try_into().unwrap())
-            .description("Calculates order total".try_into().unwrap())
+            .name("calculateTotal".into())
+            .description("Calculates order total".into())
             .code_type(CodeType::Function)
-            .language(Some("Rust".try_into().unwrap()))
-            .file_path(Some("src/orders/calculator.rs".try_into().unwrap()))
+            .language("Rust".into())
+            .file_path("src/orders/calculator.rs".into())
             .build();
 
         assert_eq!(code_element.name(), "calculateTotal");

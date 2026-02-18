@@ -23,19 +23,19 @@ use super::context::Person;
 ///
 /// // Same type relationship (Person → Person)
 /// let person1 = Person::builder()
-///     .name("Alice".try_into().unwrap())
-///     .description("User 1".try_into().unwrap())
+///     .name("Alice".into())
+///     .description("User 1".into())
 ///     .build();
 ///
 /// let person2 = Person::builder()
-///     .name("Bob".try_into().unwrap())
-///     .description("User 2".try_into().unwrap())
+///     .name("Bob".into())
+///     .description("User 2".into())
 ///     .build();
 ///
 /// let relationship: Relationship<Person, Person> = Relationship::builder()
 ///     .source(person1)
 ///     .target(person2)
-///     .description("Communicates with".try_into().unwrap())
+///     .description("Communicates with".into())
 ///     .interaction_style(InteractionStyle::Synchronous)
 ///     .build();
 /// ```
@@ -149,19 +149,19 @@ mod tests {
     #[test]
     fn test_relationship_builder() {
         let person1 = Person::builder()
-            .name("Alice".try_into().unwrap())
-            .description("User 1".try_into().unwrap())
+            .name("Alice".into())
+            .description("User 1".into())
             .build();
 
         let person2 = Person::builder()
-            .name("Bob".try_into().unwrap())
-            .description("User 2".try_into().unwrap())
+            .name("Bob".into())
+            .description("User 2".into())
             .build();
 
         let relationship: Relationship<Person, Person> = Relationship::builder()
             .source(person1)
             .target(person2)
-            .description("Communicates with".try_into().unwrap())
+            .description("Communicates with".into())
             .interaction_style(InteractionStyle::Synchronous)
             .build();
 
@@ -175,20 +175,20 @@ mod tests {
     #[test]
     fn test_cross_level_relationship() {
         let person = Person::builder()
-            .name("User".try_into().unwrap())
-            .description("A user".try_into().unwrap())
+            .name("User".into())
+            .description("A user".into())
             .build();
 
         let container = Container::builder()
-            .name("Web API".try_into().unwrap())
-            .description("API".try_into().unwrap())
+            .name("Web API".into())
+            .description("API".into())
             .container_type(super::super::element::ContainerType::Api)
             .build();
 
         let relationship: Relationship<Person, Container> = Relationship::builder()
             .source(person)
             .target(container)
-            .description("Uses".try_into().unwrap())
+            .description("Uses".into())
             .build();
 
         assert_eq!(relationship.description(), "Uses");

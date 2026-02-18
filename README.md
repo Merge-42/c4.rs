@@ -31,6 +31,16 @@ let person = Person::builder()
 println!("Person: {}", person.name());
 ```
 
+## Usage Notes
+
+- **Optional string fields**: For fields like `technology`, `language`, `file_path`, you can use `.into()` directly - the builder automatically wraps with `Some()`:
+  ```rust
+  .technology("Rust".into())           // Sets Some("Rust")
+  .technology()                        // Sets None (optional)
+  ```
+- **Ownership**: The `create_relationship` function takes ownership of elements. Use `.clone()` if you need to reuse them.
+- **Defaults**: Location defaults to `Internal` when not specified.
+
 ## C4 Model Types
 
 ### Context Level
@@ -114,11 +124,25 @@ use c4rs::c4::{Person, Container, Relationship, InteractionStyle, create_relatio
 
 // Create a relationship between two elements
 let relationship = create_relationship(
-    &user,
-    &web_api,
+    user,
+    web_api,
     "Uses".into(),
-    Some(InteractionStyle::Synchronous),
+    Some("HTTP".into()),
+    InteractionStyle::Synchronous,
 );
+```
+
+Or use the Relationship builder directly:
+
+```rust
+use c4rs::c4::Relationship;
+
+let relationship: Relationship<Person, Container> = Relationship::builder()
+    .source(user)
+    .target(web_api)
+    .description("Uses".into())
+    .interaction_style(InteractionStyle::Synchronous)
+    .build();
 ```
 
 ## JSON Serialization

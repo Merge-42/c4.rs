@@ -18,7 +18,7 @@ pub struct Component {
     description: NonEmptyString,
     #[builder(default)]
     responsibilities: Vec<NonEmptyString>,
-    #[builder(default)]
+    #[builder(default, setter(strip_option))]
     technology: Option<NonEmptyString>,
     #[builder(via_mutators(init = Vec::new()))]
     code_elements: Vec<CodeElement>,
@@ -111,13 +111,10 @@ mod tests {
     #[test]
     fn test_component_builder() {
         let component = Component::builder()
-            .name("UserHandler".try_into().unwrap())
-            .description("Handles user requests".try_into().unwrap())
-            .responsibilities(vec![
-                "Create user".try_into().unwrap(),
-                "Update user".try_into().unwrap(),
-            ])
-            .technology(Some("Rust".try_into().unwrap()))
+            .name("UserHandler".into())
+            .description("Handles user requests".into())
+            .responsibilities(vec!["Create user".into(), "Update user".into()])
+            .technology("Rust".into())
             .build();
 
         assert_eq!(component.name(), "UserHandler");

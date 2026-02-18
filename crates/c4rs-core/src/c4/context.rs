@@ -187,8 +187,8 @@ mod tests {
     #[test]
     fn test_person_builder() {
         let person = Person::builder()
-            .name("Alice".try_into().unwrap())
-            .description("System administrator".try_into().unwrap())
+            .name("Alice".into())
+            .description("System administrator".into())
             .location(Location::Internal)
             .build();
 
@@ -201,10 +201,10 @@ mod tests {
     #[test]
     fn test_person_with_technology() {
         let person = Person::builder()
-            .name("Bob".try_into().unwrap())
-            .description("API consumer".try_into().unwrap())
+            .name("Bob".into())
+            .description("API consumer".into())
             .location(Location::External)
-            .technology("Python 3.11".try_into().unwrap())
+            .technology("Python 3.11".into())
             .build();
 
         assert_eq!(person.technology(), Some("Python 3.11"));
@@ -213,8 +213,8 @@ mod tests {
     #[test]
     fn test_software_system() {
         let system = SoftwareSystem::builder()
-            .name("E-Commerce Platform".try_into().unwrap())
-            .description("Online shopping system".try_into().unwrap())
+            .name("E-Commerce Platform".into())
+            .description("Online shopping system".into())
             .build();
 
         assert_eq!(system.name(), "E-Commerce Platform");

@@ -16,8 +16,8 @@
 //! use c4rs_core::c4::{Person, Location, ElementIdentifier};
 //!
 //! let person = Person::builder()
-//!     .name("Alice".try_into().unwrap())
-//!     .description("System administrator".try_into().unwrap())
+//!     .name("Alice".into())
+//!     .description("System administrator".into())
 //!     .location(Location::Internal)
 //!     .build();
 //!
