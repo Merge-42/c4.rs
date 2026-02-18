@@ -41,40 +41,46 @@ impl StructurizrDslSerializer {
     }
 
     /// Add a person to the workspace.
-    pub fn add_person(&mut self, person: Person) {
+    pub fn add_person(mut self, person: Person) -> Self {
         self.workspace_serializer.add_person(person);
+        self
     }
 
     /// Add a software system to the workspace.
-    pub fn add_software_system(&mut self, system: SoftwareSystem) {
+    pub fn add_software_system(mut self, system: SoftwareSystem) -> Self {
         self.workspace_serializer.add_software_system(system);
+        self
     }
 
     /// Add a view configuration.
-    pub fn add_view(&mut self, view: ViewConfiguration) {
+    pub fn add_view(mut self, view: ViewConfiguration) -> Self {
         self.views_serializer.add_view(view.clone());
         self.workspace_serializer.add_view(&view);
+        self
     }
 
     /// Add an element style.
-    pub fn add_element_style(&mut self, style: ElementStyle) {
+    pub fn add_element_style(mut self, style: ElementStyle) -> Self {
         self.styles_serializer.add_element_style(style);
+        self
     }
 
     /// Add a relationship style.
-    pub fn add_relationship_style(&mut self, style: RelationshipStyle) {
+    pub fn add_relationship_style(mut self, style: RelationshipStyle) -> Self {
         self.styles_serializer.add_relationship_style(style);
+        self
     }
 
     pub fn add_relationship(
-        &mut self,
+        mut self,
         source_id: &str,
         target_id: &str,
         description: &str,
         technology: Option<&str>,
-    ) {
+    ) -> Self {
         self.workspace_serializer
             .add_relationship(source_id, target_id, description, technology);
+        self
     }
 
     /// Serialize the workspace to Structurizr DSL.
@@ -86,20 +92,21 @@ impl StructurizrDslSerializer {
     /// # Errors
     ///
     /// Returns a `StructurizrDslError` if serialization fails.
-    pub fn serialize(&mut self) -> Result<String, StructurizrDslError> {
-        if let Some(ref name) = self.name {
-            self.workspace_serializer.set_name(name);
+    pub fn serialize(self) -> Result<String, StructurizrDslError> {
+        let mut workspace_serializer = self.workspace_serializer;
+        if let Some(name) = self.name {
+            workspace_serializer.set_name(&name);
         }
-        if let Some(ref desc) = self.description {
-            self.workspace_serializer.set_description(desc);
+        if let Some(desc) = self.description {
+            workspace_serializer.set_description(&desc);
         }
 
         let styles_dsl = self.styles_serializer.serialize();
         if !styles_dsl.is_empty() {
-            self.workspace_serializer.add_element_styles(&styles_dsl);
+            workspace_serializer.add_element_styles(&styles_dsl);
         }
 
-        self.workspace_serializer.serialize()
+        workspace_serializer.serialize()
     }
 }
 
@@ -111,7 +118,7 @@ mod tests {
 
     #[test]
     fn test_serialize_empty_model() {
-        let mut serializer = StructurizrDslSerializer::new();
+        let serializer = StructurizrDslSerializer::new();
         let result = serializer.serialize().unwrap();
         assert!(result.starts_with("workspace "));
         assert!(result.contains("model {"));
@@ -124,9 +131,8 @@ mod tests {
             .description("A system user".try_into().unwrap())
             .build();
 
-        let mut serializer = StructurizrDslSerializer::new();
-        serializer.add_person(person);
-        let result = serializer.serialize().unwrap();
+        let serializer = StructurizrDslSerializer::new();
+        let result = serializer.add_person(person).serialize().unwrap();
 
         assert!(result.contains(r#"u = person "User" "A system user""#));
     }
@@ -150,10 +156,12 @@ mod tests {
             )
             .build();
 
-        let mut serializer = StructurizrDslSerializer::new();
-        serializer.add_person(person);
-        serializer.add_software_system(system);
-        let result = serializer.serialize().unwrap();
+        let serializer = StructurizrDslSerializer::new();
+        let result = serializer
+            .add_person(person)
+            .add_software_system(system)
+            .serialize()
+            .unwrap();
 
         assert!(result.contains(r#"u = person "User""#));
         assert!(result.contains(r#"a = softwareSystem "API""#));
@@ -167,17 +175,18 @@ mod tests {
             .description("A system user".try_into().unwrap())
             .build();
 
-        let mut serializer = StructurizrDslSerializer::new();
-        serializer.add_person(person);
+        let serializer = StructurizrDslSerializer::new();
         let view = ViewConfiguration::builder()
             .view_type(ViewType::SystemContext)
             .element_identifier("u".to_string())
             .title("System Context".to_string())
             .include_elements(vec!["*".to_string()])
             .build();
-        serializer.add_view(view);
-
-        let result = serializer.serialize().unwrap();
+        let result = serializer
+            .add_person(person)
+            .add_view(view)
+            .serialize()
+            .unwrap();
 
         assert!(result.contains("views {"));
         assert!(result.contains("systemContext u \"System Context\" {"));
@@ -191,15 +200,16 @@ mod tests {
             .description("A system user".try_into().unwrap())
             .build();
 
-        let mut serializer = StructurizrDslSerializer::new();
-        serializer.add_person(person);
-        serializer.add_element_style(
-            ElementStyle::new("Person")
-                .with_background("#ffcc00")
-                .with_color("#000000"),
-        );
-
-        let result = serializer.serialize().unwrap();
+        let serializer = StructurizrDslSerializer::new();
+        let result = serializer
+            .add_person(person)
+            .add_element_style(
+                ElementStyle::new("Person")
+                    .with_background("#ffcc00")
+                    .with_color("#000000"),
+            )
+            .serialize()
+            .unwrap();
 
         assert!(result.contains("styles {"));
         assert!(result.contains(r#"element "Person""#));
@@ -225,23 +235,22 @@ mod tests {
             )
             .build();
 
-        let mut serializer = StructurizrDslSerializer::new()
-            .with_name("Example System")
-            .with_description("An example C4 model");
-        serializer.add_person(person);
-        serializer.add_software_system(system);
-
         let view = ViewConfiguration::builder()
             .view_type(ViewType::SystemContext)
             .element_identifier("a".to_string())
             .title("SystemContext".to_string())
             .include_elements(vec!["*".to_string()])
             .build();
-        serializer.add_view(view);
 
-        serializer.add_element_style(ElementStyle::new("Person").with_shape("person"));
-
-        let result = serializer.serialize().unwrap();
+        let result = StructurizrDslSerializer::new()
+            .with_name("Example System")
+            .with_description("An example C4 model")
+            .add_person(person)
+            .add_software_system(system)
+            .add_view(view)
+            .add_element_style(ElementStyle::new("Person").with_shape("person"))
+            .serialize()
+            .unwrap();
 
         assert!(result.starts_with("workspace "));
         assert!(result.contains("!identifiers hierarchical"));
@@ -274,22 +283,22 @@ mod tests {
             )
             .build();
 
-        let mut serializer = StructurizrDslSerializer::new()
-            .with_name("Test Workspace")
-            .with_description("Test");
-        serializer.add_person(person);
-        serializer.add_software_system(system);
-        serializer.add_relationship("u", "b", "Uses", None);
-
         let view = ViewConfiguration::builder()
             .view_type(ViewType::SystemContext)
             .element_identifier("b".to_string())
             .title("SystemContext".to_string())
             .include_elements(vec!["*".to_string()])
             .build();
-        serializer.add_view(view);
 
-        let result = serializer.serialize().unwrap();
+        let result = StructurizrDslSerializer::new()
+            .with_name("Test Workspace")
+            .with_description("Test")
+            .add_person(person)
+            .add_software_system(system)
+            .add_relationship("u", "b", "Uses", None)
+            .add_view(view)
+            .serialize()
+            .unwrap();
 
         let opens = result.matches('{').count();
         let closes = result.matches('}').count();
@@ -322,12 +331,12 @@ mod tests {
             )
             .build();
 
-        let mut serializer = StructurizrDslSerializer::new()
+        let result = StructurizrDslSerializer::new()
             .with_name("Nested Test")
-            .with_description("Test");
-        serializer.add_software_system(system);
-
-        let result = serializer.serialize().unwrap();
+            .with_description("Test")
+            .add_software_system(system)
+            .serialize()
+            .unwrap();
 
         assert!(result.contains("a = softwareSystem \"API\""));
         assert!(result.contains("wa = container \"Web App\" \"Frontend\""));
@@ -353,18 +362,18 @@ mod tests {
             .description("System B".try_into().unwrap())
             .build();
 
-        let mut serializer = StructurizrDslSerializer::new()
+        let result = StructurizrDslSerializer::new()
             .with_name("Circular Test")
-            .with_description("Test");
-        serializer.add_person(person);
-        serializer.add_software_system(system1);
-        serializer.add_software_system(system2);
-        serializer.add_relationship("person", "a", "Uses", None);
-        serializer.add_relationship("a", "b", "Communicates with", Some("HTTP"));
-        serializer.add_relationship("b", "person", "Sends data to", None);
-        serializer.add_relationship("b", "a", "Receives from", Some("HTTP"));
-
-        let result = serializer.serialize().unwrap();
+            .with_description("Test")
+            .add_person(person)
+            .add_software_system(system1)
+            .add_software_system(system2)
+            .add_relationship("person", "a", "Uses", None)
+            .add_relationship("a", "b", "Communicates with", Some("HTTP"))
+            .add_relationship("b", "person", "Sends data to", None)
+            .add_relationship("b", "a", "Receives from", Some("HTTP"))
+            .serialize()
+            .unwrap();
 
         assert!(result.contains("person -> a \"Uses\""));
         assert!(result.contains("a -> b \"Communicates with\" \"HTTP\""));
@@ -391,13 +400,13 @@ mod tests {
             )
             .build();
 
-        let mut serializer = StructurizrDslSerializer::new()
+        let result = StructurizrDslSerializer::new()
             .with_name("Special Chars Test")
-            .with_description("Test with special characters");
-        serializer.add_person(person);
-        serializer.add_software_system(system);
-
-        let result = serializer.serialize().unwrap();
+            .with_description("Test with special characters")
+            .add_person(person)
+            .add_software_system(system)
+            .serialize()
+            .unwrap();
 
         assert!(result.contains("us = person \"User's System\""));
         assert!(result.contains("a = softwareSystem \"API-Service_v2\""));
@@ -417,15 +426,15 @@ mod tests {
             .description("Backend API".try_into().unwrap())
             .build();
 
-        let mut serializer = StructurizrDslSerializer::new()
+        let result = StructurizrDslSerializer::new()
             .with_name("Tech Test")
-            .with_description("Test");
-        serializer.add_person(person);
-        serializer.add_software_system(system);
-        serializer.add_relationship("u", "a", "Uses", Some("HTTPS"));
-        serializer.add_relationship("a", "u", "Responds to", Some("JSON/HTTPS"));
-
-        let result = serializer.serialize().unwrap();
+            .with_description("Test")
+            .add_person(person)
+            .add_software_system(system)
+            .add_relationship("u", "a", "Uses", Some("HTTPS"))
+            .add_relationship("a", "u", "Responds to", Some("JSON/HTTPS"))
+            .serialize()
+            .unwrap();
 
         assert!(result.contains("u -> a \"Uses\" \"HTTPS\""));
         assert!(result.contains("a -> u \"Responds to\" \"JSON/HTTPS\""));
@@ -448,14 +457,14 @@ mod tests {
             .description("Third user".try_into().unwrap())
             .build();
 
-        let mut serializer = StructurizrDslSerializer::new()
+        let result = StructurizrDslSerializer::new()
             .with_name("Duplicate Names Test")
-            .with_description("Test");
-        serializer.add_person(person1);
-        serializer.add_person(person2);
-        serializer.add_person(person3);
-
-        let result = serializer.serialize().unwrap();
+            .with_description("Test")
+            .add_person(person1)
+            .add_person(person2)
+            .add_person(person3)
+            .serialize()
+            .unwrap();
 
         assert!(result.contains("u = person \"User\" \"First user\""));
         assert!(result.contains("u1 = person \"User\" \"Second user\""));

@@ -47,15 +47,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
         .build();
 
-    let mut serializer = StructurizrDslSerializer::new()
-        .with_name("Example System")
-        .with_description("An example C4 model");
-    serializer.add_person(person);
-    serializer.add_software_system(api_system);
-    serializer.add_software_system(web_system);
-
-    serializer.add_relationship("u", "a", "Uses", None);
-
     use c4rs::serialization::views_serializer::ViewType;
 
     let ctx_view = c4rs::serialization::views_serializer::ViewConfiguration::builder()
@@ -64,17 +55,24 @@ fn main() -> Result<(), Box<dyn Error>> {
         .title("SystemContext".to_string())
         .include_elements(vec!["*".to_string()])
         .build();
-    serializer.add_view(ctx_view);
 
-    serializer.add_element_style(
-        c4rs::serialization::styles_serializer::ElementStyle::new("Person").with_shape("person"),
-    );
-    serializer.add_element_style(
-        c4rs::serialization::styles_serializer::ElementStyle::new("Database")
-            .with_shape("cylinder"),
-    );
-
-    let dsl = serializer.serialize()?;
+    let dsl = StructurizrDslSerializer::new()
+        .with_name("Example System")
+        .with_description("An example C4 model")
+        .add_person(person)
+        .add_software_system(api_system)
+        .add_software_system(web_system)
+        .add_relationship("u", "a", "Uses", None)
+        .add_view(ctx_view)
+        .add_element_style(
+            c4rs::serialization::styles_serializer::ElementStyle::new("Person")
+                .with_shape("person"),
+        )
+        .add_element_style(
+            c4rs::serialization::styles_serializer::ElementStyle::new("Database")
+                .with_shape("cylinder"),
+        )
+        .serialize()?;
 
     println!("Structurizr DSL Output:\n");
     println!("{}", dsl);
