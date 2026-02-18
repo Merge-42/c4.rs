@@ -12,6 +12,7 @@ use super::value_types::{ElementIdentifier, NonEmptyString};
     }
 ))]
 pub struct Container {
+    #[serde(skip)]
     #[builder(default)]
     identifier: Option<ElementIdentifier>,
     name: NonEmptyString,
@@ -56,20 +57,23 @@ impl Container {
         self.components.push(component);
     }
 
-    pub fn build(self) -> Container {
+    pub fn build(self) -> Result<Container, ContainerError> {
         if let Some(ref tech) = self.technology
             && tech.len() > 255
         {
-            panic!("technology string exceeds maximum length of 255 characters");
+            return Err(ContainerError::TechnologyTooLong {
+                max: 255,
+                actual: tech.len(),
+            });
         }
-        Container {
+        Ok(Container {
             identifier: self.identifier,
             name: self.name,
             description: self.description,
             container_type: self.container_type,
             technology: self.technology,
             components: self.components,
-        }
+        })
     }
 }
 

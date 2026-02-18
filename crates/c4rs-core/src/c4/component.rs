@@ -12,6 +12,7 @@ use super::value_types::{ElementIdentifier, NonEmptyString};
     }
 ))]
 pub struct Component {
+    #[serde(skip)]
     #[builder(default)]
     identifier: Option<ElementIdentifier>,
     name: NonEmptyString,
@@ -56,15 +57,15 @@ impl Component {
         &self.code_elements
     }
 
-    pub fn build(self) -> Component {
-        Component {
+    pub fn build(self) -> Result<Component, ComponentError> {
+        Ok(Component {
             identifier: self.identifier,
             name: self.name,
             description: self.description,
             responsibilities: self.responsibilities,
             technology: self.technology,
             code_elements: self.code_elements,
-        }
+        })
     }
 }
 

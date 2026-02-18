@@ -7,6 +7,7 @@ use super::value_types::{ElementIdentifier, NonEmptyString};
 /// Represents an individual code unit within a component.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 pub struct CodeElement {
+    #[serde(skip)]
     #[builder(default)]
     identifier: Option<ElementIdentifier>,
     name: NonEmptyString,
@@ -47,25 +48,31 @@ impl CodeElement {
         self.file_path.as_deref()
     }
 
-    pub fn build(self) -> CodeElement {
+    pub fn build(self) -> Result<CodeElement, CodeElementError> {
         if let Some(ref lang) = self.language
             && lang.len() > 255
         {
-            panic!("language string exceeds maximum length of 255 characters");
+            return Err(CodeElementError::LanguageTooLong {
+                max: 255,
+                actual: lang.len(),
+            });
         }
         if let Some(ref path) = self.file_path
             && path.len() > 512
         {
-            panic!("file_path string exceeds maximum length of 512 characters");
+            return Err(CodeElementError::FilePathTooLong {
+                max: 512,
+                actual: path.len(),
+            });
         }
-        CodeElement {
+        Ok(CodeElement {
             identifier: self.identifier,
             name: self.name,
             description: self.description,
             code_type: self.code_type,
             language: self.language,
             file_path: self.file_path,
-        }
+        })
     }
 }
 

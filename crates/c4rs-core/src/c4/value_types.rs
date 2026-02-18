@@ -1,5 +1,6 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
+use std::str::FromStr;
 
 /// Type-safe wrapper for element identifiers.
 ///
@@ -144,6 +145,14 @@ impl From<NonEmptyString> for String {
 impl From<&str> for NonEmptyString {
     fn from(s: &str) -> Self {
         NonEmptyString::new(s).unwrap()
+    }
+}
+
+impl FromStr for NonEmptyString {
+    type Err = NonEmptyStringError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::new(s)
     }
 }
 

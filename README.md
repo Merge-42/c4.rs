@@ -38,7 +38,14 @@ println!("Person: {}", person.name());
   .technology("Rust".into())           // Sets Some("Rust")
   .technology()                        // Sets None (optional)
   ```
-- **Ownership**: The `create_relationship` function takes ownership of elements. Use `.clone()` if you need to reuse them.
+- **Person optional fields**: Similarly, `Person.location` and `Person.technology` are optional:
+  ```rust
+  .location(Location::External)        // Sets Some(External)
+  .location()                         // Sets None (defaults to Internal)
+  .technology("Python".into())        // Sets Some
+  .technology()                       // Sets None
+  ```
+- **Ownership**: The `create_relationship` function takes ownership of elements. Use `.clone()` if you need to reuse them, or use `create_relationship_ref` for reference-based creation.
 - **Defaults**: Location defaults to `Internal` when not specified.
 
 ## C4 Model Types

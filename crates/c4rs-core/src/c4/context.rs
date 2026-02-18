@@ -7,6 +7,7 @@ use super::value_types::{ElementIdentifier, NonEmptyString};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 pub struct Person {
+    #[serde(skip)]
     #[builder(default, setter(strip_option))]
     identifier: Option<ElementIdentifier>,
 
@@ -91,6 +92,7 @@ pub enum PersonError {
     }
 ))]
 pub struct SoftwareSystem {
+    #[serde(skip)]
     #[builder(default)]
     identifier: Option<ElementIdentifier>,
     name: NonEmptyString,
