@@ -85,12 +85,30 @@ checksum = "5dd9dc738b7a8311c7ade152424974d8115f2cdad61e8dab8dac9f2362298510"
 name = "c4rs"
 version = "0.1.0"
 dependencies = [
- "askama",
+ "c4rs-core",
+ "c4rs-structurizr-dsl",
+]
+
+[[package]]
+name = "c4rs-core"
+version = "0.1.0"
+dependencies = [
  "derive_more",
  "serde",
  "thiserror",
  "typed-builder",
  "uuid",
+]
+
+[[package]]
+name = "c4rs-structurizr-dsl"
+version = "0.1.0"
+dependencies = [
+ "askama",
+ "c4rs-core",
+ "serde",
+ "thiserror",
+ "typed-builder",
 ]
 
 [[package]]

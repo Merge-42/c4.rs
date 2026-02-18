@@ -1,5 +1,5 @@
+use c4rs::StructurizrDslSerializer;
 use c4rs::c4::{Container, ContainerType, Person, SoftwareSystem};
-use c4rs::serialization::StructurizrDslSerializer;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -47,9 +47,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
         .build();
 
-    use c4rs::serialization::views_serializer::ViewType;
+    use c4rs::{ViewConfiguration, ViewType};
 
-    let ctx_view = c4rs::serialization::views_serializer::ViewConfiguration::builder()
+    let ctx_view = ViewConfiguration::builder()
         .view_type(ViewType::SystemContext)
         .element_identifier("a".to_string())
         .title("SystemContext".to_string())
@@ -64,14 +64,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .add_software_system(web_system)
         .add_relationship("u", "a", "Uses", None)
         .add_view(ctx_view)
-        .add_element_style(
-            c4rs::serialization::styles_serializer::ElementStyle::new("Person")
-                .with_shape("person"),
-        )
-        .add_element_style(
-            c4rs::serialization::styles_serializer::ElementStyle::new("Database")
-                .with_shape("cylinder"),
-        )
+        .add_element_style(c4rs::ElementStyle::new("Person").with_shape("person"))
+        .add_element_style(c4rs::ElementStyle::new("Database").with_shape("cylinder"))
         .serialize()?;
 
     println!("Structurizr DSL Output:\n");
