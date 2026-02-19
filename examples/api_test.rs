@@ -1,7 +1,7 @@
 use c4rs::c4::create_relationship;
 use c4rs::c4::{
-    CodeElement, CodeType, Component, Container, ContainerType, Element, InteractionStyle,
-    Location, Person, Relationship, SoftwareSystem,
+    CodeElement, CodeType, Component, Container, ContainerType, InteractionStyle, Location, Person,
+    Relationship, SoftwareSystem,
 };
 use std::error::Error;
 
