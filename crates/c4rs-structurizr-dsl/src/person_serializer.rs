@@ -32,7 +32,8 @@ mod tests {
         let person = Person::builder()
             .name("User".into())
             .description("A system user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let dsl = person.serialize_structurizr_dsl().unwrap();
         assert_eq!(dsl, r#"User = person "User" "A system user""#);
@@ -43,7 +44,8 @@ mod tests {
         let person = Person::builder()
             .name("User\"Name".into())
             .description("A \"test\" user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let dsl = person.serialize_structurizr_dsl().unwrap();
         assert_eq!(dsl, r#"User_Name = person "User\"Name" "A \"test\" user""#);
@@ -54,7 +56,8 @@ mod tests {
         let person = Person::builder()
             .name("System User".into())
             .description("A system user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let dsl = person.serialize_structurizr_dsl().unwrap();
         assert_eq!(dsl, r#"System_User = person "System User" "A system user""#);

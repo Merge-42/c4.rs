@@ -1,8 +1,8 @@
+use bon::Builder;
 use serde::{Deserialize, Serialize};
-use typed_builder::TypedBuilder;
 
 use super::element::{Element, InteractionStyle};
-use super::value_types::{ElementIdentifier, NonEmptyString};
+use super::value_types::ElementIdentifier;
 
 use super::code::CodeElement;
 use super::component::Component;
@@ -19,18 +19,10 @@ use super::context::Person;
 ///
 /// ```
 /// use c4rs_core::c4::{Person, Container, Relationship, InteractionStyle};
-/// use c4rs_core::c4::value_types::NonEmptyString;
 ///
 /// // Same type relationship (Person → Person)
-/// let person1 = Person::builder()
-///     .name("Alice".into())
-///     .description("User 1".into())
-///     .build();
-///
-/// let person2 = Person::builder()
-///     .name("Bob".into())
-///     .description("User 2".into())
-///     .build();
+/// let person1 = Person::builder().name("Alice".into()).description("User 1".into()).build().unwrap();
+/// let person2 = Person::builder().name("Bob".into()).description("User 2".into()).build().unwrap();
 ///
 /// let relationship: Relationship<Person, Person> = Relationship::builder()
 ///     .source(person1)
@@ -39,7 +31,7 @@ use super::context::Person;
 ///     .interaction_style(InteractionStyle::Synchronous)
 ///     .build();
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 pub struct Relationship<S: Element, T: Element> {
     /// The source element of the relationship.
     #[serde(skip_serializing)]
@@ -48,10 +40,9 @@ pub struct Relationship<S: Element, T: Element> {
     #[serde(skip_serializing)]
     target: T,
     /// Description of the relationship.
-    description: NonEmptyString,
+    description: String,
     /// Technology used for this relationship, if specified.
-    #[builder(default)]
-    technology: Option<NonEmptyString>,
+    technology: Option<String>,
     /// How the elements interact.
     #[builder(default)]
     interaction_style: InteractionStyle,
@@ -70,7 +61,7 @@ impl<S: Element, T: Element> Relationship<S, T> {
 
     /// Returns the relationship description.
     pub fn description(&self) -> &str {
-        self.description.as_str()
+        &self.description
     }
 
     /// Returns the technology used by this relationship.
@@ -98,33 +89,20 @@ impl<S: Element, T: Element> Relationship<S, T> {
 pub fn create_relationship<S: Element, T: Element>(
     source: S,
     target: T,
-    description: NonEmptyString,
-    technology: Option<NonEmptyString>,
-    interaction_style: InteractionStyle,
+    description: String,
 ) -> Relationship<S, T> {
     Relationship::builder()
         .source(source)
         .target(target)
         .description(description)
-        .technology(technology)
-        .interaction_style(interaction_style)
         .build()
 }
 
 /// Error type for Relationship construction.
 #[derive(Debug, thiserror::Error)]
 pub enum RelationshipError {
-    #[error("relationship source element is required")]
-    MissingSource,
-
-    #[error("relationship target element is required")]
-    MissingTarget,
-
     #[error("relationship description is required and cannot be empty")]
     MissingDescription,
-
-    #[error("technology string exceeds maximum length of {max} characters (actual: {actual})")]
-    TechnologyTooLong { max: usize, actual: usize },
 }
 
 /// Type alias for relationships between people.
@@ -151,12 +129,14 @@ mod tests {
         let person1 = Person::builder()
             .name("Alice".into())
             .description("User 1".into())
-            .build();
+            .build()
+            .unwrap();
 
         let person2 = Person::builder()
             .name("Bob".into())
             .description("User 2".into())
-            .build();
+            .build()
+            .unwrap();
 
         let relationship: Relationship<Person, Person> = Relationship::builder()
             .source(person1)
@@ -177,13 +157,15 @@ mod tests {
         let person = Person::builder()
             .name("User".into())
             .description("A user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let container = Container::builder()
             .name("Web API".into())
             .description("API".into())
             .container_type(super::super::element::ContainerType::Api)
-            .build();
+            .build()
+            .unwrap();
 
         let relationship: Relationship<Person, Container> = Relationship::builder()
             .source(person)

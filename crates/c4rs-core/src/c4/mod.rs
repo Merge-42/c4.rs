@@ -13,13 +13,14 @@
 //! # Example
 //!
 //! ```
-//! use c4rs_core::c4::{Person, Location, ElementIdentifier};
+//! use c4rs_core::c4::{Person, Location};
 //!
 //! let person = Person::builder()
 //!     .name("Alice".into())
 //!     .description("System administrator".into())
 //!     .location(Location::Internal)
-//!     .build();
+//!     .build()
+//!     .unwrap();
 //!
 //! assert_eq!(person.name(), "Alice");
 //! ```
@@ -38,4 +39,4 @@ pub use container::{Container, ContainerError};
 pub use context::{Person, PersonError, SoftwareSystem, SoftwareSystemError};
 pub use element::{CodeType, ContainerType, Element, ElementType, InteractionStyle, Location};
 pub use relationship::{Relationship, RelationshipError, create_relationship};
-pub use value_types::{ElementIdentifier, NonEmptyString, NonEmptyStringError};
+pub use value_types::ElementIdentifier;

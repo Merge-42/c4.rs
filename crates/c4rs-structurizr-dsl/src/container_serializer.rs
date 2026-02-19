@@ -34,7 +34,8 @@ mod tests {
             .name("Web App".into())
             .description("Frontend application".into())
             .container_type(ContainerType::WebApplication)
-            .build();
+            .build()
+            .unwrap();
 
         let dsl = container.serialize_structurizr_dsl().unwrap();
         assert_eq!(
@@ -49,7 +50,8 @@ mod tests {
             .name("Database".into())
             .description("Stores data".into())
             .container_type(ContainerType::Database)
-            .build();
+            .build()
+            .unwrap();
 
         let dsl = container.serialize_structurizr_dsl().unwrap();
         assert_eq!(

@@ -6,7 +6,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let person = Person::builder()
         .name("User".into())
         .description("A user of the system".into())
-        .build();
+        .build()?;
 
     let api_system = SoftwareSystem::builder()
         .name("API".into())
@@ -16,7 +16,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .name("Web App".into())
                 .description("Frontend application".into())
                 .container_type(ContainerType::WebApplication)
-                .build(),
+                .build()?,
         )
         .add_container(
             Container::builder()
@@ -24,16 +24,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .description("PostgreSQL database".into())
                 .container_type(ContainerType::Database)
                 .technology("PostgreSQL 15".into())
-                .build(),
+                .build()?,
         )
         .add_container(
             Container::builder()
                 .name("API Service".into())
                 .description("Backend API".into())
                 .container_type(ContainerType::Api)
-                .build(),
+                .build()?,
         )
-        .build();
+        .build()?;
 
     let web_system = SoftwareSystem::builder()
         .name("Web Portal".into())
@@ -43,9 +43,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .name("Frontend".into())
                 .description("React frontend".into())
                 .container_type(ContainerType::WebApplication)
-                .build(),
+                .build()?,
         )
-        .build();
+        .build()?;
 
     use c4rs::{ViewConfiguration, ViewType};
 

@@ -2,7 +2,7 @@
 
 use crate::templates::view::ViewTemplate;
 use askama::Template;
-use typed_builder::TypedBuilder;
+use bon::Builder;
 
 /// Represents a view type in Structurizr DSL.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -34,7 +34,7 @@ impl std::fmt::Display for ViewType {
 }
 
 /// Represents a Structurizr view configuration.
-#[derive(Debug, Clone, TypedBuilder)]
+#[derive(Debug, Clone, Builder)]
 pub struct ViewConfiguration {
     pub view_type: ViewType,
     pub element_identifier: String,
@@ -46,15 +46,12 @@ pub struct ViewConfiguration {
 }
 
 /// Serializes Structurizr views to DSL format.
-#[derive(Debug, Default, TypedBuilder)]
+#[derive(Debug, Default, Builder)]
 pub struct ViewsSerializer {
     #[builder(default)]
     views: Vec<ViewConfiguration>,
-    #[builder(default)]
     external_output: Option<String>,
-    #[builder(default)]
     styles_output: Option<String>,
-    #[builder(default)]
     configuration_output: Option<String>,
 }
 

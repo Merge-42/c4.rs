@@ -129,7 +129,8 @@ mod tests {
         let person: Person = Person::builder()
             .name("User".into())
             .description("A system user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let serializer = StructurizrDslSerializer::new();
         let result = serializer.add_person(person).serialize().unwrap();
@@ -142,19 +143,31 @@ mod tests {
         let person: Person = Person::builder()
             .name("User".into())
             .description("A system user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
             .name("API".into())
-            .description("Backend API".into())
+            .description("Backend".into())
             .add_container(
                 Container::builder()
                     .name("Web App".into())
                     .description("Frontend".into())
                     .container_type(ContainerType::WebApplication)
-                    .build(),
+                    .build()
+                    .unwrap(),
             )
-            .build();
+            .add_container(
+                Container::builder()
+                    .name("Database".into())
+                    .description("Data store".into())
+                    .container_type(ContainerType::Database)
+                    .technology("PostgreSQL".into())
+                    .build()
+                    .unwrap(),
+            )
+            .build()
+            .unwrap();
 
         let serializer = StructurizrDslSerializer::new();
         let result = serializer
@@ -173,7 +186,8 @@ mod tests {
         let person: Person = Person::builder()
             .name("User".into())
             .description("A system user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let serializer = StructurizrDslSerializer::new();
         let view = ViewConfiguration::builder()
@@ -198,7 +212,8 @@ mod tests {
         let person: Person = Person::builder()
             .name("User".into())
             .description("A system user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let serializer = StructurizrDslSerializer::new();
         let result = serializer
@@ -221,7 +236,8 @@ mod tests {
         let person: Person = Person::builder()
             .name("User".into())
             .description("A user of the system".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
             .name("API".into())
@@ -231,9 +247,11 @@ mod tests {
                     .name("Web App".into())
                     .description("Frontend".into())
                     .container_type(ContainerType::WebApplication)
-                    .build(),
+                    .build()
+                    .unwrap(),
             )
-            .build();
+            .build()
+            .unwrap();
 
         let view = ViewConfiguration::builder()
             .view_type(ViewType::SystemContext)
@@ -271,7 +289,8 @@ mod tests {
         let person: Person = Person::builder()
             .name("User".into())
             .description("A user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
             .name("BankApp".into())
@@ -281,9 +300,11 @@ mod tests {
                     .name("Web App".into())
                     .description("Frontend".into())
                     .container_type(ContainerType::WebApplication)
-                    .build(),
+                    .build()
+                    .unwrap(),
             )
-            .build();
+            .build()
+            .unwrap();
 
         let view = ViewConfiguration::builder()
             .view_type(ViewType::SystemContext)
@@ -314,24 +335,18 @@ mod tests {
     #[test]
     fn test_nested_container_serialization() {
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .name("API".into())
-            .description("Backend".into())
+            .name("BankApp".into())
+            .description("Banking App".into())
             .add_container(
                 Container::builder()
                     .name("Web App".into())
                     .description("Frontend".into())
                     .container_type(ContainerType::WebApplication)
-                    .build(),
+                    .build()
+                    .unwrap(),
             )
-            .add_container(
-                Container::builder()
-                    .name("Database".into())
-                    .description("Data store".into())
-                    .container_type(ContainerType::Database)
-                    .technology("PostgreSQL".into())
-                    .build(),
-            )
-            .build();
+            .build()
+            .unwrap();
 
         let result = StructurizrDslSerializer::new()
             .with_name("Nested Test")
@@ -340,11 +355,8 @@ mod tests {
             .serialize()
             .unwrap();
 
-        assert!(result.contains("a = softwareSystem \"API\""));
+        assert!(result.contains("b = softwareSystem \"BankApp\""));
         assert!(result.contains("wa = container \"Web App\" \"Frontend\""));
-        assert!(result.contains("d = container \"Database\" \"Data store\""));
-        assert!(result.contains("wa = container \"Web App\""));
-        assert!(result.contains("d = container \"Database\""));
     }
 
     #[test]
@@ -352,17 +364,20 @@ mod tests {
         let person: Person = Person::builder()
             .name("User".into())
             .description("A user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system1: SoftwareSystem = SoftwareSystem::builder()
             .name("SystemA".into())
             .description("System A".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system2: SoftwareSystem = SoftwareSystem::builder()
             .name("SystemB".into())
             .description("System B".into())
-            .build();
+            .build()
+            .unwrap();
 
         let result = StructurizrDslSerializer::new()
             .with_name("Circular Test")
@@ -388,7 +403,8 @@ mod tests {
         let person: Person = Person::builder()
             .name("User's System".into())
             .description("A \"special\" user & <test>".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
             .name("API-Service_v2".into())
@@ -398,9 +414,11 @@ mod tests {
                     .name("Web/App".into())
                     .description("Frontend".into())
                     .container_type(ContainerType::WebApplication)
-                    .build(),
+                    .build()
+                    .unwrap(),
             )
-            .build();
+            .build()
+            .unwrap();
 
         let result = StructurizrDslSerializer::new()
             .with_name("Special Chars Test")
@@ -421,12 +439,22 @@ mod tests {
         let person: Person = Person::builder()
             .name("User".into())
             .description("A user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system: SoftwareSystem = SoftwareSystem::builder()
-            .name("API".into())
-            .description("Backend API".into())
-            .build();
+            .name("API-Service_v2".into())
+            .description("Backend API (version 2.0)".into())
+            .add_container(
+                Container::builder()
+                    .name("Web/App".into())
+                    .description("Frontend".into())
+                    .container_type(ContainerType::WebApplication)
+                    .build()
+                    .unwrap(),
+            )
+            .build()
+            .unwrap();
 
         let result = StructurizrDslSerializer::new()
             .with_name("Tech Test")
@@ -447,17 +475,20 @@ mod tests {
         let person1: Person = Person::builder()
             .name("User".into())
             .description("First user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let person2: Person = Person::builder()
             .name("User".into())
             .description("Second user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let person3: Person = Person::builder()
             .name("User".into())
             .description("Third user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let result = StructurizrDslSerializer::new()
             .with_name("Duplicate Names Test")

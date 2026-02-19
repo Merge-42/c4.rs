@@ -1,27 +1,60 @@
+use bon::Builder;
 use serde::{Deserialize, Serialize};
-use typed_builder::TypedBuilder;
 
 use super::container::Container;
 use super::element::{Element, ElementType, Location};
-use super::value_types::{ElementIdentifier, NonEmptyString};
+use super::value_types::ElementIdentifier;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
+#[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Person {
     #[serde(skip)]
-    #[builder(default, setter(strip_option))]
     identifier: Option<ElementIdentifier>,
-
-    name: NonEmptyString,
-    description: NonEmptyString,
-
-    #[builder(default, setter(strip_option))]
+    name: String,
+    description: String,
     location: Option<Location>,
+    technology: Option<String>,
+}
 
-    #[builder(default, setter(strip_option))]
-    technology: Option<NonEmptyString>,
+impl<S: person_builder::IsComplete> PersonBuilder<S> {
+    pub fn build(self) -> Result<Person, PersonError> {
+        let person = self.build_internal();
+
+        if person.name.trim().is_empty() {
+            return Err(PersonError::MissingName);
+        }
+        if person.description.trim().is_empty() {
+            return Err(PersonError::MissingDescription);
+        }
+
+        Ok(person)
+    }
 }
 
 impl Person {
+    pub fn new(
+        name: impl Into<String>,
+        description: impl Into<String>,
+    ) -> Result<Person, PersonError> {
+        let name = name.into();
+        let description = description.into();
+
+        if name.trim().is_empty() {
+            return Err(PersonError::MissingName);
+        }
+        if description.trim().is_empty() {
+            return Err(PersonError::MissingDescription);
+        }
+
+        Ok(Person {
+            identifier: None,
+            name,
+            description,
+            location: None,
+            technology: None,
+        })
+    }
+
     pub fn identifier(&self) -> &ElementIdentifier {
         self.identifier.as_ref().unwrap_or_else(|| {
             static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
@@ -31,11 +64,11 @@ impl Person {
     }
 
     pub fn name(&self) -> &str {
-        self.name.as_str()
+        &self.name
     }
 
     pub fn description(&self) -> &str {
-        self.description.as_str()
+        &self.description
     }
 
     pub fn location(&self) -> Location {
@@ -57,11 +90,11 @@ impl Element for Person {
     }
 
     fn name(&self) -> &str {
-        self.name.as_str()
+        &self.name
     }
 
     fn description(&self) -> &str {
-        self.description.as_str()
+        &self.description
     }
 
     fn element_type(&self) -> ElementType {
@@ -80,31 +113,64 @@ pub enum PersonError {
 
     #[error("person description is required and cannot be empty")]
     MissingDescription,
-
-    #[error("technology string exceeds maximum length of {max} characters (actual: {actual})")]
-    TechnologyTooLong { max: usize, actual: usize },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
-#[builder(mutators(
-    pub fn add_container(&mut self, container: Container) {
-        self.containers.push(container);
-    }
-))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
+#[builder(finish_fn(vis = "", name = build_internal))]
 pub struct SoftwareSystem {
-    #[serde(skip)]
-    #[builder(default)]
-    identifier: Option<ElementIdentifier>,
-    name: NonEmptyString,
-    description: NonEmptyString,
-    #[builder(default)]
-    location: Option<Location>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    #[builder(via_mutators(init = Vec::new()))]
+    #[builder(field)]
     containers: Vec<Container>,
+    #[serde(skip)]
+    identifier: Option<ElementIdentifier>,
+    name: String,
+    description: String,
+    location: Option<Location>,
+}
+
+impl<S: software_system_builder::IsComplete> SoftwareSystemBuilder<S> {
+    pub fn add_container(mut self, container: Container) -> Self {
+        self.containers.push(container);
+        self
+    }
+
+    pub fn build(self) -> Result<SoftwareSystem, SoftwareSystemError> {
+        let system = self.build_internal();
+
+        if system.name.trim().is_empty() {
+            return Err(SoftwareSystemError::MissingName);
+        }
+        if system.description.trim().is_empty() {
+            return Err(SoftwareSystemError::MissingDescription);
+        }
+
+        Ok(system)
+    }
 }
 
 impl SoftwareSystem {
+    pub fn new(
+        name: impl Into<String>,
+        description: impl Into<String>,
+    ) -> Result<SoftwareSystem, SoftwareSystemError> {
+        let name = name.into();
+        let description = description.into();
+
+        if name.trim().is_empty() {
+            return Err(SoftwareSystemError::MissingName);
+        }
+        if description.trim().is_empty() {
+            return Err(SoftwareSystemError::MissingDescription);
+        }
+
+        Ok(SoftwareSystem {
+            identifier: None,
+            name,
+            description,
+            location: None,
+            containers: Vec::new(),
+        })
+    }
+
     pub fn identifier(&self) -> &ElementIdentifier {
         self.identifier.as_ref().unwrap_or_else(|| {
             static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
@@ -114,11 +180,11 @@ impl SoftwareSystem {
     }
 
     pub fn name(&self) -> &str {
-        self.name.as_str()
+        &self.name
     }
 
     pub fn description(&self) -> &str {
-        self.description.as_str()
+        &self.description
     }
 
     pub fn location(&self) -> Location {
@@ -132,16 +198,6 @@ impl SoftwareSystem {
     pub fn add_container(&mut self, container: Container) {
         self.containers.push(container);
     }
-
-    pub fn build(self) -> SoftwareSystem {
-        SoftwareSystem {
-            identifier: self.identifier,
-            name: self.name,
-            description: self.description,
-            location: self.location,
-            containers: self.containers,
-        }
-    }
 }
 
 impl Element for SoftwareSystem {
@@ -154,11 +210,11 @@ impl Element for SoftwareSystem {
     }
 
     fn name(&self) -> &str {
-        self.name.as_str()
+        &self.name
     }
 
     fn description(&self) -> &str {
-        self.description.as_str()
+        &self.description
     }
 
     fn element_type(&self) -> ElementType {
@@ -172,9 +228,6 @@ impl Element for SoftwareSystem {
 
 #[derive(Debug, thiserror::Error)]
 pub enum SoftwareSystemError {
-    #[error("system identifier is required")]
-    MissingIdentifier,
-
     #[error("system name is required and cannot be empty")]
     MissingName,
 
@@ -187,12 +240,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_person_builder() {
-        let person = Person::builder()
-            .name("Alice".into())
-            .description("System administrator".into())
-            .location(Location::Internal)
-            .build();
+    fn test_person_new() {
+        let person = Person::new("Alice", "System administrator").unwrap();
 
         assert_eq!(person.name(), "Alice");
         assert_eq!(person.description(), "System administrator");
@@ -201,15 +250,26 @@ mod tests {
     }
 
     #[test]
-    fn test_person_with_technology() {
-        let person = Person::builder()
-            .name("Bob".into())
-            .description("API consumer".into())
-            .location(Location::External)
-            .technology("Python 3.11".into())
-            .build();
+    fn test_person_empty_name() {
+        let result = Person::new("", "description");
+        assert!(result.is_err());
+    }
 
-        assert_eq!(person.technology(), Some("Python 3.11"));
+    #[test]
+    fn test_person_empty_description() {
+        let result = Person::new("name", "");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_person_builder() {
+        let person = Person::builder()
+            .name("Alice".into())
+            .description("Admin".into())
+            .build()
+            .unwrap();
+
+        assert_eq!(person.name(), "Alice");
     }
 
     #[test]
@@ -217,7 +277,8 @@ mod tests {
         let system = SoftwareSystem::builder()
             .name("E-Commerce Platform".into())
             .description("Online shopping system".into())
-            .build();
+            .build()
+            .unwrap();
 
         assert_eq!(system.name(), "E-Commerce Platform");
         assert!(system.containers().is_empty());

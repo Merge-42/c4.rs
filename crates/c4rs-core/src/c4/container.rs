@@ -1,30 +1,88 @@
+use bon::Builder;
 use serde::{Deserialize, Serialize};
-use typed_builder::TypedBuilder;
 
 use super::component::Component;
 use super::element::{ContainerType, Element, ElementType, Location};
-use super::value_types::{ElementIdentifier, NonEmptyString};
+use super::value_types::ElementIdentifier;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
-#[builder(mutators(
-    pub fn add_component(&mut self, component: Component) {
-        self.components.push(component);
-    }
-))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
+#[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Container {
-    #[serde(skip)]
-    #[builder(default)]
-    identifier: Option<ElementIdentifier>,
-    name: NonEmptyString,
-    description: NonEmptyString,
-    container_type: ContainerType,
-    #[builder(default, setter(strip_option))]
-    technology: Option<NonEmptyString>,
-    #[builder(via_mutators(init = Vec::new()))]
+    #[builder(field)]
     components: Vec<Component>,
+    #[serde(skip)]
+    identifier: Option<ElementIdentifier>,
+    name: String,
+    description: String,
+    container_type: ContainerType,
+    technology: Option<String>,
+}
+
+impl<S: container_builder::IsComplete> ContainerBuilder<S> {
+    pub fn add_component(mut self, component: Component) -> Self {
+        self.components.push(component);
+        self
+    }
+
+    pub fn build(self) -> Result<Container, ContainerError> {
+        let container = self.build_internal();
+
+        if container.name.trim().is_empty() {
+            return Err(ContainerError::MissingName);
+        }
+        if container.description.trim().is_empty() {
+            return Err(ContainerError::MissingDescription);
+        }
+        if let Some(ref tech) = container.technology
+            && tech.len() > 255
+        {
+            return Err(ContainerError::TechnologyTooLong {
+                max: 255,
+                actual: tech.len(),
+            });
+        }
+
+        Ok(container)
+    }
 }
 
 impl Container {
+    pub fn new(
+        name: impl Into<String>,
+        description: impl Into<String>,
+        technology: impl Into<String>,
+        container_type: ContainerType,
+    ) -> Result<Container, ContainerError> {
+        let name = name.into();
+        let description = description.into();
+        let technology = technology.into();
+
+        if name.trim().is_empty() {
+            return Err(ContainerError::MissingName);
+        }
+        if description.trim().is_empty() {
+            return Err(ContainerError::MissingDescription);
+        }
+        if technology.trim().is_empty() {
+            return Err(ContainerError::MissingTechnology);
+        }
+        if technology.len() > 255 {
+            return Err(ContainerError::TechnologyTooLong {
+                max: 255,
+                actual: technology.len(),
+            });
+        }
+
+        Ok(Container {
+            identifier: None,
+            name,
+            description,
+            container_type,
+            technology: Some(technology),
+            components: Vec::new(),
+        })
+    }
+
     pub fn identifier(&self) -> &ElementIdentifier {
         self.identifier.as_ref().unwrap_or_else(|| {
             static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
@@ -34,11 +92,11 @@ impl Container {
     }
 
     pub fn name(&self) -> &str {
-        self.name.as_str()
+        &self.name
     }
 
     pub fn description(&self) -> &str {
-        self.description.as_str()
+        &self.description
     }
 
     pub fn container_type(&self) -> ContainerType {
@@ -56,25 +114,6 @@ impl Container {
     pub fn add_component(&mut self, component: Component) {
         self.components.push(component);
     }
-
-    pub fn build(self) -> Result<Container, ContainerError> {
-        if let Some(ref tech) = self.technology
-            && tech.len() > 255
-        {
-            return Err(ContainerError::TechnologyTooLong {
-                max: 255,
-                actual: tech.len(),
-            });
-        }
-        Ok(Container {
-            identifier: self.identifier,
-            name: self.name,
-            description: self.description,
-            container_type: self.container_type,
-            technology: self.technology,
-            components: self.components,
-        })
-    }
 }
 
 impl Element for Container {
@@ -87,11 +126,11 @@ impl Element for Container {
     }
 
     fn name(&self) -> &str {
-        self.name.as_str()
+        &self.name
     }
 
     fn description(&self) -> &str {
-        self.description.as_str()
+        &self.description
     }
 
     fn element_type(&self) -> ElementType {
@@ -109,8 +148,8 @@ pub enum ContainerError {
     MissingName,
     #[error("container description is required and cannot be empty")]
     MissingDescription,
-    #[error("container type is required (e.g., Api, Database, WebApplication)")]
-    MissingType,
+    #[error("container technology is required and cannot be empty")]
+    MissingTechnology,
     #[error("technology string exceeds maximum length of {max} characters (actual: {actual})")]
     TechnologyTooLong { max: usize, actual: usize },
 }
@@ -126,7 +165,8 @@ mod tests {
             .description("REST API endpoints".into())
             .container_type(ContainerType::Api)
             .technology("Rust/Axum".into())
-            .build();
+            .build()
+            .unwrap();
 
         assert_eq!(container.name(), "Web API");
         assert_eq!(container.container_type(), ContainerType::Api);
@@ -135,6 +175,6 @@ mod tests {
 
     #[test]
     fn test_container_with_components() {
-        // Skip until Component is migrated to typed_builder
+        // TODO: migrate Component first
     }
 }

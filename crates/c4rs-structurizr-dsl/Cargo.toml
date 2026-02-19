@@ -8,4 +8,4 @@ c4rs-core = { path = "../c4rs-core" }
 serde.workspace = true
 thiserror.workspace = true
 askama.workspace = true
-typed-builder.workspace = true
+bon = "3"

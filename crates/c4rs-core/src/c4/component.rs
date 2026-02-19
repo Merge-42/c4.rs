@@ -1,31 +1,69 @@
+use bon::Builder;
 use serde::{Deserialize, Serialize};
-use typed_builder::TypedBuilder;
 
 use super::code::CodeElement;
 use super::element::{Element, ElementType, Location};
-use super::value_types::{ElementIdentifier, NonEmptyString};
+use super::value_types::ElementIdentifier;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
-#[builder(mutators(
-    pub fn add_code_element(&mut self, code_element: CodeElement) {
-        self.code_elements.push(code_element);
-    }
-))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
+#[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Component {
-    #[serde(skip)]
-    #[builder(default)]
-    identifier: Option<ElementIdentifier>,
-    name: NonEmptyString,
-    description: NonEmptyString,
-    #[builder(default)]
-    responsibilities: Vec<NonEmptyString>,
-    #[builder(default, setter(strip_option))]
-    technology: Option<NonEmptyString>,
-    #[builder(via_mutators(init = Vec::new()))]
+    #[builder(field)]
     code_elements: Vec<CodeElement>,
+    #[serde(skip)]
+    identifier: Option<ElementIdentifier>,
+    name: String,
+    description: String,
+    #[builder(default)]
+    responsibilities: Vec<String>,
+    technology: Option<String>,
+}
+
+impl<S: component_builder::IsComplete> ComponentBuilder<S> {
+    pub fn add_code_element(mut self, code_element: CodeElement) -> Self {
+        self.code_elements.push(code_element);
+        self
+    }
+
+    pub fn build(self) -> Result<Component, ComponentError> {
+        let component = self.build_internal();
+
+        if component.name.trim().is_empty() {
+            return Err(ComponentError::MissingName);
+        }
+        if component.description.trim().is_empty() {
+            return Err(ComponentError::MissingDescription);
+        }
+
+        Ok(component)
+    }
 }
 
 impl Component {
+    pub fn new(
+        name: impl Into<String>,
+        description: impl Into<String>,
+    ) -> Result<Component, ComponentError> {
+        let name = name.into();
+        let description = description.into();
+
+        if name.trim().is_empty() {
+            return Err(ComponentError::MissingName);
+        }
+        if description.trim().is_empty() {
+            return Err(ComponentError::MissingDescription);
+        }
+
+        Ok(Component {
+            identifier: None,
+            name,
+            description,
+            responsibilities: Vec::new(),
+            technology: None,
+            code_elements: Vec::new(),
+        })
+    }
+
     pub fn identifier(&self) -> &ElementIdentifier {
         self.identifier.as_ref().unwrap_or_else(|| {
             static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
@@ -35,18 +73,15 @@ impl Component {
     }
 
     pub fn name(&self) -> &str {
-        self.name.as_str()
+        &self.name
     }
 
     pub fn description(&self) -> &str {
-        self.description.as_str()
+        &self.description
     }
 
-    pub fn responsibilities(&self) -> Vec<String> {
-        self.responsibilities
-            .iter()
-            .map(|s| s.as_str().to_string())
-            .collect()
+    pub fn responsibilities(&self) -> &[String] {
+        &self.responsibilities
     }
 
     pub fn technology(&self) -> Option<&str> {
@@ -57,15 +92,8 @@ impl Component {
         &self.code_elements
     }
 
-    pub fn build(self) -> Result<Component, ComponentError> {
-        Ok(Component {
-            identifier: self.identifier,
-            name: self.name,
-            description: self.description,
-            responsibilities: self.responsibilities,
-            technology: self.technology,
-            code_elements: self.code_elements,
-        })
+    pub fn add_code_element(&mut self, code_element: CodeElement) {
+        self.code_elements.push(code_element);
     }
 }
 
@@ -79,11 +107,11 @@ impl Element for Component {
     }
 
     fn name(&self) -> &str {
-        self.name.as_str()
+        &self.name
     }
 
     fn description(&self) -> &str {
-        self.description.as_str()
+        &self.description
     }
 
     fn element_type(&self) -> ElementType {
@@ -101,8 +129,6 @@ pub enum ComponentError {
     MissingName,
     #[error("component description is required and cannot be empty")]
     MissingDescription,
-    #[error("technology string exceeds maximum length of {max} characters (actual: {actual})")]
-    TechnologyTooLong { max: usize, actual: usize },
 }
 
 #[cfg(test)]
@@ -116,7 +142,8 @@ mod tests {
             .description("Handles user requests".into())
             .responsibilities(vec!["Create user".into(), "Update user".into()])
             .technology("Rust".into())
-            .build();
+            .build()
+            .unwrap();
 
         assert_eq!(component.name(), "UserHandler");
         assert_eq!(component.responsibilities().len(), 2);
@@ -124,6 +151,6 @@ mod tests {
 
     #[test]
     fn test_component_with_code_elements() {
-        // Skip until CodeElement is migrated to typed_builder
+        // TODO: migrate CodeElement first
     }
 }

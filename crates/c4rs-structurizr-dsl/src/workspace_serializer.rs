@@ -373,7 +373,8 @@ mod tests {
         let person = Person::builder()
             .name("User".into())
             .description("A system user".into())
-            .build();
+            .build()
+            .unwrap();
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_person(person);
         let result = serializer.serialize().unwrap();
@@ -385,7 +386,8 @@ mod tests {
         let system = SoftwareSystem::builder()
             .name("Software System".into())
             .description("Backend system".into())
-            .build();
+            .build()
+            .unwrap();
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_software_system(system);
         let result = serializer.serialize().unwrap();
@@ -398,11 +400,13 @@ mod tests {
         let person1 = Person::builder()
             .name("User".into())
             .description("A user".into())
-            .build();
+            .build()
+            .unwrap();
         let person2 = Person::builder()
             .name("User".into())
             .description("Another user".into())
-            .build();
+            .build()
+            .unwrap();
         serializer.add_person(person1);
         serializer.add_person(person2);
         let result = serializer.serialize().unwrap();
@@ -453,12 +457,14 @@ mod tests {
         let person = Person::builder()
             .name("User".into())
             .description("A system user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system = SoftwareSystem::builder()
             .name("API".into())
             .description("Backend API".into())
-            .build();
+            .build()
+            .unwrap();
 
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_person(person);
@@ -480,12 +486,14 @@ mod tests {
         let person = Person::builder()
             .name("User".into())
             .description("A system user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system = SoftwareSystem::builder()
             .name("API".into())
             .description("Backend API".into())
-            .build();
+            .build()
+            .unwrap();
 
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_person(person);
@@ -505,12 +513,14 @@ mod tests {
         let person = Person::builder()
             .name("User".into())
             .description("A system user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system = SoftwareSystem::builder()
             .name("API".into())
             .description("Backend API".into())
-            .build();
+            .build()
+            .unwrap();
 
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_person(person);
@@ -533,12 +543,14 @@ mod tests {
         let person1 = Person::builder()
             .name("Database".into())
             .description("Data store".into())
-            .build();
+            .build()
+            .unwrap();
 
         let person2 = Person::builder()
             .name("Developer".into())
             .description("Software developer".into())
-            .build();
+            .build()
+            .unwrap();
 
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_person(person1);
@@ -560,7 +572,8 @@ mod tests {
         let system = SoftwareSystem::builder()
             .name("API".into())
             .description("Backend API".into())
-            .build();
+            .build()
+            .unwrap();
 
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_software_system(system);
@@ -577,12 +590,14 @@ mod tests {
         let system1 = SoftwareSystem::builder()
             .name("API".into())
             .description("Backend API".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system2 = SoftwareSystem::builder()
             .name("API".into())
             .description("Another API".into())
-            .build();
+            .build()
+            .unwrap();
 
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_software_system(system1);
@@ -657,12 +672,14 @@ mod tests {
         let person = Person::builder()
             .name("User".into())
             .description("A system user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let system = SoftwareSystem::builder()
             .name("API".into())
             .description("Backend API".into())
-            .build();
+            .build()
+            .unwrap();
 
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_person(person);

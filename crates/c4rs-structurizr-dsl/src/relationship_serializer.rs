@@ -37,12 +37,14 @@ mod tests {
         let source = Person::builder()
             .name("User".into())
             .description("A user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let target = Person::builder()
             .name("Admin".into())
             .description("An admin".into())
-            .build();
+            .build()
+            .unwrap();
 
         let relationship = Relationship::builder()
             .source(source)
@@ -59,18 +61,20 @@ mod tests {
         let source = Person::builder()
             .name("User".into())
             .description("A user".into())
-            .build();
+            .build()
+            .unwrap();
 
         let target = Person::builder()
             .name("API".into())
             .description("Backend".into())
-            .build();
+            .build()
+            .unwrap();
 
         let relationship = Relationship::builder()
             .source(source)
             .target(target)
             .description("Uses".into())
-            .technology(Some("HTTPS".into()))
+            .technology("HTTPS".into())
             .build();
 
         let dsl = relationship.serialize_structurizr_dsl().unwrap();
