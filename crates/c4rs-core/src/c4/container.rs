@@ -3,15 +3,12 @@ use serde::{Deserialize, Serialize};
 
 use super::component::Component;
 use super::element::{ContainerType, Element, ElementType, Location};
-use super::value_types::ElementIdentifier;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Container {
     #[builder(field)]
     components: Vec<Component>,
-    #[serde(skip)]
-    identifier: Option<ElementIdentifier>,
     name: String,
     description: String,
     container_type: ContainerType,
@@ -74,20 +71,11 @@ impl Container {
         }
 
         Ok(Container {
-            identifier: None,
             name,
             description,
             container_type,
             technology: Some(technology),
             components: Vec::new(),
-        })
-    }
-
-    pub fn identifier(&self) -> &ElementIdentifier {
-        self.identifier.as_ref().unwrap_or_else(|| {
-            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
-                std::sync::LazyLock::new(ElementIdentifier::default);
-            &DEFAULT
         })
     }
 
@@ -117,14 +105,6 @@ impl Container {
 }
 
 impl Element for Container {
-    fn identifier(&self) -> &ElementIdentifier {
-        self.identifier.as_ref().unwrap_or_else(|| {
-            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
-                std::sync::LazyLock::new(ElementIdentifier::default);
-            &DEFAULT
-        })
-    }
-
     fn name(&self) -> &str {
         &self.name
     }

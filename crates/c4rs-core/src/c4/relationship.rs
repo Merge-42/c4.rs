@@ -2,7 +2,6 @@ use bon::Builder;
 use serde::{Deserialize, Serialize};
 
 use super::element::{Element, InteractionStyle};
-use super::value_types::ElementIdentifier;
 
 use super::code::CodeElement;
 use super::component::Component;
@@ -72,14 +71,6 @@ impl<S: Element, T: Element> Relationship<S, T> {
     /// Returns the interaction style.
     pub fn interaction_style(&self) -> InteractionStyle {
         self.interaction_style.clone()
-    }
-
-    /// Returns identifiers of source and target for serialization.
-    pub fn endpoints(&self) -> (ElementIdentifier, ElementIdentifier) {
-        (
-            self.source.identifier().clone(),
-            self.target.identifier().clone(),
-        )
     }
 }
 

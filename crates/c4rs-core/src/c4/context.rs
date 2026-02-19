@@ -3,13 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use super::container::Container;
 use super::element::{Element, ElementType, Location};
-use super::value_types::ElementIdentifier;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Person {
-    #[serde(skip)]
-    identifier: Option<ElementIdentifier>,
     name: String,
     description: String,
     location: Option<Location>,
@@ -47,19 +44,10 @@ impl Person {
         }
 
         Ok(Person {
-            identifier: None,
             name,
             description,
             location: None,
             technology: None,
-        })
-    }
-
-    pub fn identifier(&self) -> &ElementIdentifier {
-        self.identifier.as_ref().unwrap_or_else(|| {
-            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
-                std::sync::LazyLock::new(ElementIdentifier::default);
-            &DEFAULT
         })
     }
 
@@ -81,14 +69,6 @@ impl Person {
 }
 
 impl Element for Person {
-    fn identifier(&self) -> &ElementIdentifier {
-        self.identifier.as_ref().unwrap_or_else(|| {
-            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
-                std::sync::LazyLock::new(ElementIdentifier::default);
-            &DEFAULT
-        })
-    }
-
     fn name(&self) -> &str {
         &self.name
     }
@@ -120,8 +100,6 @@ pub enum PersonError {
 pub struct SoftwareSystem {
     #[builder(field)]
     containers: Vec<Container>,
-    #[serde(skip)]
-    identifier: Option<ElementIdentifier>,
     name: String,
     description: String,
     location: Option<Location>,
@@ -163,19 +141,10 @@ impl SoftwareSystem {
         }
 
         Ok(SoftwareSystem {
-            identifier: None,
             name,
             description,
             location: None,
             containers: Vec::new(),
-        })
-    }
-
-    pub fn identifier(&self) -> &ElementIdentifier {
-        self.identifier.as_ref().unwrap_or_else(|| {
-            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
-                std::sync::LazyLock::new(ElementIdentifier::default);
-            &DEFAULT
         })
     }
 
@@ -201,14 +170,6 @@ impl SoftwareSystem {
 }
 
 impl Element for SoftwareSystem {
-    fn identifier(&self) -> &ElementIdentifier {
-        self.identifier.as_ref().unwrap_or_else(|| {
-            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
-                std::sync::LazyLock::new(ElementIdentifier::default);
-            &DEFAULT
-        })
-    }
-
     fn name(&self) -> &str {
         &self.name
     }
@@ -246,7 +207,6 @@ mod tests {
         assert_eq!(person.name(), "Alice");
         assert_eq!(person.description(), "System administrator");
         assert_eq!(person.location(), Location::Internal);
-        assert!(!person.identifier().inner().is_nil());
     }
 
     #[test]

@@ -6,7 +6,7 @@
 //! # Quick Start
 //!
 //! ```
-//! use c4rs::c4::{Person, Location, ElementIdentifier};
+//! use c4rs::c4::{Person, Location};
 //!
 //! // Create a person
 //! let person = Person::builder()
@@ -19,7 +19,6 @@
 //! // With serde_json: to_string_pretty(&person)
 //! ```
 
-pub use c4rs_core::ElementIdentifier;
 pub use c4rs_core::c4;
 pub use c4rs_core::{CodeElement, Component, Container, Person, Relationship, SoftwareSystem};
 pub use c4rs_core::{CodeType, ContainerType, ElementType, InteractionStyle, Location};

@@ -2,13 +2,10 @@ use bon::Builder;
 use serde::{Deserialize, Serialize};
 
 use super::element::{CodeType, Element, ElementType, Location};
-use super::value_types::ElementIdentifier;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
 pub struct CodeElement {
-    #[serde(skip)]
-    identifier: Option<ElementIdentifier>,
     name: String,
     description: String,
     code_type: CodeType,
@@ -32,14 +29,6 @@ impl<S: code_element_builder::IsComplete> CodeElementBuilder<S> {
 }
 
 impl CodeElement {
-    pub fn identifier(&self) -> &ElementIdentifier {
-        self.identifier.as_ref().unwrap_or_else(|| {
-            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
-                std::sync::LazyLock::new(ElementIdentifier::default);
-            &DEFAULT
-        })
-    }
-
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -62,14 +51,6 @@ impl CodeElement {
 }
 
 impl Element for CodeElement {
-    fn identifier(&self) -> &ElementIdentifier {
-        self.identifier.as_ref().unwrap_or_else(|| {
-            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
-                std::sync::LazyLock::new(ElementIdentifier::default);
-            &DEFAULT
-        })
-    }
-
     fn name(&self) -> &str {
         &self.name
     }

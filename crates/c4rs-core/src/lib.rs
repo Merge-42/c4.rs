@@ -6,7 +6,7 @@
 //! # Quick Start
 //!
 //! ```
-//! use c4rs_core::c4::{Person, Location, ElementIdentifier};
+//! use c4rs_core::c4::{Person, Location};
 //!
 //! // Create a person
 //! let person = Person::builder()
@@ -27,4 +27,3 @@ pub use c4::container::{Container, ContainerError};
 pub use c4::context::{Person, PersonError, SoftwareSystem, SoftwareSystemError};
 pub use c4::element::{CodeType, ContainerType, Element, ElementType, InteractionStyle, Location};
 pub use c4::relationship::{Relationship, RelationshipError, create_relationship};
-pub use c4::value_types::ElementIdentifier;

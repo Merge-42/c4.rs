@@ -1,16 +1,11 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-use super::value_types::ElementIdentifier;
-
 /// Trait representing any C4 model element.
 ///
 /// All C4 elements (Person, SoftwareSystem, Container, Component, CodeElement)
 /// implement this trait to provide common accessors.
 pub trait Element {
-    /// Returns a reference to the element's unique identifier.
-    fn identifier(&self) -> &ElementIdentifier;
-
     /// Returns the element's name.
     fn name(&self) -> &str;
 

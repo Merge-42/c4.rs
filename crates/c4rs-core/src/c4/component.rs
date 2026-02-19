@@ -3,15 +3,12 @@ use serde::{Deserialize, Serialize};
 
 use super::code::CodeElement;
 use super::element::{Element, ElementType, Location};
-use super::value_types::ElementIdentifier;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Component {
     #[builder(field)]
     code_elements: Vec<CodeElement>,
-    #[serde(skip)]
-    identifier: Option<ElementIdentifier>,
     name: String,
     description: String,
     #[builder(default)]
@@ -55,20 +52,11 @@ impl Component {
         }
 
         Ok(Component {
-            identifier: None,
             name,
             description,
             responsibilities: Vec::new(),
             technology: None,
             code_elements: Vec::new(),
-        })
-    }
-
-    pub fn identifier(&self) -> &ElementIdentifier {
-        self.identifier.as_ref().unwrap_or_else(|| {
-            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
-                std::sync::LazyLock::new(ElementIdentifier::default);
-            &DEFAULT
         })
     }
 
@@ -98,14 +86,6 @@ impl Component {
 }
 
 impl Element for Component {
-    fn identifier(&self) -> &ElementIdentifier {
-        self.identifier.as_ref().unwrap_or_else(|| {
-            static DEFAULT: std::sync::LazyLock<ElementIdentifier> =
-                std::sync::LazyLock::new(ElementIdentifier::default);
-            &DEFAULT
-        })
-    }
-
     fn name(&self) -> &str {
         &self.name
     }
