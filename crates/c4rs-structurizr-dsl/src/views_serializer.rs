@@ -87,18 +87,18 @@ impl ViewsSerializer {
     }
 
     /// Serialize all views to DSL format.
-    pub fn serialize(&self) -> String {
+    pub fn serialize(&self) -> Result<String, askama::Error> {
         if let Some(ref output) = self.external_output
             && !output.is_empty()
         {
-            return output.clone();
+            return Ok(output.clone());
         }
 
         if self.views.is_empty()
             && self.styles_output.is_none()
             && self.configuration_output.is_none()
         {
-            return String::new();
+            return Ok(String::new());
         }
 
         let mut lines = Vec::new();
@@ -117,7 +117,7 @@ impl ViewsSerializer {
                 include_elements: &include_refs,
                 exclude_elements: &exclude_refs,
             };
-            lines.push(template.render().unwrap());
+            lines.push(template.render()?);
         }
 
         if let Some(ref styles) = self.styles_output {
@@ -135,7 +135,7 @@ impl ViewsSerializer {
         }
 
         lines.push("}".to_string());
-        lines.join("\n")
+        Ok(lines.join("\n"))
     }
 }
 
@@ -154,7 +154,7 @@ mod tests {
             .build();
         views.add_view(view);
 
-        let dsl = views.serialize();
+        let dsl = views.serialize().unwrap();
         assert!(dsl.contains("views {"));
         assert!(dsl.contains("systemContext a \"System Context\" {"));
         assert!(dsl.contains("include *"));
@@ -172,7 +172,7 @@ mod tests {
             .build();
         views.add_view(view);
 
-        let dsl = views.serialize();
+        let dsl = views.serialize().unwrap();
         assert!(dsl.contains("container api \"Container Diagram\" {"));
         assert!(dsl.contains("exclude Database"));
     }
@@ -180,7 +180,7 @@ mod tests {
     #[test]
     fn test_empty_views() {
         let views = ViewsSerializer::builder().build();
-        let dsl = views.serialize();
+        let dsl = views.serialize().unwrap();
         assert!(dsl.is_empty());
     }
 }

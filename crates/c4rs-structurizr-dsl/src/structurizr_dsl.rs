@@ -101,7 +101,7 @@ impl StructurizrDslSerializer {
             workspace_serializer.set_description(&desc);
         }
 
-        let styles_dsl = self.styles_serializer.serialize();
+        let styles_dsl = self.styles_serializer.serialize()?;
         if !styles_dsl.is_empty() {
             workspace_serializer.add_element_styles(&styles_dsl);
         }

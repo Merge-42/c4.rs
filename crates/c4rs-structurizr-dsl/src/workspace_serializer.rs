@@ -311,7 +311,7 @@ impl WorkspaceSerializer {
     }
 
     fn write_views_section(&mut self) -> Result<(), StructurizrDslError> {
-        let views_dsl = self.views_serializer.serialize();
+        let views_dsl = self.views_serializer.serialize()?;
         if !views_dsl.is_empty() {
             self.writer.add_empty_line();
             let indented = Self::indent_block(&views_dsl);

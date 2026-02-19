@@ -9,3 +9,8 @@ serde.workspace = true
 thiserror.workspace = true
 askama.workspace = true
 bon = "3"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

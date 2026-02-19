@@ -151,15 +151,15 @@ impl StylesSerializer {
     }
 
     /// Serialize styles to DSL format.
-    pub fn serialize(&self) -> String {
+    pub fn serialize(&self) -> Result<String, askama::Error> {
         if let Some(ref output) = self.external_output
             && !output.is_empty()
         {
-            return output.clone();
+            return Ok(output.clone());
         }
 
         if self.element_styles.is_empty() && self.relationship_styles.is_empty() {
-            return String::new();
+            return Ok(String::new());
         }
 
         let mut lines = Vec::new();
@@ -175,7 +175,7 @@ impl StylesSerializer {
                 stroke: style.stroke.as_deref(),
                 stroke_width: style.stroke_width.as_deref(),
             };
-            lines.push(template.render().unwrap());
+            lines.push(template.render()?);
         }
 
         for style in &self.relationship_styles {
@@ -192,11 +192,11 @@ impl StylesSerializer {
                 router: style.router.as_deref(),
                 dashed: dashed_str.as_deref(),
             };
-            lines.push(template.render().unwrap());
+            lines.push(template.render()?);
         }
 
         lines.push("}".to_string());
-        lines.join("\n")
+        Ok(lines.join("\n"))
     }
 }
 
@@ -214,7 +214,7 @@ mod tests {
                 .with_shape("Person"),
         );
 
-        let dsl = styles.serialize();
+        let dsl = styles.serialize().unwrap();
         assert!(dsl.contains("styles {"));
         assert!(dsl.contains(r#"element "Person""#));
         assert!(dsl.contains("background #ffcc00"));
@@ -232,7 +232,7 @@ mod tests {
                 .with_dashed(true),
         );
 
-        let dsl = styles.serialize();
+        let dsl = styles.serialize().unwrap();
         assert!(dsl.contains("relationship {"));
         assert!(dsl.contains("thickness 2"));
         assert!(dsl.contains("dashed true"));
@@ -241,7 +241,7 @@ mod tests {
     #[test]
     fn test_empty_styles() {
         let styles = StylesSerializer::new();
-        let dsl = styles.serialize();
+        let dsl = styles.serialize().unwrap();
         assert!(dsl.is_empty());
     }
 
@@ -254,7 +254,7 @@ mod tests {
                 .with_shape("cylinder"),
         );
 
-        let dsl = styles.serialize();
+        let dsl = styles.serialize().unwrap();
         assert!(dsl.contains(r#"element "Database""#));
         assert!(dsl.contains("shape cylinder"));
     }
@@ -273,7 +273,7 @@ mod tests {
         styles.add_element_style(ElementStyle::new("Database").with_shape("cylinder"));
         styles.add_element_style(ElementStyle::new("Boundary").with_stroke_width("5"));
 
-        let dsl = styles.serialize();
+        let dsl = styles.serialize().unwrap();
         assert!(dsl.contains(r#"element "Element""#));
         assert!(dsl.contains("color #9a28f8"));
         assert!(dsl.contains("stroke #9a28f8"));
@@ -292,7 +292,7 @@ mod tests {
         let mut styles = StylesSerializer::new();
         styles.add_relationship_style(RelationshipStyle::new().with_thickness("4"));
 
-        let dsl = styles.serialize();
+        let dsl = styles.serialize().unwrap();
         assert!(dsl.contains("relationship {"));
         assert!(dsl.contains("thickness 4"));
     }

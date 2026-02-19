@@ -9,3 +9,8 @@ thiserror.workspace = true
 derive_more.workspace = true
 uuid.workspace = true
 bon.workspace = true
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
