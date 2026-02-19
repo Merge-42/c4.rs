@@ -30,6 +30,7 @@ pub mod component;
 pub mod container;
 pub mod context;
 pub mod element;
+pub mod macros;
 pub mod relationship;
 
 pub use code::CodeElement;

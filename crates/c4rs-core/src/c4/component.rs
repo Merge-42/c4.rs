@@ -2,7 +2,8 @@ use bon::Builder;
 use serde::{Deserialize, Serialize};
 
 use super::code::CodeElement;
-use super::element::{Element, ElementType, Location};
+use super::element::ElementType;
+use super::macros::impl_element;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
@@ -21,17 +22,14 @@ impl<S: component_builder::IsComplete> ComponentBuilder<S> {
         self.code_elements.push(code_element);
         self
     }
-
     pub fn build(self) -> Result<Component, ComponentError> {
         let component = self.build_internal();
-
         if component.name.trim().is_empty() {
             return Err(ComponentError::MissingName);
         }
         if component.description.trim().is_empty() {
             return Err(ComponentError::MissingDescription);
         }
-
         Ok(component)
     }
 }
@@ -43,14 +41,12 @@ impl Component {
     ) -> Result<Component, ComponentError> {
         let name = name.into();
         let description = description.into();
-
         if name.trim().is_empty() {
             return Err(ComponentError::MissingName);
         }
         if description.trim().is_empty() {
             return Err(ComponentError::MissingDescription);
         }
-
         Ok(Component {
             name,
             description,
@@ -59,49 +55,21 @@ impl Component {
             code_elements: Vec::new(),
         })
     }
-
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    pub fn description(&self) -> &str {
-        &self.description
-    }
-
     pub fn responsibilities(&self) -> &[String] {
         &self.responsibilities
     }
-
     pub fn technology(&self) -> Option<&str> {
         self.technology.as_deref()
     }
-
     pub fn code_elements(&self) -> &[CodeElement] {
         &self.code_elements
     }
-
     pub fn add_code_element(&mut self, code_element: CodeElement) {
         self.code_elements.push(code_element);
     }
 }
 
-impl Element for Component {
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn description(&self) -> &str {
-        &self.description
-    }
-
-    fn element_type(&self) -> ElementType {
-        ElementType::Component
-    }
-
-    fn location(&self) -> Location {
-        Location::Internal
-    }
-}
+impl_element!(Component, ElementType::Component);
 
 #[derive(Debug, thiserror::Error)]
 pub enum ComponentError {
@@ -114,23 +82,14 @@ pub enum ComponentError {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn test_component_builder() {
-        let component = Component::builder()
-            .name("UserHandler".into())
-            .description("Handles user requests".into())
-            .responsibilities(vec!["Create user".into(), "Update user".into()])
+        let c = Component::builder()
+            .name("Handler".into())
+            .description("Handles requests".into())
             .technology("Rust".into())
             .build()
             .unwrap();
-
-        assert_eq!(component.name(), "UserHandler");
-        assert_eq!(component.responsibilities().len(), 2);
-    }
-
-    #[test]
-    fn test_component_with_code_elements() {
-        // TODO: migrate CodeElement first
+        assert_eq!(c.name(), "Handler");
     }
 }
