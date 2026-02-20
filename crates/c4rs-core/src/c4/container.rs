@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::component::Component;
 use super::element::{ContainerType, ElementType};
 use super::macros::impl_element;
+use crate::constants::limits::MAX_TECHNOLOGY_LENGTH;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
@@ -30,10 +31,10 @@ impl<S: container_builder::IsComplete> ContainerBuilder<S> {
             return Err(ContainerError::MissingDescription);
         }
         if let Some(ref tech) = container.technology
-            && tech.len() > 255
+            && tech.len() > MAX_TECHNOLOGY_LENGTH
         {
             return Err(ContainerError::TechnologyTooLong {
-                max: 255,
+                max: MAX_TECHNOLOGY_LENGTH,
                 actual: tech.len(),
             });
         }
@@ -60,9 +61,9 @@ impl Container {
         if technology.trim().is_empty() {
             return Err(ContainerError::MissingTechnology);
         }
-        if technology.len() > 255 {
+        if technology.len() > MAX_TECHNOLOGY_LENGTH {
             return Err(ContainerError::TechnologyTooLong {
-                max: 255,
+                max: MAX_TECHNOLOGY_LENGTH,
                 actual: technology.len(),
             });
         }

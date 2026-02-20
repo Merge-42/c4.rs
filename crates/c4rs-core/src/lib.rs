@@ -19,6 +19,8 @@
 //! // With serde_json: to_string_pretty(&person)
 //! ```
 
+pub mod constants;
+
 pub mod c4;
 
 pub use c4::code::CodeElement;
