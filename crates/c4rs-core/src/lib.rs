@@ -20,6 +20,7 @@
 //! ```
 
 pub mod constants;
+pub mod validation;
 
 pub mod c4;
 

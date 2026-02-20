@@ -2,6 +2,10 @@ use bon::Builder;
 use serde::{Deserialize, Serialize};
 
 use super::element::{CodeType, ElementType};
+use crate::constants::limits::{
+    MAX_DESCRIPTION_LENGTH, MAX_FILE_PATH_LENGTH, MAX_LANGUAGE_LENGTH, MAX_NAME_LENGTH,
+};
+use crate::validation::{validate_max_length, validate_non_empty};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
@@ -16,12 +20,16 @@ pub struct CodeElement {
 impl<S: code_element_builder::IsComplete> CodeElementBuilder<S> {
     pub fn build(self) -> Result<CodeElement, CodeElementError> {
         let code_element = self.build_internal();
-        if code_element.name.trim().is_empty() {
-            return Err(CodeElementError::MissingName);
-        }
-        if code_element.description.trim().is_empty() {
-            return Err(CodeElementError::MissingDescription);
-        }
+        validate_non_empty(&code_element.name, "name")?;
+        validate_max_length(&code_element.name, MAX_NAME_LENGTH, "name")?;
+        validate_non_empty(&code_element.description, "description")?;
+        validate_max_length(
+            &code_element.description,
+            MAX_DESCRIPTION_LENGTH,
+            "description",
+        )?;
+        validate_max_length(&code_element.language, MAX_LANGUAGE_LENGTH, "language")?;
+        validate_max_length(&code_element.file_path, MAX_FILE_PATH_LENGTH, "file_path")?;
         Ok(code_element)
     }
 }
@@ -46,6 +54,10 @@ pub enum CodeElementError {
     MissingName,
     #[error("code element description is required and cannot be empty")]
     MissingDescription,
+    #[error("file_path string exceeds maximum length of {max} characters (actual: {actual})")]
+    FilePathTooLong { max: usize, actual: usize },
+    #[error("validation error: {0}")]
+    Validation(#[from] crate::validation::ValidationError),
 }
 
 #[cfg(test)]

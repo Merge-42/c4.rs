@@ -4,7 +4,10 @@ use serde::{Deserialize, Serialize};
 use super::code::CodeElement;
 use super::element::ElementType;
 use super::macros::impl_element;
-use crate::constants::limits::MAX_TECHNOLOGY_LENGTH;
+use crate::constants::limits::{
+    MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_RESPONSIBILITY_LENGTH, MAX_TECHNOLOGY_LENGTH,
+};
+use crate::validation::{validate_max_length, validate_non_empty, validate_vec_max_length};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
@@ -25,45 +28,25 @@ impl<S: component_builder::IsComplete> ComponentBuilder<S> {
     }
     pub fn build(self) -> Result<Component, ComponentError> {
         let component = self.build_internal();
-        if component.name.trim().is_empty() {
-            return Err(ComponentError::MissingName);
-        }
-        if component.description.trim().is_empty() {
-            return Err(ComponentError::MissingDescription);
-        }
-        if let Some(ref tech) = component.technology
-            && tech.len() > MAX_TECHNOLOGY_LENGTH
-        {
-            return Err(ComponentError::TechnologyTooLong {
-                max: MAX_TECHNOLOGY_LENGTH,
-                actual: tech.len(),
-            });
-        }
+        validate_non_empty(&component.name, "name")?;
+        validate_max_length(&component.name, MAX_NAME_LENGTH, "name")?;
+        validate_non_empty(&component.description, "description")?;
+        validate_max_length(
+            &component.description,
+            MAX_DESCRIPTION_LENGTH,
+            "description",
+        )?;
+        validate_max_length(&component.technology, MAX_TECHNOLOGY_LENGTH, "technology")?;
+        validate_vec_max_length(
+            &component.responsibilities,
+            MAX_RESPONSIBILITY_LENGTH,
+            "responsibilities",
+        )?;
         Ok(component)
     }
 }
 
 impl Component {
-    pub fn new(
-        name: impl Into<String>,
-        description: impl Into<String>,
-    ) -> Result<Component, ComponentError> {
-        let name = name.into();
-        let description = description.into();
-        if name.trim().is_empty() {
-            return Err(ComponentError::MissingName);
-        }
-        if description.trim().is_empty() {
-            return Err(ComponentError::MissingDescription);
-        }
-        Ok(Component {
-            name,
-            description,
-            responsibilities: Vec::new(),
-            technology: None,
-            code_elements: Vec::new(),
-        })
-    }
     pub fn responsibilities(&self) -> &[String] {
         &self.responsibilities
     }
@@ -88,6 +71,16 @@ pub enum ComponentError {
     MissingDescription,
     #[error("technology string exceeds maximum length of {max} characters (actual: {actual})")]
     TechnologyTooLong { max: usize, actual: usize },
+    #[error(
+        "responsibility at index {index} exceeds maximum length of {max} characters (actual: {actual})"
+    )]
+    ResponsibilityTooLong {
+        index: usize,
+        max: usize,
+        actual: usize,
+    },
+    #[error("validation error: {0}")]
+    Validation(#[from] crate::validation::ValidationError),
 }
 
 #[cfg(test)]

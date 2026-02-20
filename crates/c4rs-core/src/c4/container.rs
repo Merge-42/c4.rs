@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 use super::component::Component;
 use super::element::{ContainerType, ElementType};
 use super::macros::impl_element;
-use crate::constants::limits::MAX_TECHNOLOGY_LENGTH;
+use crate::constants::limits::{MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TECHNOLOGY_LENGTH};
+use crate::validation::{validate_max_length, validate_non_empty};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
@@ -24,57 +25,20 @@ impl<S: container_builder::IsComplete> ContainerBuilder<S> {
     }
     pub fn build(self) -> Result<Container, ContainerError> {
         let container = self.build_internal();
-        if container.name.trim().is_empty() {
-            return Err(ContainerError::MissingName);
-        }
-        if container.description.trim().is_empty() {
-            return Err(ContainerError::MissingDescription);
-        }
-        if let Some(ref tech) = container.technology
-            && tech.len() > MAX_TECHNOLOGY_LENGTH
-        {
-            return Err(ContainerError::TechnologyTooLong {
-                max: MAX_TECHNOLOGY_LENGTH,
-                actual: tech.len(),
-            });
-        }
+        validate_non_empty(&container.name, "name")?;
+        validate_max_length(&container.name, MAX_NAME_LENGTH, "name")?;
+        validate_non_empty(&container.description, "description")?;
+        validate_max_length(
+            &container.description,
+            MAX_DESCRIPTION_LENGTH,
+            "description",
+        )?;
+        validate_max_length(&container.technology, MAX_TECHNOLOGY_LENGTH, "technology")?;
         Ok(container)
     }
 }
 
 impl Container {
-    pub fn new(
-        name: impl Into<String>,
-        description: impl Into<String>,
-        technology: impl Into<String>,
-        container_type: ContainerType,
-    ) -> Result<Container, ContainerError> {
-        let name = name.into();
-        let description = description.into();
-        let technology = technology.into();
-        if name.trim().is_empty() {
-            return Err(ContainerError::MissingName);
-        }
-        if description.trim().is_empty() {
-            return Err(ContainerError::MissingDescription);
-        }
-        if technology.trim().is_empty() {
-            return Err(ContainerError::MissingTechnology);
-        }
-        if technology.len() > MAX_TECHNOLOGY_LENGTH {
-            return Err(ContainerError::TechnologyTooLong {
-                max: MAX_TECHNOLOGY_LENGTH,
-                actual: technology.len(),
-            });
-        }
-        Ok(Container {
-            name,
-            description,
-            container_type,
-            technology: Some(technology),
-            components: Vec::new(),
-        })
-    }
     pub fn container_type(&self) -> ContainerType {
         self.container_type.clone()
     }
@@ -101,6 +65,8 @@ pub enum ContainerError {
     MissingTechnology,
     #[error("technology string exceeds maximum length of {max} characters (actual: {actual})")]
     TechnologyTooLong { max: usize, actual: usize },
+    #[error("validation error: {0}")]
+    Validation(#[from] crate::validation::ValidationError),
 }
 
 #[cfg(test)]

@@ -8,6 +8,7 @@ use super::component::Component;
 use super::container::Container;
 use super::context::Person;
 use crate::constants::limits::MAX_TECHNOLOGY_LENGTH;
+use crate::validation::{validate_max_length, validate_non_empty};
 
 /// Generic relationship between any two C4 elements.
 ///
@@ -55,17 +56,12 @@ impl<S: Element, T: Element, State: relationship_builder::IsComplete>
 {
     pub fn build(self) -> Result<Relationship<S, T>, RelationshipError> {
         let relationship = self.build_internal();
-        if relationship.description.trim().is_empty() {
-            return Err(RelationshipError::MissingDescription);
-        }
-        if let Some(ref tech) = relationship.technology
-            && tech.len() > MAX_TECHNOLOGY_LENGTH
-        {
-            return Err(RelationshipError::TechnologyTooLong {
-                max: MAX_TECHNOLOGY_LENGTH,
-                actual: tech.len(),
-            });
-        }
+        validate_non_empty(&relationship.description, "description")?;
+        validate_max_length(
+            &relationship.technology,
+            MAX_TECHNOLOGY_LENGTH,
+            "technology",
+        )?;
         Ok(relationship)
     }
 }
@@ -119,6 +115,8 @@ pub enum RelationshipError {
     MissingDescription,
     #[error("technology string exceeds maximum length of {max} characters (actual: {actual})")]
     TechnologyTooLong { max: usize, actual: usize },
+    #[error("validation error: {0}")]
+    Validation(#[from] crate::validation::ValidationError),
 }
 
 /// Type alias for relationships between people.
