@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .container_type(ContainerType::Api)
         .build()?;
 
-    let rel = create_relationship(person.clone(), container.clone(), "Uses".into());
+    let rel = create_relationship(person.clone(), container.clone(), "Uses".into())?;
     println!("create_relationship: OK");
     println!("  description: {}", rel.description());
     println!("  technology: {:?}", rel.technology());
@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .target(container.clone())
         .description("Calls".into())
         .interaction_style(InteractionStyle::Asynchronous)
-        .build();
+        .build()?;
     println!("Relationship builder: OK");
     println!("  description: {}", rel3.description());
     println!("  interaction_style: {:?}", rel3.interaction_style());
@@ -107,7 +107,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .source(person.clone())
         .target(container.clone())
         .description("Uses".into())
-        .build();
+        .build()?;
     println!("Person -> Container: OK");
 
     let container2 = Container::builder()
@@ -124,7 +124,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .source(container2)
         .target(component2)
         .description("Contains".into())
-        .build();
+        .build()?;
     println!("Container -> Component: OK");
 
     println!("\n=== All tests passed! ===\n");

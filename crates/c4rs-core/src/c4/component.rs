@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::code::CodeElement;
 use super::element::ElementType;
 use super::macros::impl_element;
+use crate::constants::limits::MAX_TECHNOLOGY_LENGTH;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
@@ -29,6 +30,14 @@ impl<S: component_builder::IsComplete> ComponentBuilder<S> {
         }
         if component.description.trim().is_empty() {
             return Err(ComponentError::MissingDescription);
+        }
+        if let Some(ref tech) = component.technology
+            && tech.len() > MAX_TECHNOLOGY_LENGTH
+        {
+            return Err(ComponentError::TechnologyTooLong {
+                max: MAX_TECHNOLOGY_LENGTH,
+                actual: tech.len(),
+            });
         }
         Ok(component)
     }
@@ -77,6 +86,8 @@ pub enum ComponentError {
     MissingName,
     #[error("component description is required and cannot be empty")]
     MissingDescription,
+    #[error("technology string exceeds maximum length of {max} characters (actual: {actual})")]
+    TechnologyTooLong { max: usize, actual: usize },
 }
 
 #[cfg(test)]

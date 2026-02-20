@@ -50,7 +50,8 @@ mod tests {
             .source(source)
             .target(target)
             .description("Reports to".into())
-            .build();
+            .build()
+            .unwrap();
 
         let dsl = relationship.serialize_structurizr_dsl().unwrap();
         assert_eq!(dsl, r#"User -> Admin "Reports to""#);
@@ -75,7 +76,8 @@ mod tests {
             .target(target)
             .description("Uses".into())
             .technology("HTTPS".into())
-            .build();
+            .build()
+            .unwrap();
 
         let dsl = relationship.serialize_structurizr_dsl().unwrap();
         assert_eq!(dsl, r#"User -> API "Uses" "HTTPS""#);

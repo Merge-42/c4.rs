@@ -7,6 +7,7 @@ use super::code::CodeElement;
 use super::component::Component;
 use super::container::Container;
 use super::context::Person;
+use crate::constants::limits::MAX_TECHNOLOGY_LENGTH;
 
 /// Generic relationship between any two C4 elements.
 ///
@@ -28,9 +29,11 @@ use super::context::Person;
 ///     .target(person2)
 ///     .description("Communicates with".into())
 ///     .interaction_style(InteractionStyle::Synchronous)
-///     .build();
+///     .build()
+///     .unwrap();
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
+#[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Relationship<S: Element, T: Element> {
     /// The source element of the relationship.
     #[serde(skip_serializing)]
@@ -45,6 +48,26 @@ pub struct Relationship<S: Element, T: Element> {
     /// How the elements interact.
     #[builder(default)]
     interaction_style: InteractionStyle,
+}
+
+impl<S: Element, T: Element, State: relationship_builder::IsComplete>
+    RelationshipBuilder<S, T, State>
+{
+    pub fn build(self) -> Result<Relationship<S, T>, RelationshipError> {
+        let relationship = self.build_internal();
+        if relationship.description.trim().is_empty() {
+            return Err(RelationshipError::MissingDescription);
+        }
+        if let Some(ref tech) = relationship.technology
+            && tech.len() > MAX_TECHNOLOGY_LENGTH
+        {
+            return Err(RelationshipError::TechnologyTooLong {
+                max: MAX_TECHNOLOGY_LENGTH,
+                actual: tech.len(),
+            });
+        }
+        Ok(relationship)
+    }
 }
 
 impl<S: Element, T: Element> Relationship<S, T> {
@@ -81,7 +104,7 @@ pub fn create_relationship<S: Element, T: Element>(
     source: S,
     target: T,
     description: String,
-) -> Relationship<S, T> {
+) -> Result<Relationship<S, T>, RelationshipError> {
     Relationship::builder()
         .source(source)
         .target(target)
@@ -94,6 +117,8 @@ pub fn create_relationship<S: Element, T: Element>(
 pub enum RelationshipError {
     #[error("relationship description is required and cannot be empty")]
     MissingDescription,
+    #[error("technology string exceeds maximum length of {max} characters (actual: {actual})")]
+    TechnologyTooLong { max: usize, actual: usize },
 }
 
 /// Type alias for relationships between people.
@@ -134,7 +159,8 @@ mod tests {
             .target(person2)
             .description("Communicates with".into())
             .interaction_style(InteractionStyle::Synchronous)
-            .build();
+            .build()
+            .unwrap();
 
         assert_eq!(relationship.description(), "Communicates with");
         assert_eq!(
@@ -162,7 +188,8 @@ mod tests {
             .source(person)
             .target(container)
             .description("Uses".into())
-            .build();
+            .build()
+            .unwrap();
 
         assert_eq!(relationship.description(), "Uses");
     }
