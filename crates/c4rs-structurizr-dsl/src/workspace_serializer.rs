@@ -1,7 +1,10 @@
 use crate::{
-    StylesSerializer, ViewConfiguration, ViewsSerializer, error::DslError,
-    identifier_generator::IdentifierGenerator, templates::helpers::escape_dsl_string,
-    writer::DslWriter,
+    StylesSerializer, ViewConfiguration, ViewsSerializer,
+    error::DslError,
+    identifier_generator::IdentifierGenerator,
+    styles::{ElementStyle, RelationshipStyle},
+    templates::helpers::escape_dsl_string,
+    writer::{self, DslWriter},
 };
 use c4rs_core::c4::{Component, Container, Person, SoftwareSystem};
 use std::collections::HashSet;
@@ -89,6 +92,16 @@ impl WorkspaceSerializer {
         self
     }
 
+    pub fn add_element_style(mut self, style: ElementStyle) -> Self {
+        self.styles_serializer = self.styles_serializer.add_element_style(style);
+        self
+    }
+
+    pub fn add_relationship_style(mut self, style: RelationshipStyle) -> Self {
+        self.styles_serializer = self.styles_serializer.add_relationship_style(style);
+        self
+    }
+
     pub fn add_element_styles(mut self, styles_dsl: &str) -> Self {
         self.styles_serializer = self
             .styles_serializer
@@ -99,6 +112,13 @@ impl WorkspaceSerializer {
     }
 
     pub fn serialize(mut self) -> Result<String, DslError> {
+        // Render styles and inject into views if needed
+        let styles_dsl = self.styles_serializer.serialize()?;
+        if !styles_dsl.is_empty() {
+            self.views_serializer
+                .set_styles_output(styles_dsl.to_string());
+        }
+
         self.writer.clear();
         self.used_identifiers.clear();
         self.write_workspace_header()?;
@@ -187,7 +207,7 @@ impl WorkspaceSerializer {
         }
 
         for rel in &self.relationships {
-            let dsl = Self::serialize_relationship(
+            let dsl = writer::format_relationship(
                 &rel.source_id,
                 &rel.target_id,
                 &rel.description,
@@ -199,47 +219,23 @@ impl WorkspaceSerializer {
         Ok(())
     }
 
-    fn serialize_relationship(
-        source_id: &str,
-        target_id: &str,
-        description: &str,
-        technology: Option<&str>,
-    ) -> String {
-        let description_escaped = escape_dsl_string(description);
-        if let Some(tech) = technology {
-            let tech_escaped = escape_dsl_string(tech);
-            format!(
-                r#"{} -> {} "{}" "{}""#,
-                source_id, target_id, description_escaped, tech_escaped
-            )
-        } else {
-            format!(
-                r#"{} -> {} "{}""#,
-                source_id, target_id, description_escaped
-            )
-        }
-    }
-
     fn serialize_person(person: &Person, identifier: &str) -> Result<String, DslError> {
-        let tags = if person.location() == c4rs_core::c4::Location::External {
-            r#" {
+        let base = writer::format_element_assignment(
+            identifier,
+            "person",
+            person.name(),
+            person.description(),
+            None,
+        );
+        if person.location() == c4rs_core::c4::Location::External {
+            Ok(format!(
+                r#"{}" {{
     tags "External"
-}"#
-        } else {
-            ""
-        };
-        let name = escape_dsl_string(person.name());
-        let description = escape_dsl_string(person.description());
-        if tags.is_empty() {
-            Ok(format!(
-                r#"{} = person "{}" "{}""#,
-                identifier, name, description
+}}"#,
+                base
             ))
         } else {
-            Ok(format!(
-                r#"{} = person "{}" "{}""{}"#,
-                identifier, name, description, tags
-            ))
+            Ok(base)
         }
     }
 
@@ -248,23 +244,22 @@ impl WorkspaceSerializer {
         identifier: &str,
         has_containers: bool,
     ) -> String {
-        let external_tag = if system.location() == c4rs_core::c4::Location::External {
-            "\n    tags \"External\""
-        } else {
-            ""
-        };
-        let name = escape_dsl_string(system.name());
-        let description = escape_dsl_string(system.description());
+        let base = writer::format_element_assignment(
+            identifier,
+            "softwareSystem",
+            system.name(),
+            system.description(),
+            None,
+        );
         if has_containers {
-            format!(
-                r#"{} = softwareSystem "{}" "{}" {{{}"#,
-                identifier, name, description, external_tag
-            )
+            let external_tag = if system.location() == c4rs_core::c4::Location::External {
+                "\n    tags \"External\""
+            } else {
+                ""
+            };
+            format!("{} {{{}", base, external_tag)
         } else {
-            format!(
-                r#"{} = softwareSystem "{}" "{}""#,
-                identifier, name, description
-            )
+            base
         }
     }
 
@@ -273,29 +268,27 @@ impl WorkspaceSerializer {
         identifier: &str,
         has_components: bool,
     ) -> String {
-        let name = escape_dsl_string(container.name());
-        let description = escape_dsl_string(container.description());
+        let base = writer::format_element_assignment(
+            identifier,
+            "container",
+            container.name(),
+            container.description(),
+            None,
+        );
         if has_components {
-            format!(
-                r#"{} = container "{}" "{}" {{"#,
-                identifier, name, description
-            )
+            format!("{} {{", base)
         } else {
-            format!(
-                r#"{} = container "{}" "{}" {{}}"#,
-                identifier, name, description
-            )
+            format!("{} {{}}", base)
         }
     }
 
     fn serialize_component(component: &Component, identifier: &str) -> Result<String, DslError> {
-        let technology = component.technology().unwrap_or("");
-        let name = escape_dsl_string(component.name());
-        let description = escape_dsl_string(component.description());
-        let technology_escaped = escape_dsl_string(technology);
-        Ok(format!(
-            r#"{} = component "{}" "{}" "{}""#,
-            identifier, name, description, technology_escaped
+        Ok(writer::format_element_assignment(
+            identifier,
+            "component",
+            component.name(),
+            component.description(),
+            component.technology(),
         ))
     }
 
@@ -303,7 +296,7 @@ impl WorkspaceSerializer {
         let views_dsl = self.views_serializer.serialize()?;
         if !views_dsl.is_empty() {
             self.writer.add_empty_line();
-            let indented = Self::indent_block(&views_dsl);
+            let indented = DslWriter::indent_block(&views_dsl);
             for line in indented.lines() {
                 if line.trim().is_empty() {
                     self.writer.add_empty_line();
@@ -314,438 +307,8 @@ impl WorkspaceSerializer {
         }
         Ok(())
     }
-
-    fn indent_block(s: &str) -> String {
-        let mut lines = Vec::new();
-        let mut brace_depth = 0;
-        for line in s.lines() {
-            let trimmed = line.trim();
-            if trimmed.is_empty() {
-                lines.push(line.to_string());
-                continue;
-            }
-            let closing = trimmed.matches('}').count();
-            let opening = trimmed.matches('{').count();
-            if closing > 0 && brace_depth > 0 {
-                brace_depth = (brace_depth as i32 - closing as i32).max(0) as usize;
-            }
-            let indent = "    ".repeat(brace_depth);
-            lines.push(format!("{}{}", indent, trimmed));
-            if opening > 0 {
-                brace_depth += opening;
-            }
-        }
-        lines.join("\n")
-    }
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use c4rs_core::c4::{Person, SoftwareSystem};
-
-    #[test]
-    fn test_workspace_serializer_empty() {
-        let serializer = WorkspaceSerializer::new();
-        let result = serializer.serialize().unwrap();
-        println!("=== OUTPUT ===");
-        println!("{}", result);
-        println!("=== END ===");
-        assert!(result.starts_with("workspace "));
-        assert!(result.contains("!identifiers"));
-        assert!(result.contains("hierarchical"));
-        assert!(result.contains("model {"));
-    }
-
-    #[test]
-    fn test_workspace_serializer_with_person() {
-        let person = Person::builder()
-            .name("User".into())
-            .description("A system user".into())
-            .build()
-            .unwrap();
-        let result = WorkspaceSerializer::new()
-            .add_person(person)
-            .serialize()
-            .unwrap();
-        assert!(result.contains("u = person"));
-    }
-
-    #[test]
-    fn test_workspace_serializer_with_software_system() {
-        let system = SoftwareSystem::builder()
-            .name("Software System".into())
-            .description("Backend system".into())
-            .build()
-            .unwrap();
-        let result = WorkspaceSerializer::new()
-            .add_software_system(system)
-            .serialize()
-            .unwrap();
-        assert!(result.contains("ss = softwareSystem"));
-    }
-
-    #[test]
-    fn test_identifier_uniqueness() {
-        let person1 = Person::builder()
-            .name("User".into())
-            .description("A user".into())
-            .build()
-            .unwrap();
-        let person2 = Person::builder()
-            .name("User".into())
-            .description("Another user".into())
-            .build()
-            .unwrap();
-        let result = WorkspaceSerializer::new()
-            .add_person(person1)
-            .add_person(person2)
-            .serialize()
-            .unwrap();
-        assert!(result.contains("u = person"));
-        assert!(result.contains("u1 = person"));
-    }
-
-    #[test]
-    fn test_us1_workspace_declaration_structure() {
-        let result = WorkspaceSerializer::new().serialize().unwrap();
-
-        assert!(
-            result.starts_with("workspace "),
-            "Output should start with workspace declaration"
-        );
-        assert!(
-            result.contains("!identifiers"),
-            "Output should contain !identifiers directive"
-        );
-        assert!(
-            result.contains("hierarchical"),
-            "Output should specify hierarchical identifier strategy"
-        );
-        assert!(
-            result.contains("model {"),
-            "Output should contain model section opening"
-        );
-    }
-
-    #[test]
-    fn test_us1_identifiers_directive_present() {
-        let result = WorkspaceSerializer::new().serialize().unwrap();
-
-        assert!(
-            result.contains("!identifiers"),
-            "Output should contain !identifiers directive"
-        );
-        assert!(
-            result.contains("hierarchical"),
-            "Output should specify hierarchical identifier strategy"
-        );
-    }
-
-    #[test]
-    fn test_us1_workspace_with_multiple_elements() {
-        let person = Person::builder()
-            .name("User".into())
-            .description("A system user".into())
-            .build()
-            .unwrap();
-
-        let system = SoftwareSystem::builder()
-            .name("API".into())
-            .description("Backend API".into())
-            .build()
-            .unwrap();
-
-        let result = WorkspaceSerializer::new()
-            .add_person(person)
-            .add_software_system(system)
-            .serialize()
-            .unwrap();
-
-        assert!(
-            result.contains("u = person"),
-            "First person should have 'u' identifier"
-        );
-        assert!(
-            result.contains("a = softwareSystem"),
-            "First software system should have 'a' identifier"
-        );
-    }
-
-    #[test]
-    fn test_us1_workspace_blocks_properly_formed() {
-        let person = Person::builder()
-            .name("User".into())
-            .description("A system user".into())
-            .build()
-            .unwrap();
-
-        let system = SoftwareSystem::builder()
-            .name("API".into())
-            .description("Backend API".into())
-            .build()
-            .unwrap();
-
-        let result = WorkspaceSerializer::new()
-            .add_person(person)
-            .add_software_system(system)
-            .serialize()
-            .unwrap();
-
-        assert!(
-            result.starts_with("workspace "),
-            "Should contain workspace opening"
-        );
-        assert!(result.contains("model {"), "Should contain model opening");
-        assert!(result.contains("}"), "Should contain closing braces");
-    }
-
-    #[test]
-    fn test_us2_element_syntax() {
-        let person = Person::builder()
-            .name("User".into())
-            .description("A system user".into())
-            .build()
-            .unwrap();
-
-        let system = SoftwareSystem::builder()
-            .name("API".into())
-            .description("Backend API".into())
-            .build()
-            .unwrap();
-
-        let result = WorkspaceSerializer::new()
-            .add_person(person)
-            .add_software_system(system)
-            .serialize()
-            .unwrap();
-
-        assert!(
-            result.contains("u = person"),
-            "Person should have 'u' identifier"
-        );
-        assert!(
-            result.contains("a = softwareSystem"),
-            "SoftwareSystem should have 'a' identifier"
-        );
-        assert!(result.contains("\"API\""), "Should contain API name");
-    }
-
-    #[test]
-    fn test_us2_identifier_generation_collision() {
-        let person1 = Person::builder()
-            .name("Database".into())
-            .description("Data store".into())
-            .build()
-            .unwrap();
-
-        let person2 = Person::builder()
-            .name("Developer".into())
-            .description("Software developer".into())
-            .build()
-            .unwrap();
-
-        let result = WorkspaceSerializer::new()
-            .add_person(person1)
-            .add_person(person2)
-            .serialize()
-            .unwrap();
-
-        assert!(
-            result.contains("d = person \"Database\""),
-            "First person 'Database' should have 'd' identifier"
-        );
-        assert!(
-            result.contains("d1 = person \"Developer\""),
-            "Second person 'Developer' should have 'd1' identifier (collision resolved)"
-        );
-    }
-
-    #[test]
-    fn test_us2_software_system_identifier() {
-        let system = SoftwareSystem::builder()
-            .name("API".into())
-            .description("Backend API".into())
-            .build()
-            .unwrap();
-
-        let result = WorkspaceSerializer::new()
-            .add_software_system(system)
-            .serialize()
-            .unwrap();
-
-        assert!(
-            result.contains("a = softwareSystem"),
-            "SoftwareSystem should have 'a' identifier"
-        );
-    }
-
-    #[test]
-    fn test_us2_multiple_software_systems() {
-        let system1 = SoftwareSystem::builder()
-            .name("API".into())
-            .description("Backend API".into())
-            .build()
-            .unwrap();
-
-        let system2 = SoftwareSystem::builder()
-            .name("API".into())
-            .description("Another API".into())
-            .build()
-            .unwrap();
-
-        let result = WorkspaceSerializer::new()
-            .add_software_system(system1)
-            .add_software_system(system2)
-            .serialize()
-            .unwrap();
-
-        assert!(
-            result.contains("a = softwareSystem"),
-            "First system should have 'a' identifier"
-        );
-        assert!(
-            result.contains("a1 = softwareSystem"),
-            "Second system should have 'a1' identifier"
-        );
-    }
-
-    #[test]
-    fn test_us3_relationship_syntax() {
-        let result = WorkspaceSerializer::new()
-            .add_relationship("u", "ss", "Uses", None)
-            .serialize()
-            .unwrap();
-
-        assert!(
-            result.contains("u -> ss \"Uses\""),
-            "Relationship should have correct syntax: source -> target \"description\""
-        );
-    }
-
-    #[test]
-    fn test_us3_relationship_with_technology() {
-        let result = WorkspaceSerializer::new()
-            .add_relationship("u", "ss", "Uses", Some("HTTPS"))
-            .serialize()
-            .unwrap();
-
-        assert!(
-            result.contains("u -> ss \"Uses\" \"HTTPS\""),
-            "Relationship with technology should include technology in output"
-        );
-    }
-
-    #[test]
-    fn test_us3_multiple_relationships() {
-        let result = WorkspaceSerializer::new()
-            .add_relationship("u", "a", "Uses", Some("HTTPS"))
-            .add_relationship("a", "d", "Queries", Some("TCP"))
-            .serialize()
-            .unwrap();
-
-        assert!(
-            result.contains("u -> a \"Uses\" \"HTTPS\""),
-            "First relationship should be present"
-        );
-        assert!(
-            result.contains("a -> d \"Queries\" \"TCP\""),
-            "Second relationship should be present"
-        );
-    }
-
-    #[test]
-    fn test_us3_relationship_order() {
-        let result = WorkspaceSerializer::new()
-            .add_relationship("s2", "s1", "Depends on", None)
-            .add_relationship("s1", "s3", "Calls", None)
-            .serialize()
-            .unwrap();
-
-        let pos1 = result.find("s2 -> s1").unwrap();
-        let pos2 = result.find("s1 -> s3").unwrap();
-        assert!(pos1 < pos2, "Relationships should appear in order added");
-    }
-
-    #[test]
-    fn test_us7_brace_balance() {
-        let person = Person::builder()
-            .name("User".into())
-            .description("A system user".into())
-            .build()
-            .unwrap();
-
-        let system = SoftwareSystem::builder()
-            .name("API".into())
-            .description("Backend API".into())
-            .build()
-            .unwrap();
-
-        let result = WorkspaceSerializer::new()
-            .add_person(person)
-            .add_software_system(system)
-            .add_relationship("u", "a", "Uses", None)
-            .serialize()
-            .unwrap();
-
-        let opens = result.matches('{').count();
-        let closes = result.matches('}').count();
-        assert_eq!(
-            opens, closes,
-            "Braces should be balanced: {} opens, {} closes",
-            opens, closes
-        );
-    }
-
-    #[test]
-    fn test_special_characters_in_person_name() {
-        let person = Person::builder()
-            .name("User \"Admin\"".into())
-            .description("A special user".into())
-            .build()
-            .unwrap();
-        let result = WorkspaceSerializer::new()
-            .add_person(person)
-            .serialize()
-            .unwrap();
-        assert!(result.contains(r#"User \"Admin\""#));
-    }
-
-    #[test]
-    fn test_special_characters_in_description() {
-        let person = Person::builder()
-            .name("User".into())
-            .description("A \"test\" user & <admin>".into())
-            .build()
-            .unwrap();
-        let result = WorkspaceSerializer::new()
-            .add_person(person)
-            .serialize()
-            .unwrap();
-        assert!(result.contains(r#"\"test\""#));
-    }
-
-    #[test]
-    fn test_backslash_in_name() {
-        let system = SoftwareSystem::builder()
-            .name("API\\Backend".into())
-            .description("Backend API".into())
-            .build()
-            .unwrap();
-        let result = WorkspaceSerializer::new()
-            .add_software_system(system)
-            .serialize()
-            .unwrap();
-        assert!(result.contains(r#"API\\Backend"#));
-    }
-
-    #[test]
-    fn test_relationship_with_special_chars() {
-        let result = WorkspaceSerializer::new()
-            .add_relationship("u", "a", "Uses \"HTTPS\"", Some("JSON\\API"))
-            .serialize()
-            .unwrap();
-        assert!(result.contains(r#""Uses \"HTTPS\""#));
-        assert!(result.contains(r#""JSON\\API""#));
-    }
-}
+#[path = "workspace_serializer_tests.rs"]
+mod tests;

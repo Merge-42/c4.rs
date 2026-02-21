@@ -53,6 +53,31 @@ impl DslWriter {
         self.lines.clear();
         self.indent_level = 0;
     }
+
+    /// Re-indents a DSL block based on brace depth.
+    /// Useful for normalizing indentation of pre-rendered DSL fragments.
+    pub fn indent_block(s: &str) -> String {
+        let mut lines = Vec::new();
+        let mut brace_depth = 0;
+        for line in s.lines() {
+            let trimmed = line.trim();
+            if trimmed.is_empty() {
+                lines.push(line.to_string());
+                continue;
+            }
+            let closing = trimmed.matches('}').count();
+            let opening = trimmed.matches('{').count();
+            if closing > 0 && brace_depth > 0 {
+                brace_depth = (brace_depth as i32 - closing as i32).max(0) as usize;
+            }
+            let indent = "    ".repeat(brace_depth);
+            lines.push(format!("{}{}", indent, trimmed));
+            if opening > 0 {
+                brace_depth += opening;
+            }
+        }
+        lines.join("\n")
+    }
 }
 
 impl Display for DslWriter {
@@ -102,6 +127,12 @@ pub fn format_relationship(
     } else {
         format!(r#"{} -> {} "{}""#, source, target, description)
     }
+}
+
+/// Returns the external output if it is set and non-empty.
+/// Used by serializers that support pre-rendered output bypass.
+pub fn try_external_output(external_output: &Option<String>) -> Option<String> {
+    external_output.as_ref().filter(|s| !s.is_empty()).cloned()
 }
 
 pub fn format_parent_reference(child: &str, parent: &str) -> String {
