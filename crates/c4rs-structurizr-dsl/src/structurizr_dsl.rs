@@ -1,5 +1,6 @@
 use crate::error::DslError;
-use crate::styles_serializer::{ElementStyle, RelationshipStyle, StylesSerializer};
+use crate::styles::{ElementStyle, RelationshipStyle};
+use crate::styles_serializer::StylesSerializer;
 use crate::views_serializer::ViewConfiguration;
 use crate::workspace_serializer::WorkspaceSerializer;
 use c4rs_core::c4::{Person, SoftwareSystem};
