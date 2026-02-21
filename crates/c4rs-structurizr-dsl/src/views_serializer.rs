@@ -1,11 +1,8 @@
-//! Views serialization for Structurizr DSL.
-
 use crate::error::StructurizrDslError;
 use crate::templates::view::ViewTemplate;
 use askama::Template;
 use bon::Builder;
 
-/// Represents a view type in Structurizr DSL.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ViewType {
@@ -35,7 +32,6 @@ impl std::fmt::Display for ViewType {
     }
 }
 
-/// Represents a Structurizr view configuration.
 #[derive(Debug, Clone, Builder)]
 pub struct ViewConfiguration {
     pub view_type: ViewType,
@@ -47,7 +43,6 @@ pub struct ViewConfiguration {
     pub exclude_elements: Vec<String>,
 }
 
-/// Serializes Structurizr views to DSL format.
 #[derive(Debug, Default, Builder)]
 pub struct ViewsSerializer {
     #[builder(default)]
@@ -58,37 +53,30 @@ pub struct ViewsSerializer {
 }
 
 impl ViewsSerializer {
-    /// Add a view configuration.
     pub fn add_view(&mut self, view: ViewConfiguration) {
         self.views.push(view);
     }
 
-    /// Set external pre-serialized output (for integration with WorkspaceSerializer).
     pub fn set_external_output(&mut self, output: String) {
         self.external_output = Some(output);
     }
 
-    /// Set styles output to be included inside views.
     pub fn set_styles_output(&mut self, output: String) {
         self.styles_output = Some(output);
     }
 
-    /// Set configuration output to be included inside views.
     pub fn set_configuration_output(&mut self, output: String) {
         self.configuration_output = Some(output);
     }
 
-    /// Check if styles output is set.
     pub fn styles_output(&self) -> Option<&String> {
         self.styles_output.as_ref()
     }
 
-    /// Check if configuration output is set.
     pub fn configuration_output(&self) -> Option<&String> {
         self.configuration_output.as_ref()
     }
 
-    /// Serialize all views to DSL format.
     pub fn serialize(&self) -> Result<String, StructurizrDslError> {
         if let Some(ref output) = self.external_output
             && !output.is_empty()

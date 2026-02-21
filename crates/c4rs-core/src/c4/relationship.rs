@@ -10,25 +10,16 @@ use super::context::Person;
 use crate::constants::limits::MAX_TECHNOLOGY_LENGTH;
 use crate::validation::{validate_max_length, validate_non_empty};
 
-/// Generic relationship between any two C4 elements.
-///
-/// Relationships connect elements and show how they interact.
-/// The generic parameters S and T allow relationships between any Element types,
-/// including cross-level relationships (e.g., Person → Container).
+/// Relationship between two C4 elements.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Relationship<S: Element, T: Element> {
-    /// The source element of the relationship.
     #[serde(skip_serializing)]
     source: S,
-    /// The target element of the relationship.
     #[serde(skip_serializing)]
     target: T,
-    /// Description of the relationship.
     description: String,
-    /// Technology used for this relationship, if specified.
     technology: Option<String>,
-    /// How the elements interact.
     #[builder(default)]
     interaction_style: InteractionStyle,
 }
@@ -49,35 +40,27 @@ impl<S: Element, T: Element, State: relationship_builder::IsComplete>
 }
 
 impl<S: Element, T: Element> Relationship<S, T> {
-    /// Returns a reference to the source element.
     pub fn source(&self) -> &S {
         &self.source
     }
 
-    /// Returns a reference to the target element.
     pub fn target(&self) -> &T {
         &self.target
     }
 
-    /// Returns the relationship description.
     pub fn description(&self) -> &str {
         &self.description
     }
 
-    /// Returns the technology used by this relationship.
     pub fn technology(&self) -> Option<&str> {
         self.technology.as_deref()
     }
 
-    /// Returns the interaction style.
     pub fn interaction_style(&self) -> InteractionStyle {
         self.interaction_style.clone()
     }
 }
 
-/// Creates a relationship between two elements.
-///
-/// This is a convenience function that uses the builder internally.
 pub fn create_relationship<S: Element, T: Element>(
     source: S,
     target: T,
@@ -90,7 +73,6 @@ pub fn create_relationship<S: Element, T: Element>(
         .build()
 }
 
-/// Error type for Relationship construction.
 #[derive(Debug, thiserror::Error)]
 pub enum RelationshipError {
     #[error("relationship description is required and cannot be empty")]
@@ -101,19 +83,10 @@ pub enum RelationshipError {
     Validation(#[from] crate::validation::ValidationError),
 }
 
-/// Type alias for relationships between people.
 pub type PersonRelationship = Relationship<Person, Person>;
-
-/// Type alias for relationships between people and containers.
 pub type PersonToContainerRelationship = Relationship<Person, Container>;
-
-/// Type alias for relationships between containers.
 pub type ContainerRelationship = Relationship<Container, Container>;
-
-/// Type alias for relationships between components.
 pub type ComponentRelationship = Relationship<Component, Component>;
-
-/// Type alias for relationships between components and code elements.
 pub type ComponentToCodeRelationship = Relationship<Component, CodeElement>;
 
 #[cfg(test)]

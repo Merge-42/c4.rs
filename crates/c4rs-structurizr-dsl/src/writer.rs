@@ -1,9 +1,6 @@
-//! DSL output formatting and writing.
-
 use crate::templates::helpers::{escape_dsl_string, format_identifier};
 use std::fmt::{Display, Formatter};
 
-/// Writer for Structurizr DSL output.
 #[derive(Debug, Default)]
 pub struct DslWriter {
     lines: Vec<String>,
@@ -11,7 +8,6 @@ pub struct DslWriter {
 }
 
 impl DslWriter {
-    /// Create a new DSL writer.
     pub fn new() -> Self {
         Self {
             lines: Vec::new(),
@@ -19,30 +15,25 @@ impl DslWriter {
         }
     }
 
-    /// Add a line to the output.
     pub fn add_line(&mut self, line: &str) {
         let indent = "    ".repeat(self.indent_level);
         self.lines.push(format!("{}{}", indent, line));
     }
 
-    /// Add an empty line.
     pub fn add_empty_line(&mut self) {
         self.lines.push(String::new());
     }
 
-    /// Increase indentation.
     pub fn indent(&mut self) {
         self.indent_level += 1;
     }
 
-    /// Decrease indentation.
     pub fn unindent(&mut self) {
         if self.indent_level > 0 {
             self.indent_level -= 1;
         }
     }
 
-    /// Write a block with opening and closing braces.
     pub fn write_block<F>(&mut self, name: &str, f: F)
     where
         F: FnOnce(&mut DslWriter),
@@ -54,12 +45,10 @@ impl DslWriter {
         self.add_line("}");
     }
 
-    /// Convert to string.
     pub fn as_output(&self) -> String {
         self.lines.join("\n")
     }
 
-    /// Clear the writer.
     pub fn clear(&mut self) {
         self.lines.clear();
         self.indent_level = 0;
@@ -72,7 +61,6 @@ impl Display for DslWriter {
     }
 }
 
-/// Format an element assignment for DSL output.
 pub fn format_element_assignment(
     identifier: &str,
     element_type: &str,
@@ -98,7 +86,6 @@ pub fn format_element_assignment(
     }
 }
 
-/// Format a relationship for DSL output.
 pub fn format_relationship(
     source: &str,
     target: &str,
@@ -117,7 +104,6 @@ pub fn format_relationship(
     }
 }
 
-/// Format a parent-child relationship for DSL output.
 pub fn format_parent_reference(child: &str, parent: &str) -> String {
     let child = format_identifier(child);
     let parent = format_identifier(parent);

@@ -1,10 +1,7 @@
-//! Styles serialization for Structurizr DSL.
-
 use crate::templates::view::{ElementStyleTemplate, RelationshipStyleTemplate};
 use askama::Template;
 use serde::{Deserialize, Serialize};
 
-/// Represents a style for elements in Structurizr DSL.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ElementStyle {
     pub identifier: String,
@@ -17,7 +14,6 @@ pub struct ElementStyle {
 }
 
 impl ElementStyle {
-    /// Create a new element style.
     pub fn new(identifier: &str) -> Self {
         Self {
             identifier: identifier.to_string(),
@@ -30,44 +26,37 @@ impl ElementStyle {
         }
     }
 
-    /// Set the background color.
     pub fn with_background(mut self, color: &str) -> Self {
         self.background = Some(color.to_string());
         self
     }
 
-    /// Set the text color.
     pub fn with_color(mut self, color: &str) -> Self {
         self.color = Some(color.to_string());
         self
     }
 
-    /// Set the shape (Rectangle, Circle, Ellipse, etc.)
     pub fn with_shape(mut self, shape: &str) -> Self {
         self.shape = Some(shape.to_string());
         self
     }
 
-    /// Set the size (small, medium, large).
     pub fn with_size(mut self, size: &str) -> Self {
         self.size = Some(size.to_string());
         self
     }
 
-    /// Set the border color.
     pub fn with_stroke(mut self, color: &str) -> Self {
         self.stroke = Some(color.to_string());
         self
     }
 
-    /// Set the border width.
     pub fn with_stroke_width(mut self, width: &str) -> Self {
         self.stroke_width = Some(width.to_string());
         self
     }
 }
 
-/// Represents a relationship style in Structurizr DSL.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct RelationshipStyle {
     pub thickness: Option<String>,
@@ -77,7 +66,6 @@ pub struct RelationshipStyle {
 }
 
 impl RelationshipStyle {
-    /// Create a new relationship style.
     pub fn new() -> Self {
         Self {
             thickness: None,
@@ -87,32 +75,27 @@ impl RelationshipStyle {
         }
     }
 
-    /// Set the line thickness.
     pub fn with_thickness(mut self, thickness: &str) -> Self {
         self.thickness = Some(thickness.to_string());
         self
     }
 
-    /// Set the line color.
     pub fn with_color(mut self, color: &str) -> Self {
         self.color = Some(color.to_string());
         self
     }
 
-    /// Set the router type (Direct, Orthogonal, curvilinear).
     pub fn with_router(mut self, router: &str) -> Self {
         self.router = Some(router.to_string());
         self
     }
 
-    /// Set whether the line is dashed.
     pub fn with_dashed(mut self, dashed: bool) -> Self {
         self.dashed = Some(dashed);
         self
     }
 }
 
-/// Serializes Structurizr styles to DSL format.
 #[derive(Debug, Default)]
 pub struct StylesSerializer {
     element_styles: Vec<ElementStyle>,
@@ -121,7 +104,6 @@ pub struct StylesSerializer {
 }
 
 impl StylesSerializer {
-    /// Create a new styles serializer.
     pub fn new() -> Self {
         Self {
             element_styles: Vec::new(),
@@ -130,27 +112,22 @@ impl StylesSerializer {
         }
     }
 
-    /// Add an element style.
     pub fn add_element_style(&mut self, style: ElementStyle) {
         self.element_styles.push(style);
     }
 
-    /// Add a relationship style.
     pub fn add_relationship_style(&mut self, style: RelationshipStyle) {
         self.relationship_styles.push(style);
     }
 
-    /// Set external pre-serialized output (for integration with WorkspaceSerializer).
     pub fn set_external_output(&mut self, output: String) {
         self.external_output = Some(output);
     }
 
-    /// Add element styles from serialized DSL string.
     pub fn add_element_styles_from_string(&mut self, dsl: &str) {
         self.external_output = Some(dsl.to_string());
     }
 
-    /// Serialize styles to DSL format.
     pub fn serialize(&self) -> Result<String, askama::Error> {
         if let Some(ref output) = self.external_output
             && !output.is_empty()

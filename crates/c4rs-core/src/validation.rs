@@ -12,10 +12,6 @@ pub enum ValidationError {
     },
 }
 
-/// Trait for types that can be converted to `Option<&str>` for validation.
-///
-/// Implemented for `&str`, `&String`, `Option<&str>`, and `&Option<String>`,
-/// allowing `validate_max_length` to accept any of these without manual conversion.
 pub trait AsOptionalStr<'a> {
     fn to_optional_str(self) -> Option<&'a str>;
 }
@@ -54,10 +50,6 @@ pub fn validate_non_empty(value: &str, field: &str) -> Result<(), ValidationErro
     }
 }
 
-/// Validates max length for both required and optional string fields.
-///
-/// Accepts `&str`, `&String`, `Option<&str>`, and `&Option<String>`.
-/// For `None` values, validation passes (field is absent).
 pub fn validate_max_length<'a>(
     value: impl AsOptionalStr<'a>,
     max: usize,

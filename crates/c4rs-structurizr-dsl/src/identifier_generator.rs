@@ -1,22 +1,11 @@
 //! Identifier generation for Structurizr DSL elements.
-//!
-//! This module provides automatic generation of short identifiers for C4 model elements.
-//! Identifiers are generated from element names by taking the first letter of each word
-//! and converting to lowercase.
 
 use std::collections::HashSet;
 
-/// Generates short identifiers for Structurizr DSL elements.
-///
-/// Identifiers are created by taking the first letter of each word in the element name,
-/// converting to lowercase. Collisions are resolved by appending numbers.
 #[derive(Debug, Default)]
 pub struct IdentifierGenerator {}
 
 impl IdentifierGenerator {
-    /// Generate an identifier from an element name.
-    ///
-    /// Takes the first letter of each word, converts to lowercase.
     pub fn generate(name: &str) -> String {
         name.split_whitespace()
             .filter(|s| !s.is_empty())
@@ -30,9 +19,6 @@ impl IdentifierGenerator {
             .collect()
     }
 
-    /// Generate a unique identifier, avoiding collisions with used identifiers.
-    ///
-    /// If the generated identifier is already in use, appends a numeric suffix.
     pub fn generate_unique(name: &str, used: &HashSet<String>) -> String {
         let mut identifier = Self::generate(name);
         let mut counter = 1;

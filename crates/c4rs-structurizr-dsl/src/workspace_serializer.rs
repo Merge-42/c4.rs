@@ -6,7 +6,6 @@ use crate::{
 use c4rs_core::c4::{Component, Container, Person, SoftwareSystem};
 use std::collections::HashSet;
 
-/// Workspace serializer - handles all serialization for the Structurizr DSL.
 #[derive(Debug)]
 pub struct WorkspaceSerializer {
     writer: DslWriter,

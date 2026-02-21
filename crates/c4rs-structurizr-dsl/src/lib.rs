@@ -1,6 +1,4 @@
-//! C4RS Structurizr DSL Serialization
-//!
-//! This crate provides serialization of C4 models to Structurizr DSL format.
+//! Serialization of C4 models to Structurizr DSL format.
 
 pub mod error;
 pub mod identifier_generator;

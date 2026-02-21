@@ -1,9 +1,4 @@
-//! C4RS Core - C4 Model Types Library
-//!
-//! A Rust library providing types that represent the C4 model (Context, Container, Component, Code)
-//! for architecture documentation.
-//!
-//! See the `c4` module for details.
+//! Core types for the C4 model (Context, Container, Component, Code).
 
 pub mod constants;
 pub mod validation;

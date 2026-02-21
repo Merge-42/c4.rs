@@ -1,12 +1,9 @@
-//! Main Structurizr DSL Serializer.
-
 use crate::error::StructurizrDslError;
 use crate::styles_serializer::{ElementStyle, RelationshipStyle, StylesSerializer};
 use crate::views_serializer::ViewConfiguration;
 use crate::workspace_serializer::WorkspaceSerializer;
 use c4rs_core::c4::{Person, SoftwareSystem};
 
-/// Serializer for converting C4 models to Structurizr DSL format.
 #[derive(Debug, Default)]
 pub struct StructurizrDslSerializer {
     workspace_serializer: WorkspaceSerializer,
@@ -16,7 +13,6 @@ pub struct StructurizrDslSerializer {
 }
 
 impl StructurizrDslSerializer {
-    /// Create a new Structurizr DSL serializer.
     pub fn new() -> Self {
         Self {
             workspace_serializer: WorkspaceSerializer::new(),
@@ -26,43 +22,36 @@ impl StructurizrDslSerializer {
         }
     }
 
-    /// Set the workspace name.
     pub fn with_name(mut self, name: &str) -> Self {
         self.name = Some(name.to_string());
         self
     }
 
-    /// Set the workspace description.
     pub fn with_description(mut self, description: &str) -> Self {
         self.description = Some(description.to_string());
         self
     }
 
-    /// Add a person to the workspace.
     pub fn add_person(mut self, person: Person) -> Self {
         self.workspace_serializer.add_person(person);
         self
     }
 
-    /// Add a software system to the workspace.
     pub fn add_software_system(mut self, system: SoftwareSystem) -> Self {
         self.workspace_serializer.add_software_system(system);
         self
     }
 
-    /// Add a view configuration.
     pub fn add_view(mut self, view: ViewConfiguration) -> Self {
         self.workspace_serializer.add_view(&view);
         self
     }
 
-    /// Add an element style.
     pub fn add_element_style(mut self, style: ElementStyle) -> Self {
         self.styles_serializer.add_element_style(style);
         self
     }
 
-    /// Add a relationship style.
     pub fn add_relationship_style(mut self, style: RelationshipStyle) -> Self {
         self.styles_serializer.add_relationship_style(style);
         self
@@ -80,15 +69,6 @@ impl StructurizrDslSerializer {
         self
     }
 
-    /// Serialize the workspace to Structurizr DSL.
-    ///
-    /// # Returns
-    ///
-    /// A string containing the Structurizr DSL representation.
-    ///
-    /// # Errors
-    ///
-    /// Returns a `StructurizrDslError` if serialization fails.
     pub fn serialize(self) -> Result<String, StructurizrDslError> {
         let mut workspace_serializer = self.workspace_serializer;
         if let Some(name) = self.name {

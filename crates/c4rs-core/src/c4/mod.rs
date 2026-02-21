@@ -1,14 +1,4 @@
-//! C4 Model Types - A Rust library for representing the C4 model of software architecture.
-//!
-//! This library provides types for all four C4 levels: Context, Container, Component, and Code.
-//! Types follow SOLID principles and support JSON serialization via serde.
-//!
-//! # Features
-//!
-//! - **Core Types**: Person, SoftwareSystem, Container, Component, CodeElement
-//! - **Relationships**: Generic relationships between any Element types
-//! - **Validation**: Construction-time validation with clear error messages
-//! - **Serialization**: JSON serialization via serde
+//! Types for the C4 model: Person, SoftwareSystem, Container, Component, and CodeElement.
 
 pub mod code;
 pub mod component;
