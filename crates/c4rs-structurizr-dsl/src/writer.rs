@@ -129,6 +129,12 @@ pub fn format_relationship(
     }
 }
 
+/// Returns the external output if it is set and non-empty.
+/// Used by serializers that support pre-rendered output bypass.
+pub fn try_external_output(external_output: &Option<String>) -> Option<String> {
+    external_output.as_ref().filter(|s| !s.is_empty()).cloned()
+}
+
 pub fn format_parent_reference(child: &str, parent: &str) -> String {
     let child = format_identifier(child);
     let parent = format_identifier(parent);

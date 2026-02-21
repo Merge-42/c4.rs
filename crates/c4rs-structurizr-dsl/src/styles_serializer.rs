@@ -1,5 +1,6 @@
 use crate::styles::{ElementStyle, RelationshipStyle};
 use crate::templates::view::{ElementStyleTemplate, RelationshipStyleTemplate};
+use crate::writer;
 use askama::Template;
 
 #[derive(Debug, Default)]
@@ -35,10 +36,8 @@ impl StylesSerializer {
     }
 
     pub fn serialize(&self) -> Result<String, askama::Error> {
-        if let Some(ref output) = self.external_output
-            && !output.is_empty()
-        {
-            return Ok(output.clone());
+        if let Some(output) = writer::try_external_output(&self.external_output) {
+            return Ok(output);
         }
 
         if self.element_styles.is_empty() && self.relationship_styles.is_empty() {

@@ -1,5 +1,6 @@
 use crate::error::DslError;
 use crate::templates::view::ViewTemplate;
+use crate::writer;
 use askama::Template;
 use bon::Builder;
 
@@ -78,10 +79,8 @@ impl ViewsSerializer {
     }
 
     pub fn serialize(&self) -> Result<String, DslError> {
-        if let Some(ref output) = self.external_output
-            && !output.is_empty()
-        {
-            return Ok(output.clone());
+        if let Some(output) = writer::try_external_output(&self.external_output) {
+            return Ok(output);
         }
 
         if self.views.is_empty()
