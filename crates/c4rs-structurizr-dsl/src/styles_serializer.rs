@@ -112,20 +112,24 @@ impl StylesSerializer {
         }
     }
 
-    pub fn add_element_style(&mut self, style: ElementStyle) {
+    pub fn add_element_style(mut self, style: ElementStyle) -> Self {
         self.element_styles.push(style);
+        self
     }
 
-    pub fn add_relationship_style(&mut self, style: RelationshipStyle) {
+    pub fn add_relationship_style(mut self, style: RelationshipStyle) -> Self {
         self.relationship_styles.push(style);
+        self
     }
 
-    pub fn set_external_output(&mut self, output: String) {
+    pub fn set_external_output(mut self, output: String) -> Self {
         self.external_output = Some(output);
+        self
     }
 
-    pub fn add_element_styles_from_string(&mut self, dsl: &str) {
+    pub fn add_element_styles_from_string(mut self, dsl: &str) -> Self {
         self.external_output = Some(dsl.to_string());
+        self
     }
 
     pub fn serialize(&self) -> Result<String, askama::Error> {
@@ -183,8 +187,7 @@ mod tests {
 
     #[test]
     fn test_element_style() {
-        let mut styles = StylesSerializer::new();
-        styles.add_element_style(
+        let styles = StylesSerializer::new().add_element_style(
             ElementStyle::new("Person")
                 .with_background("#ffcc00")
                 .with_color("#000000")
@@ -200,8 +203,7 @@ mod tests {
 
     #[test]
     fn test_relationship_style() {
-        let mut styles = StylesSerializer::new();
-        styles.add_relationship_style(
+        let styles = StylesSerializer::new().add_relationship_style(
             RelationshipStyle::new()
                 .with_thickness("2")
                 .with_color("#999999")
@@ -224,8 +226,7 @@ mod tests {
 
     #[test]
     fn test_container_style() {
-        let mut styles = StylesSerializer::new();
-        styles.add_element_style(
+        let styles = StylesSerializer::new().add_element_style(
             ElementStyle::new("Database")
                 .with_background("#ffffff")
                 .with_shape("cylinder"),
@@ -238,17 +239,17 @@ mod tests {
 
     #[test]
     fn test_us5_element_styles_from_spec() {
-        let mut styles = StylesSerializer::new();
-        styles.add_element_style(
-            ElementStyle::new("Element")
-                .with_color("#9a28f8")
-                .with_stroke("#9a28f8")
-                .with_stroke_width("7")
-                .with_shape("roundedbox"),
-        );
-        styles.add_element_style(ElementStyle::new("Person").with_shape("person"));
-        styles.add_element_style(ElementStyle::new("Database").with_shape("cylinder"));
-        styles.add_element_style(ElementStyle::new("Boundary").with_stroke_width("5"));
+        let styles = StylesSerializer::new()
+            .add_element_style(
+                ElementStyle::new("Element")
+                    .with_color("#9a28f8")
+                    .with_stroke("#9a28f8")
+                    .with_stroke_width("7")
+                    .with_shape("roundedbox"),
+            )
+            .add_element_style(ElementStyle::new("Person").with_shape("person"))
+            .add_element_style(ElementStyle::new("Database").with_shape("cylinder"))
+            .add_element_style(ElementStyle::new("Boundary").with_stroke_width("5"));
 
         let dsl = styles.serialize().unwrap();
         assert!(dsl.contains(r#"element "Element""#));
@@ -266,8 +267,8 @@ mod tests {
 
     #[test]
     fn test_us5_relationship_style_from_spec() {
-        let mut styles = StylesSerializer::new();
-        styles.add_relationship_style(RelationshipStyle::new().with_thickness("4"));
+        let styles = StylesSerializer::new()
+            .add_relationship_style(RelationshipStyle::new().with_thickness("4"));
 
         let dsl = styles.serialize().unwrap();
         assert!(dsl.contains("relationship {"));

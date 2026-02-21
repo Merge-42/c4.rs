@@ -48,62 +48,57 @@ impl WorkspaceSerializer {
         }
     }
 
-    pub fn set_name(&mut self, name: &str) {
+    pub fn name(mut self, name: &str) -> Self {
         self.name = Some(name.to_string());
+        self
     }
 
-    pub fn set_description(&mut self, description: &str) {
+    pub fn description(mut self, description: &str) -> Self {
         self.description = Some(description.to_string());
+        self
     }
 
-    pub fn add_person(&mut self, person: Person) {
+    pub fn add_person(mut self, person: Person) -> Self {
         self.persons.push(person);
+        self
     }
-    pub fn add_software_system(&mut self, system: SoftwareSystem) {
+
+    pub fn add_software_system(mut self, system: SoftwareSystem) -> Self {
         self.software_systems.push(system);
+        self
     }
+
     pub fn add_relationship(
-        &mut self,
+        mut self,
         source_id: &str,
         target_id: &str,
         description: &str,
         technology: Option<&str>,
-    ) {
+    ) -> Self {
         self.relationships.push(SerializedRelationship {
             source_id: source_id.to_string(),
             target_id: target_id.to_string(),
             description: description.to_string(),
             technology: technology.map(|s| s.to_string()),
         });
+        self
     }
 
-    pub fn set_views_output(&mut self, views_dsl: String) {
-        self.views_serializer.set_external_output(views_dsl);
+    pub fn add_view(mut self, view: ViewConfiguration) -> Self {
+        self.views_serializer.add_view(view);
+        self
     }
 
-    pub fn add_view(&mut self, view: &ViewConfiguration) {
-        self.views_serializer.add_view(view.clone());
-    }
-
-    pub fn set_styles_output(&mut self, styles_dsl: &str) {
-        self.styles_serializer
+    pub fn add_element_styles(mut self, styles_dsl: &str) -> Self {
+        self.styles_serializer = self
+            .styles_serializer
             .set_external_output(styles_dsl.to_string());
         self.views_serializer
             .set_styles_output(styles_dsl.to_string());
+        self
     }
 
-    pub fn set_views_styles_output(&mut self, styles_dsl: String) {
-        self.views_serializer.set_styles_output(styles_dsl);
-    }
-
-    pub fn add_element_styles(&mut self, styles_dsl: &str) {
-        self.styles_serializer
-            .set_external_output(styles_dsl.to_string());
-        self.views_serializer
-            .set_styles_output(styles_dsl.to_string());
-    }
-
-    pub fn serialize(&mut self) -> Result<String, DslError> {
+    pub fn serialize(mut self) -> Result<String, DslError> {
         self.writer.clear();
         self.used_identifiers.clear();
         self.write_workspace_header()?;
@@ -351,7 +346,7 @@ mod tests {
 
     #[test]
     fn test_workspace_serializer_empty() {
-        let mut serializer = WorkspaceSerializer::new();
+        let serializer = WorkspaceSerializer::new();
         let result = serializer.serialize().unwrap();
         println!("=== OUTPUT ===");
         println!("{}", result);
@@ -369,9 +364,10 @@ mod tests {
             .description("A system user".into())
             .build()
             .unwrap();
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_person(person);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_person(person)
+            .serialize()
+            .unwrap();
         assert!(result.contains("u = person"));
     }
 
@@ -382,15 +378,15 @@ mod tests {
             .description("Backend system".into())
             .build()
             .unwrap();
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_software_system(system);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_software_system(system)
+            .serialize()
+            .unwrap();
         assert!(result.contains("ss = softwareSystem"));
     }
 
     #[test]
     fn test_identifier_uniqueness() {
-        let mut serializer = WorkspaceSerializer::new();
         let person1 = Person::builder()
             .name("User".into())
             .description("A user".into())
@@ -401,17 +397,18 @@ mod tests {
             .description("Another user".into())
             .build()
             .unwrap();
-        serializer.add_person(person1);
-        serializer.add_person(person2);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_person(person1)
+            .add_person(person2)
+            .serialize()
+            .unwrap();
         assert!(result.contains("u = person"));
         assert!(result.contains("u1 = person"));
     }
 
     #[test]
     fn test_us1_workspace_declaration_structure() {
-        let mut serializer = WorkspaceSerializer::new();
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new().serialize().unwrap();
 
         assert!(
             result.starts_with("workspace "),
@@ -433,8 +430,7 @@ mod tests {
 
     #[test]
     fn test_us1_identifiers_directive_present() {
-        let mut serializer = WorkspaceSerializer::new();
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new().serialize().unwrap();
 
         assert!(
             result.contains("!identifiers"),
@@ -460,10 +456,11 @@ mod tests {
             .build()
             .unwrap();
 
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_person(person);
-        serializer.add_software_system(system);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_person(person)
+            .add_software_system(system)
+            .serialize()
+            .unwrap();
 
         assert!(
             result.contains("u = person"),
@@ -489,10 +486,11 @@ mod tests {
             .build()
             .unwrap();
 
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_person(person);
-        serializer.add_software_system(system);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_person(person)
+            .add_software_system(system)
+            .serialize()
+            .unwrap();
 
         assert!(
             result.starts_with("workspace "),
@@ -516,10 +514,11 @@ mod tests {
             .build()
             .unwrap();
 
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_person(person);
-        serializer.add_software_system(system);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_person(person)
+            .add_software_system(system)
+            .serialize()
+            .unwrap();
 
         assert!(
             result.contains("u = person"),
@@ -546,10 +545,11 @@ mod tests {
             .build()
             .unwrap();
 
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_person(person1);
-        serializer.add_person(person2);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_person(person1)
+            .add_person(person2)
+            .serialize()
+            .unwrap();
 
         assert!(
             result.contains("d = person \"Database\""),
@@ -569,9 +569,10 @@ mod tests {
             .build()
             .unwrap();
 
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_software_system(system);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_software_system(system)
+            .serialize()
+            .unwrap();
 
         assert!(
             result.contains("a = softwareSystem"),
@@ -593,10 +594,11 @@ mod tests {
             .build()
             .unwrap();
 
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_software_system(system1);
-        serializer.add_software_system(system2);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_software_system(system1)
+            .add_software_system(system2)
+            .serialize()
+            .unwrap();
 
         assert!(
             result.contains("a = softwareSystem"),
@@ -610,9 +612,10 @@ mod tests {
 
     #[test]
     fn test_us3_relationship_syntax() {
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_relationship("u", "ss", "Uses", None);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_relationship("u", "ss", "Uses", None)
+            .serialize()
+            .unwrap();
 
         assert!(
             result.contains("u -> ss \"Uses\""),
@@ -622,9 +625,10 @@ mod tests {
 
     #[test]
     fn test_us3_relationship_with_technology() {
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_relationship("u", "ss", "Uses", Some("HTTPS"));
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_relationship("u", "ss", "Uses", Some("HTTPS"))
+            .serialize()
+            .unwrap();
 
         assert!(
             result.contains("u -> ss \"Uses\" \"HTTPS\""),
@@ -634,10 +638,11 @@ mod tests {
 
     #[test]
     fn test_us3_multiple_relationships() {
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_relationship("u", "a", "Uses", Some("HTTPS"));
-        serializer.add_relationship("a", "d", "Queries", Some("TCP"));
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_relationship("u", "a", "Uses", Some("HTTPS"))
+            .add_relationship("a", "d", "Queries", Some("TCP"))
+            .serialize()
+            .unwrap();
 
         assert!(
             result.contains("u -> a \"Uses\" \"HTTPS\""),
@@ -651,10 +656,11 @@ mod tests {
 
     #[test]
     fn test_us3_relationship_order() {
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_relationship("s2", "s1", "Depends on", None);
-        serializer.add_relationship("s1", "s3", "Calls", None);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_relationship("s2", "s1", "Depends on", None)
+            .add_relationship("s1", "s3", "Calls", None)
+            .serialize()
+            .unwrap();
 
         let pos1 = result.find("s2 -> s1").unwrap();
         let pos2 = result.find("s1 -> s3").unwrap();
@@ -675,11 +681,12 @@ mod tests {
             .build()
             .unwrap();
 
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_person(person);
-        serializer.add_software_system(system);
-        serializer.add_relationship("u", "a", "Uses", None);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_person(person)
+            .add_software_system(system)
+            .add_relationship("u", "a", "Uses", None)
+            .serialize()
+            .unwrap();
 
         let opens = result.matches('{').count();
         let closes = result.matches('}').count();
@@ -697,9 +704,10 @@ mod tests {
             .description("A special user".into())
             .build()
             .unwrap();
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_person(person);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_person(person)
+            .serialize()
+            .unwrap();
         assert!(result.contains(r#"User \"Admin\""#));
     }
 
@@ -710,9 +718,10 @@ mod tests {
             .description("A \"test\" user & <admin>".into())
             .build()
             .unwrap();
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_person(person);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_person(person)
+            .serialize()
+            .unwrap();
         assert!(result.contains(r#"\"test\""#));
     }
 
@@ -723,17 +732,19 @@ mod tests {
             .description("Backend API".into())
             .build()
             .unwrap();
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_software_system(system);
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_software_system(system)
+            .serialize()
+            .unwrap();
         assert!(result.contains(r#"API\\Backend"#));
     }
 
     #[test]
     fn test_relationship_with_special_chars() {
-        let mut serializer = WorkspaceSerializer::new();
-        serializer.add_relationship("u", "a", "Uses \"HTTPS\"", Some("JSON\\API"));
-        let result = serializer.serialize().unwrap();
+        let result = WorkspaceSerializer::new()
+            .add_relationship("u", "a", "Uses \"HTTPS\"", Some("JSON\\API"))
+            .serialize()
+            .unwrap();
         assert!(result.contains(r#""Uses \"HTTPS\""#));
         assert!(result.contains(r#""JSON\\API""#));
     }

@@ -33,27 +33,27 @@ impl DslSerializer {
     }
 
     pub fn add_person(mut self, person: Person) -> Self {
-        self.workspace_serializer.add_person(person);
+        self.workspace_serializer = self.workspace_serializer.add_person(person);
         self
     }
 
     pub fn add_software_system(mut self, system: SoftwareSystem) -> Self {
-        self.workspace_serializer.add_software_system(system);
+        self.workspace_serializer = self.workspace_serializer.add_software_system(system);
         self
     }
 
     pub fn add_view(mut self, view: ViewConfiguration) -> Self {
-        self.workspace_serializer.add_view(&view);
+        self.workspace_serializer = self.workspace_serializer.add_view(view);
         self
     }
 
     pub fn add_element_style(mut self, style: ElementStyle) -> Self {
-        self.styles_serializer.add_element_style(style);
+        self.styles_serializer = self.styles_serializer.add_element_style(style);
         self
     }
 
     pub fn add_relationship_style(mut self, style: RelationshipStyle) -> Self {
-        self.styles_serializer.add_relationship_style(style);
+        self.styles_serializer = self.styles_serializer.add_relationship_style(style);
         self
     }
 
@@ -64,23 +64,27 @@ impl DslSerializer {
         description: &str,
         technology: Option<&str>,
     ) -> Self {
-        self.workspace_serializer
-            .add_relationship(source_id, target_id, description, technology);
+        self.workspace_serializer = self.workspace_serializer.add_relationship(
+            source_id,
+            target_id,
+            description,
+            technology,
+        );
         self
     }
 
     pub fn serialize(self) -> Result<String, DslError> {
         let mut workspace_serializer = self.workspace_serializer;
         if let Some(name) = self.name {
-            workspace_serializer.set_name(&name);
+            workspace_serializer = workspace_serializer.name(&name);
         }
         if let Some(desc) = self.description {
-            workspace_serializer.set_description(&desc);
+            workspace_serializer = workspace_serializer.description(&desc);
         }
 
         let styles_dsl = self.styles_serializer.serialize()?;
         if !styles_dsl.is_empty() {
-            workspace_serializer.add_element_styles(&styles_dsl);
+            workspace_serializer = workspace_serializer.add_element_styles(&styles_dsl);
         }
 
         workspace_serializer.serialize()
