@@ -16,6 +16,6 @@ pub use error::StructurizrDslError;
 pub use identifier_generator::IdentifierGenerator;
 pub use structurizr_dsl::StructurizrDslSerializer;
 pub use styles_serializer::{ElementStyle, RelationshipStyle, StylesSerializer};
-pub use traits::{escape_dsl_string, format_identifier};
+pub use traits::escape_dsl_string;
 pub use views_serializer::{ViewConfiguration, ViewType, ViewsSerializer};
 pub use workspace_serializer::WorkspaceSerializer;

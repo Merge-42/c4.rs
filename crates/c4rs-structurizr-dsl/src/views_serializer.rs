@@ -1,5 +1,6 @@
 //! Views serialization for Structurizr DSL.
 
+use crate::error::StructurizrDslError;
 use crate::templates::view::ViewTemplate;
 use askama::Template;
 use bon::Builder;
@@ -88,7 +89,7 @@ impl ViewsSerializer {
     }
 
     /// Serialize all views to DSL format.
-    pub fn serialize(&self) -> Result<String, askama::Error> {
+    pub fn serialize(&self) -> Result<String, StructurizrDslError> {
         if let Some(ref output) = self.external_output
             && !output.is_empty()
         {

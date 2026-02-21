@@ -21,11 +21,11 @@ pub struct WorkspaceSerializer {
 }
 
 #[derive(Debug)]
-pub struct SerializedRelationship {
-    pub source_id: String,
-    pub target_id: String,
-    pub description: String,
-    pub technology: Option<String>,
+pub(crate) struct SerializedRelationship {
+    pub(crate) source_id: String,
+    pub(crate) target_id: String,
+    pub(crate) description: String,
+    pub(crate) technology: Option<String>,
 }
 
 impl Default for WorkspaceSerializer {
@@ -717,7 +717,6 @@ mod tests {
         let mut serializer = WorkspaceSerializer::new();
         serializer.add_person(person);
         let result = serializer.serialize().unwrap();
-        println!("Output: {:?}", result);
         assert!(result.contains(r#"\"test\""#));
     }
 

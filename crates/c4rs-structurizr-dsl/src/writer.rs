@@ -1,6 +1,6 @@
 //! DSL output formatting and writing.
 
-use crate::traits::{escape_dsl_string, format_identifier};
+use crate::templates::helpers::{escape_dsl_string, format_identifier};
 use std::fmt::{Display, Formatter};
 
 /// Writer for Structurizr DSL output.
