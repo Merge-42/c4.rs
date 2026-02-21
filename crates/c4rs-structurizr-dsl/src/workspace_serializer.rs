@@ -1,7 +1,9 @@
 use crate::{
-    StylesSerializer, ViewConfiguration, ViewsSerializer, error::DslError,
-    identifier_generator::IdentifierGenerator, templates::helpers::escape_dsl_string,
-    writer::DslWriter,
+    StylesSerializer, ViewConfiguration, ViewsSerializer,
+    error::DslError,
+    identifier_generator::IdentifierGenerator,
+    templates::helpers::escape_dsl_string,
+    writer::{self, DslWriter},
 };
 use c4rs_core::c4::{Component, Container, Person, SoftwareSystem};
 use std::collections::HashSet;
@@ -192,7 +194,7 @@ impl WorkspaceSerializer {
         }
 
         for rel in &self.relationships {
-            let dsl = Self::serialize_relationship(
+            let dsl = writer::format_relationship(
                 &rel.source_id,
                 &rel.target_id,
                 &rel.description,
@@ -204,47 +206,23 @@ impl WorkspaceSerializer {
         Ok(())
     }
 
-    fn serialize_relationship(
-        source_id: &str,
-        target_id: &str,
-        description: &str,
-        technology: Option<&str>,
-    ) -> String {
-        let description_escaped = escape_dsl_string(description);
-        if let Some(tech) = technology {
-            let tech_escaped = escape_dsl_string(tech);
-            format!(
-                r#"{} -> {} "{}" "{}""#,
-                source_id, target_id, description_escaped, tech_escaped
-            )
-        } else {
-            format!(
-                r#"{} -> {} "{}""#,
-                source_id, target_id, description_escaped
-            )
-        }
-    }
-
     fn serialize_person(person: &Person, identifier: &str) -> Result<String, DslError> {
-        let tags = if person.location() == c4rs_core::c4::Location::External {
-            r#" {
+        let base = writer::format_element_assignment(
+            identifier,
+            "person",
+            person.name(),
+            person.description(),
+            None,
+        );
+        if person.location() == c4rs_core::c4::Location::External {
+            Ok(format!(
+                r#"{}" {{
     tags "External"
-}"#
-        } else {
-            ""
-        };
-        let name = escape_dsl_string(person.name());
-        let description = escape_dsl_string(person.description());
-        if tags.is_empty() {
-            Ok(format!(
-                r#"{} = person "{}" "{}""#,
-                identifier, name, description
+}}"#,
+                base
             ))
         } else {
-            Ok(format!(
-                r#"{} = person "{}" "{}""{}"#,
-                identifier, name, description, tags
-            ))
+            Ok(base)
         }
     }
 
@@ -253,23 +231,22 @@ impl WorkspaceSerializer {
         identifier: &str,
         has_containers: bool,
     ) -> String {
-        let external_tag = if system.location() == c4rs_core::c4::Location::External {
-            "\n    tags \"External\""
-        } else {
-            ""
-        };
-        let name = escape_dsl_string(system.name());
-        let description = escape_dsl_string(system.description());
+        let base = writer::format_element_assignment(
+            identifier,
+            "softwareSystem",
+            system.name(),
+            system.description(),
+            None,
+        );
         if has_containers {
-            format!(
-                r#"{} = softwareSystem "{}" "{}" {{{}"#,
-                identifier, name, description, external_tag
-            )
+            let external_tag = if system.location() == c4rs_core::c4::Location::External {
+                "\n    tags \"External\""
+            } else {
+                ""
+            };
+            format!("{} {{{}", base, external_tag)
         } else {
-            format!(
-                r#"{} = softwareSystem "{}" "{}""#,
-                identifier, name, description
-            )
+            base
         }
     }
 
@@ -278,29 +255,27 @@ impl WorkspaceSerializer {
         identifier: &str,
         has_components: bool,
     ) -> String {
-        let name = escape_dsl_string(container.name());
-        let description = escape_dsl_string(container.description());
+        let base = writer::format_element_assignment(
+            identifier,
+            "container",
+            container.name(),
+            container.description(),
+            None,
+        );
         if has_components {
-            format!(
-                r#"{} = container "{}" "{}" {{"#,
-                identifier, name, description
-            )
+            format!("{} {{", base)
         } else {
-            format!(
-                r#"{} = container "{}" "{}" {{}}"#,
-                identifier, name, description
-            )
+            format!("{} {{}}", base)
         }
     }
 
     fn serialize_component(component: &Component, identifier: &str) -> Result<String, DslError> {
-        let technology = component.technology().unwrap_or("");
-        let name = escape_dsl_string(component.name());
-        let description = escape_dsl_string(component.description());
-        let technology_escaped = escape_dsl_string(technology);
-        Ok(format!(
-            r#"{} = component "{}" "{}" "{}""#,
-            identifier, name, description, technology_escaped
+        Ok(writer::format_element_assignment(
+            identifier,
+            "component",
+            component.name(),
+            component.description(),
+            component.technology(),
         ))
     }
 
