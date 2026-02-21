@@ -51,70 +51,67 @@ impl WorkspaceSerializer {
         }
     }
 
-    pub fn set_name(&mut self, name: &str) {
+    pub fn name(mut self, name: &str) -> Self {
         self.name = Some(name.to_string());
+        self
     }
 
-    pub fn set_description(&mut self, description: &str) {
+    pub fn description(mut self, description: &str) -> Self {
         self.description = Some(description.to_string());
+        self
     }
 
-    pub fn add_person(&mut self, person: Person) {
+    pub fn add_person(mut self, person: Person) -> Self {
         self.persons.push(person);
+        self
     }
-    pub fn add_software_system(&mut self, system: SoftwareSystem) {
+
+    pub fn add_software_system(mut self, system: SoftwareSystem) -> Self {
         self.software_systems.push(system);
+        self
     }
+
     pub fn add_relationship(
-        &mut self,
+        mut self,
         source_id: &str,
         target_id: &str,
         description: &str,
         technology: Option<&str>,
-    ) {
+    ) -> Self {
         self.relationships.push(SerializedRelationship {
             source_id: source_id.to_string(),
             target_id: target_id.to_string(),
             description: description.to_string(),
             technology: technology.map(|s| s.to_string()),
         });
+        self
     }
 
-    pub fn set_views_output(&mut self, views_dsl: String) {
-        self.views_serializer.set_external_output(views_dsl);
+    pub fn add_view(mut self, view: ViewConfiguration) -> Self {
+        self.views_serializer.add_view(view);
+        self
     }
 
-    pub fn add_view(&mut self, view: &ViewConfiguration) {
-        self.views_serializer.add_view(view.clone());
+    pub fn add_element_style(mut self, style: ElementStyle) -> Self {
+        self.styles_serializer = self.styles_serializer.add_element_style(style);
+        self
     }
 
-    pub fn set_styles_output(&mut self, styles_dsl: &str) {
-        self.styles_serializer
+    pub fn add_relationship_style(mut self, style: RelationshipStyle) -> Self {
+        self.styles_serializer = self.styles_serializer.add_relationship_style(style);
+        self
+    }
+
+    pub fn add_element_styles(mut self, styles_dsl: &str) -> Self {
+        self.styles_serializer = self
+            .styles_serializer
             .set_external_output(styles_dsl.to_string());
         self.views_serializer
             .set_styles_output(styles_dsl.to_string());
+        self
     }
 
-    pub fn set_views_styles_output(&mut self, styles_dsl: String) {
-        self.views_serializer.set_styles_output(styles_dsl);
-    }
-
-    pub fn add_element_style(&mut self, style: ElementStyle) {
-        self.styles_serializer.add_element_style(style);
-    }
-
-    pub fn add_relationship_style(&mut self, style: RelationshipStyle) {
-        self.styles_serializer.add_relationship_style(style);
-    }
-
-    pub fn add_element_styles(&mut self, styles_dsl: &str) {
-        self.styles_serializer
-            .set_external_output(styles_dsl.to_string());
-        self.views_serializer
-            .set_styles_output(styles_dsl.to_string());
-    }
-
-    pub fn serialize(&mut self) -> Result<String, DslError> {
+    pub fn serialize(mut self) -> Result<String, DslError> {
         // Render styles and inject into views if needed
         let styles_dsl = self.styles_serializer.serialize()?;
         if !styles_dsl.is_empty() {

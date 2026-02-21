@@ -2,8 +2,7 @@ use super::*;
 
 #[test]
 fn test_element_style() {
-    let mut styles = StylesSerializer::new();
-    styles.add_element_style(
+    let styles = StylesSerializer::new().add_element_style(
         ElementStyle::builder()
             .identifier("Person".into())
             .background("ffcc00".into())
@@ -21,8 +20,7 @@ fn test_element_style() {
 
 #[test]
 fn test_relationship_style() {
-    let mut styles = StylesSerializer::new();
-    styles.add_relationship_style(
+    let styles = StylesSerializer::new().add_relationship_style(
         RelationshipStyle::builder()
             .thickness("2".into())
             .color("#999999".into())
@@ -46,8 +44,7 @@ fn test_empty_styles() {
 
 #[test]
 fn test_container_style() {
-    let mut styles = StylesSerializer::new();
-    styles.add_element_style(
+    let styles = StylesSerializer::new().add_element_style(
         ElementStyle::builder()
             .identifier("Database".into())
             .background("#ffffff".into())
@@ -62,34 +59,34 @@ fn test_container_style() {
 
 #[test]
 fn test_us5_element_styles_from_spec() {
-    let mut styles = StylesSerializer::new();
-    styles.add_element_style(
-        ElementStyle::builder()
-            .identifier("Element".into())
-            .color("#9a28f8".into())
-            .stroke("#9a28f8".into())
-            .stroke_width("7".into())
-            .shape("roundedbox".into())
-            .build(),
-    );
-    styles.add_element_style(
-        ElementStyle::builder()
-            .identifier("Person".into())
-            .shape("person".into())
-            .build(),
-    );
-    styles.add_element_style(
-        ElementStyle::builder()
-            .identifier("Database".into())
-            .shape("cylinder".into())
-            .build(),
-    );
-    styles.add_element_style(
-        ElementStyle::builder()
-            .identifier("Boundary".into())
-            .stroke_width("5".into())
-            .build(),
-    );
+    let styles = StylesSerializer::new()
+        .add_element_style(
+            ElementStyle::builder()
+                .identifier("Element".into())
+                .color("#9a28f8".into())
+                .stroke("#9a28f8".into())
+                .stroke_width("7".into())
+                .shape("roundedbox".into())
+                .build(),
+        )
+        .add_element_style(
+            ElementStyle::builder()
+                .identifier("Person".into())
+                .shape("person".into())
+                .build(),
+        )
+        .add_element_style(
+            ElementStyle::builder()
+                .identifier("Database".into())
+                .shape("cylinder".into())
+                .build(),
+        )
+        .add_element_style(
+            ElementStyle::builder()
+                .identifier("Boundary".into())
+                .stroke_width("5".into())
+                .build(),
+        );
 
     let dsl = styles.serialize().unwrap();
     assert!(dsl.contains(r#"element "Element""#));
@@ -107,8 +104,8 @@ fn test_us5_element_styles_from_spec() {
 
 #[test]
 fn test_us5_relationship_style_from_spec() {
-    let mut styles = StylesSerializer::new();
-    styles.add_relationship_style(RelationshipStyle::builder().thickness("4".into()).build());
+    let styles = StylesSerializer::new()
+        .add_relationship_style(RelationshipStyle::builder().thickness("4".into()).build());
 
     let dsl = styles.serialize().unwrap();
     assert!(dsl.contains("relationship {"));

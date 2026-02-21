@@ -19,20 +19,24 @@ impl StylesSerializer {
         }
     }
 
-    pub fn add_element_style(&mut self, style: ElementStyle) {
+    pub fn add_element_style(mut self, style: ElementStyle) -> Self {
         self.element_styles.push(style);
+        self
     }
 
-    pub fn add_relationship_style(&mut self, style: RelationshipStyle) {
+    pub fn add_relationship_style(mut self, style: RelationshipStyle) -> Self {
         self.relationship_styles.push(style);
+        self
     }
 
-    pub fn set_external_output(&mut self, output: String) {
+    pub fn set_external_output(mut self, output: String) -> Self {
         self.external_output = Some(output);
+        self
     }
 
-    pub fn add_element_styles_from_string(&mut self, dsl: &str) {
+    pub fn add_element_styles_from_string(mut self, dsl: &str) -> Self {
         self.external_output = Some(dsl.to_string());
+        self
     }
 
     pub fn serialize(&self) -> Result<String, askama::Error> {
