@@ -12,6 +12,7 @@
 //! assert_eq!(IdentifierGenerator::generate("User"), "u");
 //! assert_eq!(IdentifierGenerator::generate("Software System"), "ss");
 //! assert_eq!(IdentifierGenerator::generate("Web Application"), "wa");
+//! assert_eq!(IdentifierGenerator::generate("API Gateway Service"), "ags");
 //! ```
 
 use std::collections::HashSet;
@@ -39,7 +40,6 @@ impl IdentifierGenerator {
     pub fn generate(name: &str) -> String {
         name.split_whitespace()
             .filter(|s| !s.is_empty())
-            .take(2) // Max 2 words for compact identifiers
             .map(|s| {
                 s.chars()
                     .next()
@@ -65,6 +65,7 @@ impl IdentifierGenerator {
     ///
     /// assert_eq!(IdentifierGenerator::generate_unique("Database", &used), "d");
     /// assert_eq!(IdentifierGenerator::generate_unique("Database Schema", &used), "ds1");
+    /// assert_eq!(IdentifierGenerator::generate_unique("API Gateway Service", &used), "ags");
     /// ```
     pub fn generate_unique(name: &str, used: &HashSet<String>) -> String {
         let mut identifier = Self::generate(name);

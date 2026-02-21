@@ -1,6 +1,7 @@
 use crate::{
     StylesSerializer, ViewConfiguration, ViewsSerializer, error::StructurizrDslError,
-    identifier_generator::IdentifierGenerator, writer::DslWriter,
+    identifier_generator::IdentifierGenerator, templates::helpers::escape_dsl_string,
+    writer::DslWriter,
 };
 use c4rs_core::c4::{Component, Container, Person, SoftwareSystem};
 use std::collections::HashSet;
@@ -118,8 +119,8 @@ impl WorkspaceSerializer {
     }
 
     fn write_workspace_header(&mut self) -> Result<(), StructurizrDslError> {
-        let name = self.name.as_deref().unwrap_or("Name");
-        let description = self.description.as_deref().unwrap_or("Description");
+        let name = escape_dsl_string(self.name.as_deref().unwrap_or("Name"));
+        let description = escape_dsl_string(self.description.as_deref().unwrap_or("Description"));
         self.writer
             .add_line(&format!(r#"workspace "{}" "{}" {{"#, name, description));
         self.writer.indent();
@@ -210,13 +211,18 @@ impl WorkspaceSerializer {
         description: &str,
         technology: Option<&str>,
     ) -> String {
+        let description_escaped = escape_dsl_string(description);
         if let Some(tech) = technology {
+            let tech_escaped = escape_dsl_string(tech);
             format!(
                 r#"{} -> {} "{}" "{}""#,
-                source_id, target_id, description, tech
+                source_id, target_id, description_escaped, tech_escaped
             )
         } else {
-            format!(r#"{} -> {} "{}""#, source_id, target_id, description)
+            format!(
+                r#"{} -> {} "{}""#,
+                source_id, target_id, description_escaped
+            )
         }
     }
 
@@ -228,20 +234,17 @@ impl WorkspaceSerializer {
         } else {
             ""
         };
+        let name = escape_dsl_string(person.name());
+        let description = escape_dsl_string(person.description());
         if tags.is_empty() {
             Ok(format!(
                 r#"{} = person "{}" "{}""#,
-                identifier,
-                person.name(),
-                person.description()
+                identifier, name, description
             ))
         } else {
             Ok(format!(
                 r#"{} = person "{}" "{}""{}"#,
-                identifier,
-                person.name(),
-                person.description(),
-                tags
+                identifier, name, description, tags
             ))
         }
     }
@@ -256,20 +259,17 @@ impl WorkspaceSerializer {
         } else {
             ""
         };
+        let name = escape_dsl_string(system.name());
+        let description = escape_dsl_string(system.description());
         if has_containers {
             format!(
                 r#"{} = softwareSystem "{}" "{}" {{{}"#,
-                identifier,
-                system.name(),
-                system.description(),
-                external_tag
+                identifier, name, description, external_tag
             )
         } else {
             format!(
                 r#"{} = softwareSystem "{}" "{}""#,
-                identifier,
-                system.name(),
-                system.description()
+                identifier, name, description
             )
         }
     }
@@ -279,19 +279,17 @@ impl WorkspaceSerializer {
         identifier: &str,
         has_components: bool,
     ) -> String {
+        let name = escape_dsl_string(container.name());
+        let description = escape_dsl_string(container.description());
         if has_components {
             format!(
                 r#"{} = container "{}" "{}" {{"#,
-                identifier,
-                container.name(),
-                container.description()
+                identifier, name, description
             )
         } else {
             format!(
                 r#"{} = container "{}" "{}" {{}}"#,
-                identifier,
-                container.name(),
-                container.description()
+                identifier, name, description
             )
         }
     }
@@ -301,12 +299,12 @@ impl WorkspaceSerializer {
         identifier: &str,
     ) -> Result<String, StructurizrDslError> {
         let technology = component.technology().unwrap_or("");
+        let name = escape_dsl_string(component.name());
+        let description = escape_dsl_string(component.description());
+        let technology_escaped = escape_dsl_string(technology);
         Ok(format!(
             r#"{} = component "{}" "{}" "{}""#,
-            identifier,
-            component.name(),
-            component.description(),
-            technology
+            identifier, name, description, technology_escaped
         ))
     }
 
@@ -694,5 +692,54 @@ mod tests {
             "Braces should be balanced: {} opens, {} closes",
             opens, closes
         );
+    }
+
+    #[test]
+    fn test_special_characters_in_person_name() {
+        let person = Person::builder()
+            .name("User \"Admin\"".into())
+            .description("A special user".into())
+            .build()
+            .unwrap();
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_person(person);
+        let result = serializer.serialize().unwrap();
+        assert!(result.contains(r#"User \"Admin\""#));
+    }
+
+    #[test]
+    fn test_special_characters_in_description() {
+        let person = Person::builder()
+            .name("User".into())
+            .description("A \"test\" user & <admin>".into())
+            .build()
+            .unwrap();
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_person(person);
+        let result = serializer.serialize().unwrap();
+        println!("Output: {:?}", result);
+        assert!(result.contains(r#"\"test\""#));
+    }
+
+    #[test]
+    fn test_backslash_in_name() {
+        let system = SoftwareSystem::builder()
+            .name("API\\Backend".into())
+            .description("Backend API".into())
+            .build()
+            .unwrap();
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_software_system(system);
+        let result = serializer.serialize().unwrap();
+        assert!(result.contains(r#"API\\Backend"#));
+    }
+
+    #[test]
+    fn test_relationship_with_special_chars() {
+        let mut serializer = WorkspaceSerializer::new();
+        serializer.add_relationship("u", "a", "Uses \"HTTPS\"", Some("JSON\\API"));
+        let result = serializer.serialize().unwrap();
+        assert!(result.contains(r#""Uses \"HTTPS\""#));
+        assert!(result.contains(r#""JSON\\API""#));
     }
 }

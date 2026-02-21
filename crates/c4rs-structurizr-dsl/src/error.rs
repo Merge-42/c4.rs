@@ -3,6 +3,7 @@
 use thiserror::Error;
 
 /// Errors that can occur during Structurizr DSL serialization.
+#[non_exhaustive]
 #[derive(Debug, Error)]
 pub enum StructurizrDslError {
     /// Referenced element was not found in the model.

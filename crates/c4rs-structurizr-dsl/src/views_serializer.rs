@@ -5,6 +5,7 @@ use askama::Template;
 use bon::Builder;
 
 /// Represents a view type in Structurizr DSL.
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ViewType {
     #[default]

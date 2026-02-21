@@ -2,7 +2,7 @@
 
 use crate::error::StructurizrDslError;
 use crate::styles_serializer::{ElementStyle, RelationshipStyle, StylesSerializer};
-use crate::views_serializer::{ViewConfiguration, ViewsSerializer};
+use crate::views_serializer::ViewConfiguration;
 use crate::workspace_serializer::WorkspaceSerializer;
 use c4rs_core::c4::{Person, SoftwareSystem};
 
@@ -10,7 +10,6 @@ use c4rs_core::c4::{Person, SoftwareSystem};
 #[derive(Debug, Default)]
 pub struct StructurizrDslSerializer {
     workspace_serializer: WorkspaceSerializer,
-    views_serializer: ViewsSerializer,
     styles_serializer: StylesSerializer,
     name: Option<String>,
     description: Option<String>,
@@ -21,7 +20,6 @@ impl StructurizrDslSerializer {
     pub fn new() -> Self {
         Self {
             workspace_serializer: WorkspaceSerializer::new(),
-            views_serializer: ViewsSerializer::default(),
             styles_serializer: StylesSerializer::new(),
             name: None,
             description: None,
@@ -54,7 +52,6 @@ impl StructurizrDslSerializer {
 
     /// Add a view configuration.
     pub fn add_view(mut self, view: ViewConfiguration) -> Self {
-        self.views_serializer.add_view(view.clone());
         self.workspace_serializer.add_view(&view);
         self
     }
@@ -502,5 +499,70 @@ mod tests {
         assert!(result.contains("u = person \"User\" \"First user\""));
         assert!(result.contains("u1 = person \"User\" \"Second user\""));
         assert!(result.contains("u2 = person \"User\" \"Third user\""));
+    }
+
+    #[test]
+    fn test_golden_file_complete_workspace() {
+        let person: Person = Person::builder()
+            .name("User".into())
+            .description("A user of the system".into())
+            .build()
+            .unwrap();
+
+        let system: SoftwareSystem = SoftwareSystem::builder()
+            .name("API".into())
+            .description("Backend API service".into())
+            .add_container(
+                Container::builder()
+                    .name("Web App".into())
+                    .description("Frontend".into())
+                    .container_type(ContainerType::WebApplication)
+                    .build()
+                    .unwrap(),
+            )
+            .build()
+            .unwrap();
+
+        let view = ViewConfiguration::builder()
+            .view_type(ViewType::SystemContext)
+            .element_identifier("a".to_string())
+            .title("SystemContext".to_string())
+            .include_elements(vec!["*".to_string()])
+            .build();
+
+        let result = StructurizrDslSerializer::new()
+            .with_name("Example System")
+            .with_description("An example C4 model")
+            .add_person(person)
+            .add_software_system(system)
+            .add_view(view)
+            .add_element_style(ElementStyle::new("Person").with_shape("person"))
+            .serialize()
+            .unwrap();
+
+        let expected = r#"workspace "Example System" "An example C4 model" {
+    !identifiers hierarchical
+
+    model {
+        u = person "User" "A user of the system"
+        a = softwareSystem "API" "Backend API service" {
+            wa = container "Web App" "Frontend" {}
+        }
+    }
+
+    views {
+        systemContext a "SystemContext" {
+            include *
+        }
+
+        styles {
+            element "Person" {
+                shape person
+            }
+        }
+    }
+}"#;
+
+        assert_eq!(result, expected);
     }
 }
