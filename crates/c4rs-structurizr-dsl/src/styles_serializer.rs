@@ -91,16 +91,18 @@ mod tests {
     fn test_element_style() {
         let mut styles = StylesSerializer::new();
         styles.add_element_style(
-            ElementStyle::new("Person")
-                .with_background("#ffcc00")
-                .with_color("#000000")
-                .with_shape("Person"),
+            ElementStyle::builder()
+                .identifier("Person".into())
+                .background("ffcc00".into())
+                .color("#000000".into())
+                .shape("Person".into())
+                .build(),
         );
 
         let dsl = styles.serialize().unwrap();
         assert!(dsl.contains("styles {"));
         assert!(dsl.contains(r#"element "Person""#));
-        assert!(dsl.contains("background #ffcc00"));
+        assert!(dsl.contains("background ffcc00"));
         assert!(dsl.contains("shape Person"));
     }
 
@@ -108,11 +110,12 @@ mod tests {
     fn test_relationship_style() {
         let mut styles = StylesSerializer::new();
         styles.add_relationship_style(
-            RelationshipStyle::new()
-                .with_thickness("2")
-                .with_color("#999999")
-                .with_router("curvilinear")
-                .with_dashed(true),
+            RelationshipStyle::builder()
+                .thickness("2".into())
+                .color("#999999".into())
+                .router("curvilinear".into())
+                .dashed(true)
+                .build(),
         );
 
         let dsl = styles.serialize().unwrap();
@@ -132,9 +135,11 @@ mod tests {
     fn test_container_style() {
         let mut styles = StylesSerializer::new();
         styles.add_element_style(
-            ElementStyle::new("Database")
-                .with_background("#ffffff")
-                .with_shape("cylinder"),
+            ElementStyle::builder()
+                .identifier("Database".into())
+                .background("#ffffff".into())
+                .shape("cylinder".into())
+                .build(),
         );
 
         let dsl = styles.serialize().unwrap();
@@ -146,15 +151,32 @@ mod tests {
     fn test_us5_element_styles_from_spec() {
         let mut styles = StylesSerializer::new();
         styles.add_element_style(
-            ElementStyle::new("Element")
-                .with_color("#9a28f8")
-                .with_stroke("#9a28f8")
-                .with_stroke_width("7")
-                .with_shape("roundedbox"),
+            ElementStyle::builder()
+                .identifier("Element".into())
+                .color("#9a28f8".into())
+                .stroke("#9a28f8".into())
+                .stroke_width("7".into())
+                .shape("roundedbox".into())
+                .build(),
         );
-        styles.add_element_style(ElementStyle::new("Person").with_shape("person"));
-        styles.add_element_style(ElementStyle::new("Database").with_shape("cylinder"));
-        styles.add_element_style(ElementStyle::new("Boundary").with_stroke_width("5"));
+        styles.add_element_style(
+            ElementStyle::builder()
+                .identifier("Person".into())
+                .shape("person".into())
+                .build(),
+        );
+        styles.add_element_style(
+            ElementStyle::builder()
+                .identifier("Database".into())
+                .shape("cylinder".into())
+                .build(),
+        );
+        styles.add_element_style(
+            ElementStyle::builder()
+                .identifier("Boundary".into())
+                .stroke_width("5".into())
+                .build(),
+        );
 
         let dsl = styles.serialize().unwrap();
         assert!(dsl.contains(r#"element "Element""#));
@@ -173,7 +195,7 @@ mod tests {
     #[test]
     fn test_us5_relationship_style_from_spec() {
         let mut styles = StylesSerializer::new();
-        styles.add_relationship_style(RelationshipStyle::new().with_thickness("4"));
+        styles.add_relationship_style(RelationshipStyle::builder().thickness("4".into()).build());
 
         let dsl = styles.serialize().unwrap();
         assert!(dsl.contains("relationship {"));

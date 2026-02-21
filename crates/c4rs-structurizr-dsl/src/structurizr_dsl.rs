@@ -197,9 +197,11 @@ mod tests {
         let result = serializer
             .add_person(person)
             .add_element_style(
-                ElementStyle::new("Person")
-                    .with_background("#ffcc00")
-                    .with_color("#000000"),
+                ElementStyle::builder()
+                    .identifier("Person".into())
+                    .background("#ffcc00".into())
+                    .color("#000000".into())
+                    .build(),
             )
             .serialize()
             .unwrap();
@@ -244,7 +246,12 @@ mod tests {
             .add_person(person)
             .add_software_system(system)
             .add_view(view)
-            .add_element_style(ElementStyle::new("Person").with_shape("person"))
+            .add_element_style(
+                ElementStyle::builder()
+                    .identifier("Person".into())
+                    .shape("person".into())
+                    .build(),
+            )
             .serialize()
             .unwrap();
 
@@ -517,7 +524,12 @@ mod tests {
             .add_person(person)
             .add_software_system(system)
             .add_view(view)
-            .add_element_style(ElementStyle::new("Person").with_shape("person"))
+            .add_element_style(
+                ElementStyle::builder()
+                    .identifier("Person".into())
+                    .shape("person".into())
+                    .build(),
+            )
             .serialize()
             .unwrap();
 

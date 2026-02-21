@@ -54,8 +54,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         .add_software_system(api_system)
         .add_software_system(web_system)
         .add_relationship("u", "a", "Uses", None)
-        .add_element_style(c4rs::ElementStyle::new("Person").with_shape("person"))
-        .add_element_style(c4rs::ElementStyle::new("Database").with_shape("cylinder"))
+        .add_element_style(
+            c4rs::ElementStyle::builder()
+                .identifier("Person".into())
+                .shape("person".into())
+                .build(),
+        )
+        .add_element_style(
+            c4rs::ElementStyle::builder()
+                .identifier("Database".into())
+                .shape("cylinder".into())
+                .build(),
+        )
         .serialize()?;
 
     println!("{}", dsl);
