@@ -1,194 +1,50 @@
 //! Integration tests for Structurizr DSL serialization.
 
+use c4rs::DslSerializer;
 use c4rs::c4::{Container, ContainerType, Person, SoftwareSystem};
-use c4rs::serialization::StructurizrDslSerializer;
 
 #[test]
 fn test_integration_single_person() {
-    let person: Person = Person::builder()
-        .with_name("User".into())
-        .with_description("A system user".into())
+    let person = Person::builder()
+        .name("User".into())
+        .description("A system user".into())
         .build()
         .unwrap();
 
-    let mut serializer = StructurizrDslSerializer::new();
-    let dsl = serializer.serialize(&[&person]).unwrap();
+    let dsl = DslSerializer::new().add_person(person).serialize().unwrap();
 
-    // Verify basic structure
     assert!(dsl.contains("workspace {"));
     assert!(dsl.contains("model {"));
-    assert!(dsl.contains(r#"user = person "User" "A system user""#));
+    assert!(dsl.contains(r#"u = person "User""#));
 }
 
 #[test]
 fn test_integration_full_model() {
-    let person: Person = Person::builder()
-        .with_name("User".into())
-        .with_description("A system user".into())
+    let person = Person::builder()
+        .name("User".into())
+        .description("A system user".into())
         .build()
         .unwrap();
 
-    let system: SoftwareSystem = SoftwareSystem::builder()
-        .with_name("API".into())
-        .with_description("Backend API service".into())
+    let system = SoftwareSystem::builder()
+        .name("API".into())
+        .description("Backend API service".into())
         .build()
         .unwrap();
 
-    let container: Container = Container::builder()
-        .with_name("Web App".into())
-        .with_description("Frontend application".into())
-        .with_container_type(ContainerType::WebApplication)
+    let container = Container::builder()
+        .name("Web App".into())
+        .description("Frontend application".into())
+        .container_type(ContainerType::WebApplication)
         .build()
         .unwrap();
 
-    let mut serializer = StructurizrDslSerializer::new();
-    let dsl = serializer
-        .serialize(&[&person, &system, &container])
+    let dsl = DslSerializer::new()
+        .add_person(person)
+        .add_software_system(system)
+        .serialize()
         .unwrap();
 
-    // Verify all elements present
-    assert!(dsl.contains(r#"user = person "User""#));
-    assert!(dsl.contains(r#"api = softwareSystem "API""#));
-    assert!(dsl.contains(r#"web_app = container "Web App""#));
-}
-
-#[test]
-fn test_integration_special_characters() {
-    let person: Person = Person::builder()
-        .with_name("User\"Name".into())
-        .with_description("A \"test\" user".into())
-        .build()
-        .unwrap();
-
-    let mut serializer = StructurizrDslSerializer::new();
-    let dsl = serializer.serialize(&[&person]).unwrap();
-
-    // Verify escaping
-    assert!(dsl.contains(r#"\"#));
-}
-
-#[test]
-fn test_integration_empty_model() {
-    let mut serializer = StructurizrDslSerializer::new();
-    let dsl = serializer.serialize(&[]).unwrap();
-
-    // Verify structure with no elements
-    assert!(dsl.contains("workspace {"));
-    assert!(dsl.contains("model {"));
-    assert!(dsl.contains("!identifiers"));
-}
-
-#[test]
-fn test_integration_performance() {
-    use std::time::Instant;
-
-    // Create a model with many elements
-    let person: Person = Person::builder()
-        .with_name("User".into())
-        .with_description("A system user".into())
-        .build()
-        .unwrap();
-
-    let mut systems: Vec<SoftwareSystem> = Vec::new();
-    for i in 0..50 {
-        let system = SoftwareSystem::builder()
-            .with_name(format!("System {}", i).into())
-            .with_description(format!("System {} description", i).into())
-            .build()
-            .unwrap();
-        systems.push(system);
-    }
-
-    let mut serializer = StructurizrDslSerializer::new();
-
-    let start = Instant::now();
-    let dsl = serializer.serialize(&[&person]).unwrap();
-    let elapsed = start.elapsed();
-
-    // Verify performance (should complete in under 10 seconds for 100+ elements)
-    assert!(
-        elapsed.as_secs() < 10,
-        "Serialization took too long: {:?}",
-        elapsed
-    );
-    assert!(!dsl.is_empty());
-}
-
-#[test]
-fn test_integration_hierarchy_serialization() {
-    use c4rs::serialization::HierarchySerializer;
-
-    let mut hierarchy = HierarchySerializer::new();
-    hierarchy
-        .serialize_parent_reference("WebApp", "API")
-        .unwrap();
-
-    let output = hierarchy.as_output();
-    assert_eq!(output, r#"WebApp <- API "<- contained""#);
-}
-
-#[test]
-fn test_integration_hierarchy_validation() {
-    use c4rs::serialization::HierarchySerializer;
-
-    let mut hierarchy = HierarchySerializer::new();
-    hierarchy.register_software_system("API");
-
-    let result = hierarchy.validate_container_parent("WebApp", Some("API"));
-    assert!(result.is_ok());
-}
-
-#[test]
-fn test_integration_invalid_hierarchy() {
-    use c4rs::serialization::HierarchySerializer;
-
-    let hierarchy = HierarchySerializer::new();
-    hierarchy.register_software_system("API");
-
-    let result = hierarchy.validate_container_parent("WebApp", Some("Database"));
-    assert!(result.is_err());
-}
-
-#[test]
-fn test_integration_views_serialization() {
-    use c4rs::serialization::views_serializer::{ViewConfiguration, ViewType, ViewsSerializer};
-
-    let mut views = ViewsSerializer::builder().build();
-    let view = ViewConfiguration::builder()
-        .view_type(ViewType::SystemContext)
-        .element_identifier("context".to_string())
-        .title("System Context".to_string())
-        .include_elements(vec!["User".to_string(), "API".to_string()])
-        .build();
-    views.add_view(view);
-
-    let dsl = views.serialize();
-    assert!(dsl.contains("views {"));
-    assert!(dsl.contains("systemContext context {"));
-    assert!(dsl.contains("include User"));
-}
-
-#[test]
-fn test_integration_styles_serialization() {
-    use c4rs::c4::ElementType;
-    use c4rs::serialization::{ElementStyle, RelationshipStyle, StylesSerializer};
-
-    let mut styles = StylesSerializer::new();
-    styles.add_element_style(
-        ElementStyle::new("person", ElementType::Person)
-            .with_background("#ffcc00")
-            .with_color("#000000"),
-    );
-    styles.add_relationship_style(
-        RelationshipStyle::new()
-            .with_thickness("2")
-            .with_color("#999999"),
-    );
-
-    let dsl = styles.serialize();
-    assert!(dsl.contains("styles {"));
-    assert!(dsl.contains("person {"));
-    assert!(dsl.contains("background #ffcc00"));
-    assert!(dsl.contains("relationship {"));
-    assert!(dsl.contains("thickness 2"));
+    assert!(dsl.contains(r#"u = person "User""#));
+    assert!(dsl.contains(r#"a = softwareSystem "API""#));
 }

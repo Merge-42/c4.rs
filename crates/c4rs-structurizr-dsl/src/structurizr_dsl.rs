@@ -1,18 +1,18 @@
-use crate::error::StructurizrDslError;
+use crate::error::DslError;
 use crate::styles_serializer::{ElementStyle, RelationshipStyle, StylesSerializer};
 use crate::views_serializer::ViewConfiguration;
 use crate::workspace_serializer::WorkspaceSerializer;
 use c4rs_core::c4::{Person, SoftwareSystem};
 
 #[derive(Debug, Default)]
-pub struct StructurizrDslSerializer {
+pub struct DslSerializer {
     workspace_serializer: WorkspaceSerializer,
     styles_serializer: StylesSerializer,
     name: Option<String>,
     description: Option<String>,
 }
 
-impl StructurizrDslSerializer {
+impl DslSerializer {
     pub fn new() -> Self {
         Self {
             workspace_serializer: WorkspaceSerializer::new(),
@@ -69,7 +69,7 @@ impl StructurizrDslSerializer {
         self
     }
 
-    pub fn serialize(self) -> Result<String, StructurizrDslError> {
+    pub fn serialize(self) -> Result<String, DslError> {
         let mut workspace_serializer = self.workspace_serializer;
         if let Some(name) = self.name {
             workspace_serializer.set_name(&name);
@@ -95,7 +95,7 @@ mod tests {
 
     #[test]
     fn test_serialize_empty_model() {
-        let serializer = StructurizrDslSerializer::new();
+        let serializer = DslSerializer::new();
         let result = serializer.serialize().unwrap();
         assert!(result.starts_with("workspace "));
         assert!(result.contains("model {"));
@@ -109,7 +109,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let serializer = StructurizrDslSerializer::new();
+        let serializer = DslSerializer::new();
         let result = serializer.add_person(person).serialize().unwrap();
 
         assert!(result.contains(r#"u = person "User" "A system user""#));
@@ -146,7 +146,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let serializer = StructurizrDslSerializer::new();
+        let serializer = DslSerializer::new();
         let result = serializer
             .add_person(person)
             .add_software_system(system)
@@ -166,7 +166,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let serializer = StructurizrDslSerializer::new();
+        let serializer = DslSerializer::new();
         let view = ViewConfiguration::builder()
             .view_type(ViewType::SystemContext)
             .element_identifier("u".to_string())
@@ -192,7 +192,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let serializer = StructurizrDslSerializer::new();
+        let serializer = DslSerializer::new();
         let result = serializer
             .add_person(person)
             .add_element_style(
@@ -237,7 +237,7 @@ mod tests {
             .include_elements(vec!["*".to_string()])
             .build();
 
-        let result = StructurizrDslSerializer::new()
+        let result = DslSerializer::new()
             .with_name("Example System")
             .with_description("An example C4 model")
             .add_person(person)
@@ -290,7 +290,7 @@ mod tests {
             .include_elements(vec!["*".to_string()])
             .build();
 
-        let result = StructurizrDslSerializer::new()
+        let result = DslSerializer::new()
             .with_name("Test Workspace")
             .with_description("Test")
             .add_person(person)
@@ -325,7 +325,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let result = StructurizrDslSerializer::new()
+        let result = DslSerializer::new()
             .with_name("Nested Test")
             .with_description("Test")
             .add_software_system(system)
@@ -356,7 +356,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let result = StructurizrDslSerializer::new()
+        let result = DslSerializer::new()
             .with_name("Circular Test")
             .with_description("Test")
             .add_person(person)
@@ -397,7 +397,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let result = StructurizrDslSerializer::new()
+        let result = DslSerializer::new()
             .with_name("Special Chars Test")
             .with_description("Test with special characters")
             .add_person(person)
@@ -433,7 +433,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let result = StructurizrDslSerializer::new()
+        let result = DslSerializer::new()
             .with_name("Tech Test")
             .with_description("Test")
             .add_person(person)
@@ -467,7 +467,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let result = StructurizrDslSerializer::new()
+        let result = DslSerializer::new()
             .with_name("Duplicate Names Test")
             .with_description("Test")
             .add_person(person1)
@@ -510,7 +510,7 @@ mod tests {
             .include_elements(vec!["*".to_string()])
             .build();
 
-        let result = StructurizrDslSerializer::new()
+        let result = DslSerializer::new()
             .with_name("Example System")
             .with_description("An example C4 model")
             .add_person(person)

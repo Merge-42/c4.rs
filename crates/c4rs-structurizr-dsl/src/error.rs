@@ -2,7 +2,7 @@ use thiserror::Error;
 
 #[non_exhaustive]
 #[derive(Debug, Error)]
-pub enum StructurizrDslError {
+pub enum DslError {
     #[error("element not found: {0}")]
     ElementNotFound(String),
 
@@ -32,8 +32,8 @@ pub enum StructurizrDslError {
     TemplateError(String),
 }
 
-impl From<askama::Error> for StructurizrDslError {
+impl From<askama::Error> for DslError {
     fn from(err: askama::Error) -> Self {
-        StructurizrDslError::TemplateError(err.to_string())
+        DslError::TemplateError(err.to_string())
     }
 }

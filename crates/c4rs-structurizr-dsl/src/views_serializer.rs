@@ -1,4 +1,4 @@
-use crate::error::StructurizrDslError;
+use crate::error::DslError;
 use crate::templates::view::ViewTemplate;
 use askama::Template;
 use bon::Builder;
@@ -77,7 +77,7 @@ impl ViewsSerializer {
         self.configuration_output.as_ref()
     }
 
-    pub fn serialize(&self) -> Result<String, StructurizrDslError> {
+    pub fn serialize(&self) -> Result<String, DslError> {
         if let Some(ref output) = self.external_output
             && !output.is_empty()
         {

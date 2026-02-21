@@ -1,5 +1,5 @@
 use crate::{
-    StylesSerializer, ViewConfiguration, ViewsSerializer, error::StructurizrDslError,
+    StylesSerializer, ViewConfiguration, ViewsSerializer, error::DslError,
     identifier_generator::IdentifierGenerator, templates::helpers::escape_dsl_string,
     writer::DslWriter,
 };
@@ -103,7 +103,7 @@ impl WorkspaceSerializer {
             .set_styles_output(styles_dsl.to_string());
     }
 
-    pub fn serialize(&mut self) -> Result<String, StructurizrDslError> {
+    pub fn serialize(&mut self) -> Result<String, DslError> {
         self.writer.clear();
         self.used_identifiers.clear();
         self.write_workspace_header()?;
@@ -117,7 +117,7 @@ impl WorkspaceSerializer {
         Ok(self.writer.as_output())
     }
 
-    fn write_workspace_header(&mut self) -> Result<(), StructurizrDslError> {
+    fn write_workspace_header(&mut self) -> Result<(), DslError> {
         let name = escape_dsl_string(self.name.as_deref().unwrap_or("Name"));
         let description = escape_dsl_string(self.description.as_deref().unwrap_or("Description"));
         self.writer
@@ -130,7 +130,7 @@ impl WorkspaceSerializer {
         Ok(())
     }
 
-    fn write_model_section(&mut self) -> Result<(), StructurizrDslError> {
+    fn write_model_section(&mut self) -> Result<(), DslError> {
         let person_names: Vec<String> = self.persons.iter().map(|p| p.name().to_string()).collect();
         let system_names: Vec<String> = self
             .software_systems
@@ -225,7 +225,7 @@ impl WorkspaceSerializer {
         }
     }
 
-    fn serialize_person(person: &Person, identifier: &str) -> Result<String, StructurizrDslError> {
+    fn serialize_person(person: &Person, identifier: &str) -> Result<String, DslError> {
         let tags = if person.location() == c4rs_core::c4::Location::External {
             r#" {
     tags "External"
@@ -293,10 +293,7 @@ impl WorkspaceSerializer {
         }
     }
 
-    fn serialize_component(
-        component: &Component,
-        identifier: &str,
-    ) -> Result<String, StructurizrDslError> {
+    fn serialize_component(component: &Component, identifier: &str) -> Result<String, DslError> {
         let technology = component.technology().unwrap_or("");
         let name = escape_dsl_string(component.name());
         let description = escape_dsl_string(component.description());
@@ -307,7 +304,7 @@ impl WorkspaceSerializer {
         ))
     }
 
-    fn write_views_section(&mut self) -> Result<(), StructurizrDslError> {
+    fn write_views_section(&mut self) -> Result<(), DslError> {
         let views_dsl = self.views_serializer.serialize()?;
         if !views_dsl.is_empty() {
             self.writer.add_empty_line();

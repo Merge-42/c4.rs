@@ -1,4 +1,4 @@
-use c4rs::StructurizrDslSerializer;
+use c4rs::DslSerializer;
 use c4rs::c4::{Container, ContainerType, Person, SoftwareSystem};
 use std::error::Error;
 
@@ -47,7 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
         .build()?;
 
-    let dsl = StructurizrDslSerializer::new()
+    let dsl = DslSerializer::new()
         .with_name("Example System")
         .with_description("An example C4 model")
         .add_person(person)

@@ -10,9 +10,9 @@ pub mod views_serializer;
 pub mod workspace_serializer;
 pub mod writer;
 
-pub use error::StructurizrDslError;
+pub use error::DslError;
 pub use identifier_generator::IdentifierGenerator;
-pub use structurizr_dsl::StructurizrDslSerializer;
+pub use structurizr_dsl::DslSerializer;
 pub use styles_serializer::{ElementStyle, RelationshipStyle, StylesSerializer};
 pub use traits::escape_dsl_string;
 pub use views_serializer::{ViewConfiguration, ViewType, ViewsSerializer};
