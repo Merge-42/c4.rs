@@ -1,60 +1,56 @@
 use crate::error::DslError;
 use crate::styles::{ElementStyle, RelationshipStyle};
-use crate::styles_serializer::StylesSerializer;
 use crate::views_serializer::ViewConfiguration;
 use crate::workspace_serializer::WorkspaceSerializer;
 use c4rs_core::c4::{Person, SoftwareSystem};
 
+/// Convenience facade over `WorkspaceSerializer` that provides a
+/// consuming builder API for constructing and serializing a complete
+/// Structurizr DSL workspace.
 #[derive(Debug, Default)]
 pub struct DslSerializer {
-    workspace_serializer: WorkspaceSerializer,
-    styles_serializer: StylesSerializer,
-    name: Option<String>,
-    description: Option<String>,
+    inner: WorkspaceSerializer,
 }
 
 impl DslSerializer {
     pub fn new() -> Self {
         Self {
-            workspace_serializer: WorkspaceSerializer::new(),
-            styles_serializer: StylesSerializer::new(),
-            name: None,
-            description: None,
+            inner: WorkspaceSerializer::new(),
         }
     }
 
     pub fn with_name(mut self, name: &str) -> Self {
-        self.name = Some(name.to_string());
+        self.inner.set_name(name);
         self
     }
 
     pub fn with_description(mut self, description: &str) -> Self {
-        self.description = Some(description.to_string());
+        self.inner.set_description(description);
         self
     }
 
     pub fn add_person(mut self, person: Person) -> Self {
-        self.workspace_serializer.add_person(person);
+        self.inner.add_person(person);
         self
     }
 
     pub fn add_software_system(mut self, system: SoftwareSystem) -> Self {
-        self.workspace_serializer.add_software_system(system);
+        self.inner.add_software_system(system);
         self
     }
 
     pub fn add_view(mut self, view: ViewConfiguration) -> Self {
-        self.workspace_serializer.add_view(&view);
+        self.inner.add_view(&view);
         self
     }
 
     pub fn add_element_style(mut self, style: ElementStyle) -> Self {
-        self.styles_serializer.add_element_style(style);
+        self.inner.add_element_style(style);
         self
     }
 
     pub fn add_relationship_style(mut self, style: RelationshipStyle) -> Self {
-        self.styles_serializer.add_relationship_style(style);
+        self.inner.add_relationship_style(style);
         self
     }
 
@@ -65,26 +61,13 @@ impl DslSerializer {
         description: &str,
         technology: Option<&str>,
     ) -> Self {
-        self.workspace_serializer
+        self.inner
             .add_relationship(source_id, target_id, description, technology);
         self
     }
 
-    pub fn serialize(self) -> Result<String, DslError> {
-        let mut workspace_serializer = self.workspace_serializer;
-        if let Some(name) = self.name {
-            workspace_serializer.set_name(&name);
-        }
-        if let Some(desc) = self.description {
-            workspace_serializer.set_description(&desc);
-        }
-
-        let styles_dsl = self.styles_serializer.serialize()?;
-        if !styles_dsl.is_empty() {
-            workspace_serializer.add_element_styles(&styles_dsl);
-        }
-
-        workspace_serializer.serialize()
+    pub fn serialize(mut self) -> Result<String, DslError> {
+        self.inner.serialize()
     }
 }
 

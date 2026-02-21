@@ -2,6 +2,7 @@ use crate::{
     StylesSerializer, ViewConfiguration, ViewsSerializer,
     error::DslError,
     identifier_generator::IdentifierGenerator,
+    styles::{ElementStyle, RelationshipStyle},
     templates::helpers::escape_dsl_string,
     writer::{self, DslWriter},
 };
@@ -98,6 +99,14 @@ impl WorkspaceSerializer {
         self.views_serializer.set_styles_output(styles_dsl);
     }
 
+    pub fn add_element_style(&mut self, style: ElementStyle) {
+        self.styles_serializer.add_element_style(style);
+    }
+
+    pub fn add_relationship_style(&mut self, style: RelationshipStyle) {
+        self.styles_serializer.add_relationship_style(style);
+    }
+
     pub fn add_element_styles(&mut self, styles_dsl: &str) {
         self.styles_serializer
             .set_external_output(styles_dsl.to_string());
@@ -106,6 +115,13 @@ impl WorkspaceSerializer {
     }
 
     pub fn serialize(&mut self) -> Result<String, DslError> {
+        // Render styles and inject into views if needed
+        let styles_dsl = self.styles_serializer.serialize()?;
+        if !styles_dsl.is_empty() {
+            self.views_serializer
+                .set_styles_output(styles_dsl.to_string());
+        }
+
         self.writer.clear();
         self.used_identifiers.clear();
         self.write_workspace_header()?;
