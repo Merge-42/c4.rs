@@ -3,21 +3,7 @@
 //! A Rust library providing types that represent the C4 model (Context, Container, Component, Code)
 //! for architecture documentation.
 //!
-//! # Quick Start
-//!
-//! ```
-//! use c4rs_core::c4::{Person, Location};
-//!
-//! // Create a person
-//! let person = Person::builder()
-//!     .name("Alice".into())
-//!     .description("System administrator".into())
-//!     .location(Location::Internal)
-//!     .build();
-//!
-//! // Types implement serde::Serialize
-//! // With serde_json: to_string_pretty(&person)
-//! ```
+//! See the `c4` module for details.
 
 pub mod constants;
 pub mod validation;

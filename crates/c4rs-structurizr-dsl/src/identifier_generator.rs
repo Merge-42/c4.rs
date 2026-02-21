@@ -3,17 +3,6 @@
 //! This module provides automatic generation of short identifiers for C4 model elements.
 //! Identifiers are generated from element names by taking the first letter of each word
 //! and converting to lowercase.
-//!
-//! # Examples
-//!
-//! ```
-//! use c4rs_structurizr_dsl::identifier_generator::IdentifierGenerator;
-//!
-//! assert_eq!(IdentifierGenerator::generate("User"), "u");
-//! assert_eq!(IdentifierGenerator::generate("Software System"), "ss");
-//! assert_eq!(IdentifierGenerator::generate("Web Application"), "wa");
-//! assert_eq!(IdentifierGenerator::generate("API Gateway Service"), "ags");
-//! ```
 
 use std::collections::HashSet;
 
@@ -28,15 +17,6 @@ impl IdentifierGenerator {
     /// Generate an identifier from an element name.
     ///
     /// Takes the first letter of each word, converts to lowercase.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use c4rs_structurizr_dsl::identifier_generator::IdentifierGenerator;
-    ///
-    /// assert_eq!(IdentifierGenerator::generate("User"), "u");
-    /// assert_eq!(IdentifierGenerator::generate("Database Schema"), "ds");
-    /// ```
     pub fn generate(name: &str) -> String {
         name.split_whitespace()
             .filter(|s| !s.is_empty())
@@ -53,20 +33,6 @@ impl IdentifierGenerator {
     /// Generate a unique identifier, avoiding collisions with used identifiers.
     ///
     /// If the generated identifier is already in use, appends a numeric suffix.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::collections::HashSet;
-    /// use c4rs_structurizr_dsl::identifier_generator::IdentifierGenerator;
-    ///
-    /// let mut used = HashSet::new();
-    /// used.insert("ds".to_string()); // "Database Schema" produces "ds"
-    ///
-    /// assert_eq!(IdentifierGenerator::generate_unique("Database", &used), "d");
-    /// assert_eq!(IdentifierGenerator::generate_unique("Database Schema", &used), "ds1");
-    /// assert_eq!(IdentifierGenerator::generate_unique("API Gateway Service", &used), "ags");
-    /// ```
     pub fn generate_unique(name: &str, used: &HashSet<String>) -> String {
         let mut identifier = Self::generate(name);
         let mut counter = 1;

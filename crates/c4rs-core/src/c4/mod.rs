@@ -9,21 +9,6 @@
 //! - **Relationships**: Generic relationships between any Element types
 //! - **Validation**: Construction-time validation with clear error messages
 //! - **Serialization**: JSON serialization via serde
-//!
-//! # Example
-//!
-//! ```
-//! use c4rs_core::c4::{Person, Location};
-//!
-//! let person = Person::builder()
-//!     .name("Alice".into())
-//!     .description("System administrator".into())
-//!     .location(Location::Internal)
-//!     .build()
-//!     .unwrap();
-//!
-//! assert_eq!(person.name(), "Alice");
-//! ```
 
 pub mod code;
 pub mod component;

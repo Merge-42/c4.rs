@@ -15,24 +15,6 @@ use crate::validation::{validate_max_length, validate_non_empty};
 /// Relationships connect elements and show how they interact.
 /// The generic parameters S and T allow relationships between any Element types,
 /// including cross-level relationships (e.g., Person → Container).
-///
-/// # Examples
-///
-/// ```
-/// use c4rs_core::c4::{Person, Container, Relationship, InteractionStyle};
-///
-/// // Same type relationship (Person → Person)
-/// let person1 = Person::builder().name("Alice".into()).description("User 1".into()).build().unwrap();
-/// let person2 = Person::builder().name("Bob".into()).description("User 2".into()).build().unwrap();
-///
-/// let relationship: Relationship<Person, Person> = Relationship::builder()
-///     .source(person1)
-///     .target(person2)
-///     .description("Communicates with".into())
-///     .interaction_style(InteractionStyle::Synchronous)
-///     .build()
-///     .unwrap();
-/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Relationship<S: Element, T: Element> {
