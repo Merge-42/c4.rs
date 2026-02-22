@@ -1,5 +1,5 @@
 use crate::error::DslError;
-use crate::templates::view::{ViewTemplate, ViewTemplateNoId};
+use crate::templates::view::ViewTemplate;
 use crate::writer;
 use askama::Template;
 use bon::Builder;
@@ -16,6 +16,15 @@ pub enum ViewType {
     Dynamic,
     Deployment,
     Custom,
+}
+
+impl ViewType {
+    /// Returns whether this view type requires a scoping element identifier
+    /// in its DSL syntax. For example, `systemContext` needs a software system
+    /// identifier, but `systemLandscape` does not.
+    pub fn requires_element_identifier(self) -> bool {
+        !matches!(self, ViewType::SystemLandscape)
+    }
 }
 
 impl std::fmt::Display for ViewType {
@@ -42,6 +51,24 @@ pub struct ViewConfiguration {
     pub include_elements: Vec<String>,
     #[builder(default)]
     pub exclude_elements: Vec<String>,
+}
+
+impl ViewConfiguration {
+    /// Returns the element identifier for DSL output, or `None` if this
+    /// view type does not use one (e.g. `systemLandscape`).
+    pub fn dsl_identifier(&self) -> Option<&str> {
+        if self.view_type.requires_element_identifier() {
+            Some(&self.element_identifier)
+        } else {
+            None
+        }
+    }
+
+    /// Returns the title formatted as a valid DSL view key
+    /// (spaces replaced with underscores).
+    pub fn dsl_title(&self) -> String {
+        self.title.replace(' ', "_")
+    }
 }
 
 #[derive(Debug, Default, Builder)]
@@ -98,26 +125,16 @@ impl ViewsSerializer {
                 view.include_elements.iter().map(|s| s.as_str()).collect();
             let exclude_refs: Vec<&str> =
                 view.exclude_elements.iter().map(|s| s.as_str()).collect();
+            let title = view.dsl_title();
 
-            // SystemLandscape views don't take an identifier parameter
-            if view.view_type == ViewType::SystemLandscape {
-                let template = ViewTemplateNoId {
-                    view_type: &view.view_type.to_string(),
-                    title: &view.title.replace(' ', "_"),
-                    include_elements: &include_refs,
-                    exclude_elements: &exclude_refs,
-                };
-                lines.push(template.render()?);
-            } else {
-                let template = ViewTemplate {
-                    view_type: &view.view_type.to_string(),
-                    identifier: &view.element_identifier,
-                    title: &view.title.replace(' ', "_"),
-                    include_elements: &include_refs,
-                    exclude_elements: &exclude_refs,
-                };
-                lines.push(template.render()?);
-            }
+            let template = ViewTemplate {
+                view_type: &view.view_type.to_string(),
+                identifier: view.dsl_identifier(),
+                title: &title,
+                include_elements: &include_refs,
+                exclude_elements: &exclude_refs,
+            };
+            lines.push(template.render()?);
         }
 
         if let Some(ref styles) = self.styles_output {

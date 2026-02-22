@@ -2,22 +2,7 @@ use askama::Template;
 
 #[derive(Template)]
 #[template(
-    source = r#"    {{ view_type }} "{{ title }}" {
-{% for inc in include_elements %}        include {{ inc }}
-{% endfor %}{% for exc in exclude_elements %}        exclude {{ exc }}
-{% endfor %}    }"#,
-    ext = "txt"
-)]
-pub struct ViewTemplateNoId<'a> {
-    pub view_type: &'a str,
-    pub title: &'a str,
-    pub include_elements: &'a [&'a str],
-    pub exclude_elements: &'a [&'a str],
-}
-
-#[derive(Template)]
-#[template(
-    source = r#"    {{ view_type }} {{ identifier }} "{{ title }}" {
+    source = r#"    {{ view_type }}{% if let Some(id) = identifier %} {{ id }}{% endif %} "{{ title }}" {
 {% for inc in include_elements %}        include {{ inc }}
 {% endfor %}{% for exc in exclude_elements %}        exclude {{ exc }}
 {% endfor %}    }"#,
@@ -25,7 +10,7 @@ pub struct ViewTemplateNoId<'a> {
 )]
 pub struct ViewTemplate<'a> {
     pub view_type: &'a str,
-    pub identifier: &'a str,
+    pub identifier: Option<&'a str>,
     pub title: &'a str,
     pub include_elements: &'a [&'a str],
     pub exclude_elements: &'a [&'a str],

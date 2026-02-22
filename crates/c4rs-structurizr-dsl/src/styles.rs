@@ -1,4 +1,5 @@
 use bon::Builder;
+
 #[derive(Debug, Clone, Builder)]
 pub struct ElementStyle {
     pub identifier: String,
@@ -12,21 +13,12 @@ pub struct ElementStyle {
 
 #[derive(Debug, Clone, Builder)]
 pub struct RelationshipStyle {
+    /// The tag this style applies to. Defaults to `"Relationship"` which
+    /// targets all relationships (the implicit tag in Structurizr DSL).
+    #[builder(default = "Relationship".to_string())]
     pub identifier: String,
     pub thickness: Option<String>,
     pub color: Option<String>,
     pub router: Option<String>,
     pub dashed: Option<bool>,
-}
-
-impl Default for RelationshipStyle {
-    fn default() -> Self {
-        Self {
-            identifier: "Relationship".to_string(),
-            thickness: None,
-            color: None,
-            router: None,
-            dashed: None,
-        }
-    }
 }
