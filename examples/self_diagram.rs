@@ -4,8 +4,8 @@
 
 use c4rs::c4::ContainerType;
 use c4rs::{
-    Component, Container, DslSerializer, ElementStyle, Person, RelationshipStyle, SoftwareSystem,
-    ViewConfiguration, ViewType,
+    CodeElement, CodeType, Component, Container, DslSerializer, ElementStyle, Person,
+    RelationshipStyle, SoftwareSystem, ViewConfiguration, ViewType,
 };
 use std::error::Error;
 
@@ -19,52 +19,119 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // --- c4rs-core components ---
 
-    let element_trait = Component::builder()
-        .name("Element Trait".into())
-        .description("Common trait implemented by all C4 element types".into())
-        .technology("Rust Trait".into())
+    // Root-level modules
+    let lib_rs = CodeElement::builder()
+        .name("lib.rs".into())
+        .description("Crate root, public exports".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-core/src/lib.rs".into())
         .build()?;
 
-    let context_types = Component::builder()
-        .name("Context Types".into())
-        .description("Person and SoftwareSystem types for the context level".into())
-        .technology("Rust".into())
+    let constants_rs = CodeElement::builder()
+        .name("constants.rs".into())
+        .description("Validation limits (MAX_NAME_LENGTH, etc.)".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-core/src/constants.rs".into())
         .build()?;
 
-    let container_type = Component::builder()
-        .name("Container Type".into())
+    let validation_rs = CodeElement::builder()
+        .name("validation.rs".into())
+        .description("Input validation functions".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-core/src/validation.rs".into())
+        .build()?;
+
+    // c4 module
+    let c4_mod_rs = CodeElement::builder()
+        .name("c4/mod.rs".into())
+        .description("Module declarations and re-exports".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-core/src/c4/mod.rs".into())
+        .build()?;
+
+    let element_rs = CodeElement::builder()
+        .name("element.rs".into())
+        .description("Element trait and enums (ElementType, Location, ContainerType, etc.)".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-core/src/c4/element.rs".into())
+        .build()?;
+
+    let macros_rs = CodeElement::builder()
+        .name("macros.rs".into())
+        .description("impl_element! macro for implementing Element trait".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-core/src/c4/macros.rs".into())
+        .build()?;
+
+    let context_rs = CodeElement::builder()
+        .name("context.rs".into())
+        .description("Person and SoftwareSystem types".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-core/src/c4/context.rs".into())
+        .build()?;
+
+    let container_rs = CodeElement::builder()
+        .name("container.rs".into())
         .description("Container type with nested component ownership".into())
-        .technology("Rust".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-core/src/c4/container.rs".into())
         .build()?;
 
-    let component_type = Component::builder()
-        .name("Component Type".into())
+    let component_rs = CodeElement::builder()
+        .name("component.rs".into())
         .description("Component type with nested code element ownership".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-core/src/c4/component.rs".into())
+        .build()?;
+
+    let code_rs = CodeElement::builder()
+        .name("code.rs".into())
+        .description("CodeElement type (Class, Struct, Function, etc.)".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-core/src/c4/code.rs".into())
+        .build()?;
+
+    let relationship_rs = CodeElement::builder()
+        .name("relationship.rs".into())
+        .description("Generic Relationship<S, T> type".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-core/src/c4/relationship.rs".into())
+        .build()?;
+
+    let root_modules = Component::builder()
+        .name("Root Modules".into())
+        .description("lib.rs, constants.rs, validation.rs".into())
         .technology("Rust".into())
+        .add_code_element(lib_rs)
+        .add_code_element(constants_rs)
+        .add_code_element(validation_rs)
         .build()?;
 
-    let code_element_type = Component::builder()
-        .name("Code Element Type".into())
-        .description("CodeElement type for classes, functions, structs, etc.".into())
+    let c4_module = Component::builder()
+        .name("c4 Module".into())
+        .description(
+            "Core C4 types: Element, Person, SoftwareSystem, Container, Component, etc.".into(),
+        )
         .technology("Rust".into())
-        .build()?;
-
-    let relationship_type = Component::builder()
-        .name("Relationship".into())
-        .description("Generic Relationship<S, T> between any two Element types".into())
-        .technology("Rust Generics".into())
-        .build()?;
-
-    let validation = Component::builder()
-        .name("Validation".into())
-        .description("Input validation for names, descriptions, and field lengths".into())
-        .technology("Rust".into())
-        .build()?;
-
-    let builders = Component::builder()
-        .name("Builders".into())
-        .description("Fallible builder pattern via bon with validation on build()".into())
-        .technology("bon".into())
+        .add_code_element(c4_mod_rs)
+        .add_code_element(element_rs)
+        .add_code_element(macros_rs)
+        .add_code_element(context_rs)
+        .add_code_element(container_rs)
+        .add_code_element(component_rs)
+        .add_code_element(code_rs)
+        .add_code_element(relationship_rs)
         .build()?;
 
     let core_container = Container::builder()
@@ -72,14 +139,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .description("Core C4 model types, traits, validation, and builders".into())
         .container_type(ContainerType::Other("Library".into()))
         .technology("Rust".into())
-        .add_component(element_trait)
-        .add_component(context_types)
-        .add_component(container_type)
-        .add_component(component_type)
-        .add_component(code_element_type)
-        .add_component(relationship_type)
-        .add_component(validation)
-        .add_component(builders)
+        .add_component(root_modules)
+        .add_component(c4_module)
         .build()?;
 
     // --- c4rs-structurizr-dsl components ---
@@ -111,13 +172,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let views_serializer = Component::builder()
         .name("ViewsSerializer".into())
         .description("Renders view blocks (systemContext, container, component, etc.)".into())
-        .technology("Askama".into())
+        .technology("Rust".into())
         .build()?;
 
     let styles_serializer = Component::builder()
         .name("StylesSerializer".into())
         .description("Renders element and relationship style blocks".into())
-        .technology("Askama".into())
+        .technology("Rust".into())
         .build()?;
 
     let askama_templates = Component::builder()
@@ -173,10 +234,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Auto-generated identifiers (first letter of each word, lowercased):
     //   "Library Consumer"      -> "lc"
     //   "c4rs" (system)         -> "c"
-    //   "c4rs" (umbrella ctr)   -> "c1"  (collision with system)
-    //   "c4rs-core" (ctr)       -> "c2"  (collision)
-    //   "c4rs-structurizr-dsl"  -> "c3"  (collision)
-    //   "Structurizr"           -> "s1"  (collision with StylesSerializer component "s")
+    //   "c4rs" (umbrella ctr)  -> "c1"  (collision with system)
+    //   "c4rs-core" (ctr)      -> "c2"  (collision)
+    //   "c4rs-structurizr-dsl" -> "c3"  (collision)
+    //   "Structurizr"          -> "s1"  (collision with StylesSerializer component "s")
 
     let dsl = DslSerializer::new()
         .with_name("c4rs Architecture")
@@ -221,11 +282,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .include_elements(vec!["*".into()])
                 .build(),
         )
-        // Component view of c4rs-core
+        // Component view of c4rs-core (use container identifier c.c2)
         .add_view(
             ViewConfiguration::builder()
                 .view_type(ViewType::Component)
-                .element_identifier("c.c1".into())
+                .element_identifier("c.c2".into())
                 .title("c4rs-core Components".into())
                 .include_elements(vec!["*".into()])
                 .build(),
@@ -234,8 +295,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .add_view(
             ViewConfiguration::builder()
                 .view_type(ViewType::Component)
-                .element_identifier("c.c2".into())
-                .title("c4rs-structurizr-dsl Components".into())
+                .element_identifier("c.c3".into())
+                .title("c4rs-structurizr-dsl".into())
                 .include_elements(vec!["*".into()])
                 .build(),
         )
@@ -266,6 +327,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             ElementStyle::builder()
                 .identifier("Component".into())
                 .background("#85BBF0".into())
+                .color("#000000".into())
+                .build(),
+        )
+        .add_element_style(
+            ElementStyle::builder()
+                .identifier("Code".into())
+                .shape("hexagon".into())
+                .background("#E3F2FD".into())
                 .color("#000000".into())
                 .build(),
         )
