@@ -360,7 +360,8 @@ cargo test -p c4rs-core  # Test core only
 cargo clippy             # Lint (unwrap/expect/panic denied)
 cargo fmt                # Format
 cargo doc --no-deps      # Generate docs
-cargo run --example smoke_test_1  # Run example
+cargo run --example smoke_test_1  # Run basic example
+cargo run --example self_diagram  # Generate C4 diagram of c4rs itself
 ```
 
 Rust 2024 edition. Uses `bon` for builder derivation, `askama` for DSL templates, `thiserror` for error types.
