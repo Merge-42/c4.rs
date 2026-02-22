@@ -117,8 +117,6 @@ pub fn format_relationship(
     description: &str,
     technology: Option<&str>,
 ) -> String {
-    let source = format_identifier(source);
-    let target = format_identifier(target);
     let description = escape_dsl_string(description);
 
     if let Some(tech) = technology {

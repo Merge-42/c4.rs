@@ -2,6 +2,21 @@ use askama::Template;
 
 #[derive(Template)]
 #[template(
+    source = r#"    {{ view_type }} "{{ title }}" {
+{% for inc in include_elements %}        include {{ inc }}
+{% endfor %}{% for exc in exclude_elements %}        exclude {{ exc }}
+{% endfor %}    }"#,
+    ext = "txt"
+)]
+pub struct ViewTemplateNoId<'a> {
+    pub view_type: &'a str,
+    pub title: &'a str,
+    pub include_elements: &'a [&'a str],
+    pub exclude_elements: &'a [&'a str],
+}
+
+#[derive(Template)]
+#[template(
     source = r#"    {{ view_type }} {{ identifier }} "{{ title }}" {
 {% for inc in include_elements %}        include {{ inc }}
 {% endfor %}{% for exc in exclude_elements %}        exclude {{ exc }}
@@ -40,7 +55,7 @@ pub struct ElementStyleTemplate<'a> {
 
 #[derive(Template)]
 #[template(
-    source = r#"    relationship {
+    source = r#"    relationship "{{ identifier }}" {
 {% if let Some(t) = thickness %}        thickness {{ t }}
 {% endif %}{% if let Some(c) = color %}        color {{ c }}
 {% endif %}{% if let Some(r) = router %}        router {{ r }}
@@ -49,6 +64,7 @@ pub struct ElementStyleTemplate<'a> {
     ext = "txt"
 )]
 pub struct RelationshipStyleTemplate<'a> {
+    pub identifier: &'a str,
     pub thickness: Option<&'a str>,
     pub color: Option<&'a str>,
     pub router: Option<&'a str>,

@@ -1,5 +1,5 @@
 use crate::error::DslError;
-use crate::templates::view::ViewTemplate;
+use crate::templates::view::{ViewTemplate, ViewTemplateNoId};
 use crate::writer;
 use askama::Template;
 use bon::Builder;
@@ -99,14 +99,25 @@ impl ViewsSerializer {
             let exclude_refs: Vec<&str> =
                 view.exclude_elements.iter().map(|s| s.as_str()).collect();
 
-            let template = ViewTemplate {
-                view_type: &view.view_type.to_string(),
-                identifier: &view.element_identifier,
-                title: &view.title,
-                include_elements: &include_refs,
-                exclude_elements: &exclude_refs,
-            };
-            lines.push(template.render()?);
+            // SystemLandscape views don't take an identifier parameter
+            if view.view_type == ViewType::SystemLandscape {
+                let template = ViewTemplateNoId {
+                    view_type: &view.view_type.to_string(),
+                    title: &view.title.replace(' ', "_"),
+                    include_elements: &include_refs,
+                    exclude_elements: &exclude_refs,
+                };
+                lines.push(template.render()?);
+            } else {
+                let template = ViewTemplate {
+                    view_type: &view.view_type.to_string(),
+                    identifier: &view.element_identifier,
+                    title: &view.title.replace(' ', "_"),
+                    include_elements: &include_refs,
+                    exclude_elements: &exclude_refs,
+                };
+                lines.push(template.render()?);
+            }
         }
 
         if let Some(ref styles) = self.styles_output {
@@ -145,7 +156,7 @@ mod tests {
 
         let dsl = views.serialize().unwrap();
         assert!(dsl.contains("views {"));
-        assert!(dsl.contains("systemContext a \"System Context\" {"));
+        assert!(dsl.contains("systemContext a \"System_Context\" {"));
         assert!(dsl.contains("include *"));
     }
 
@@ -162,7 +173,7 @@ mod tests {
         views.add_view(view);
 
         let dsl = views.serialize().unwrap();
-        assert!(dsl.contains("container api \"Container Diagram\" {"));
+        assert!(dsl.contains("container api \"Container_Diagram\" {"));
         assert!(dsl.contains("exclude Database"));
     }
 

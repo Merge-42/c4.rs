@@ -10,10 +10,23 @@ pub struct ElementStyle {
     pub stroke_width: Option<String>,
 }
 
-#[derive(Debug, Clone, Default, Builder)]
+#[derive(Debug, Clone, Builder)]
 pub struct RelationshipStyle {
+    pub identifier: String,
     pub thickness: Option<String>,
     pub color: Option<String>,
     pub router: Option<String>,
     pub dashed: Option<bool>,
+}
+
+impl Default for RelationshipStyle {
+    fn default() -> Self {
+        Self {
+            identifier: "Relationship".to_string(),
+            thickness: None,
+            color: None,
+            router: None,
+            dashed: None,
+        }
+    }
 }

@@ -73,6 +73,7 @@ impl StylesSerializer {
                 }
             });
             let template = RelationshipStyleTemplate {
+                identifier: &style.identifier,
                 thickness: style.thickness.as_deref(),
                 color: style.color.as_deref(),
                 router: style.router.as_deref(),

@@ -89,7 +89,7 @@ fn test_serialize_with_views() {
         .unwrap();
 
     assert!(result.contains("views {"));
-    assert!(result.contains("systemContext u \"System Context\" {"));
+    assert!(result.contains("systemContext u \"System_Context\" {"));
     assert!(result.contains("include *"));
 }
 

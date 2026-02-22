@@ -22,6 +22,7 @@ fn test_element_style() {
 fn test_relationship_style() {
     let styles = StylesSerializer::new().add_relationship_style(
         RelationshipStyle::builder()
+            .identifier("Relationship".into())
             .thickness("2".into())
             .color("#999999".into())
             .router("curvilinear".into())
@@ -30,7 +31,7 @@ fn test_relationship_style() {
     );
 
     let dsl = styles.serialize().unwrap();
-    assert!(dsl.contains("relationship {"));
+    assert!(dsl.contains(r#"relationship "Relationship" {"#));
     assert!(dsl.contains("thickness 2"));
     assert!(dsl.contains("dashed true"));
 }
@@ -104,10 +105,14 @@ fn test_us5_element_styles_from_spec() {
 
 #[test]
 fn test_us5_relationship_style_from_spec() {
-    let styles = StylesSerializer::new()
-        .add_relationship_style(RelationshipStyle::builder().thickness("4".into()).build());
+    let styles = StylesSerializer::new().add_relationship_style(
+        RelationshipStyle::builder()
+            .identifier("Relationship".into())
+            .thickness("4".into())
+            .build(),
+    );
 
     let dsl = styles.serialize().unwrap();
-    assert!(dsl.contains("relationship {"));
+    assert!(dsl.contains(r#"relationship "Relationship" {"#));
     assert!(dsl.contains("thickness 4"));
 }
