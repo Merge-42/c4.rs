@@ -1,6 +1,3 @@
-use bon::Builder;
-use serde::{Deserialize, Serialize};
-
 use super::code::CodeElement;
 use super::element::ElementType;
 use super::macros::impl_element;
@@ -8,8 +5,9 @@ use crate::constants::limits::{
     MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_RESPONSIBILITY_LENGTH, MAX_TECHNOLOGY_LENGTH,
 };
 use crate::validation::{validate_max_length, validate_non_empty, validate_vec_max_length};
+use bon::Builder;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Component {
     #[builder(field)]

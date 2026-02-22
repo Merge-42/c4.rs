@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// Common trait for all C4 elements.
@@ -9,7 +8,7 @@ pub trait Element {
     fn location(&self) -> Location;
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ElementType {
     Person,
     SoftwareSystem,
@@ -30,7 +29,7 @@ impl fmt::Display for ElementType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum Location {
     #[default]
     Internal,
@@ -46,7 +45,7 @@ impl fmt::Display for Location {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ContainerType {
     WebApplication,
     DesktopApplication,
@@ -73,7 +72,7 @@ impl fmt::Display for ContainerType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum InteractionStyle {
     #[default]
     Synchronous,
@@ -91,7 +90,7 @@ impl fmt::Display for InteractionStyle {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CodeType {
     Class,
     Struct,

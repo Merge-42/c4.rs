@@ -1,7 +1,5 @@
-use bon::Builder;
-use serde::{Deserialize, Serialize};
-
 use super::element::{Element, InteractionStyle};
+use bon::Builder;
 
 use super::code::CodeElement;
 use super::component::Component;
@@ -11,12 +9,10 @@ use crate::constants::limits::MAX_TECHNOLOGY_LENGTH;
 use crate::validation::{validate_max_length, validate_non_empty};
 
 /// Relationship between two C4 elements.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Relationship<S: Element, T: Element> {
-    #[serde(skip_serializing)]
     source: S,
-    #[serde(skip_serializing)]
     target: T,
     description: String,
     technology: Option<String>,

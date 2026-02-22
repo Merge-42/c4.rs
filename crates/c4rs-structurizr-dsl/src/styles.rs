@@ -1,7 +1,5 @@
 use bon::Builder;
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, Builder)]
 pub struct ElementStyle {
     pub identifier: String,
     pub background: Option<String>,
@@ -12,7 +10,7 @@ pub struct ElementStyle {
     pub stroke_width: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, Builder)]
+#[derive(Debug, Clone, Default, Builder)]
 pub struct RelationshipStyle {
     pub thickness: Option<String>,
     pub color: Option<String>,

@@ -1,13 +1,11 @@
-use bon::Builder;
-use serde::{Deserialize, Serialize};
-
 use super::container::Container;
 use super::element::{ElementType, Location};
 use super::macros::impl_element;
 use crate::constants::limits::{MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TECHNOLOGY_LENGTH};
 use crate::validation::{validate_max_length, validate_non_empty};
+use bon::Builder;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
 pub struct Person {
     name: String,
@@ -42,7 +40,7 @@ pub enum PersonError {
     Validation(#[from] crate::validation::ValidationError),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
 pub struct SoftwareSystem {
     #[builder(field)]

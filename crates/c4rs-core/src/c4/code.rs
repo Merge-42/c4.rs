@@ -1,13 +1,11 @@
-use bon::Builder;
-use serde::{Deserialize, Serialize};
-
 use super::element::{CodeType, ElementType};
 use crate::constants::limits::{
     MAX_DESCRIPTION_LENGTH, MAX_FILE_PATH_LENGTH, MAX_LANGUAGE_LENGTH, MAX_NAME_LENGTH,
 };
 use crate::validation::{validate_max_length, validate_non_empty};
+use bon::Builder;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, PartialEq, Eq, Builder)]
 #[builder(finish_fn(vis = "", name = build_internal))]
 pub struct CodeElement {
     name: String,
