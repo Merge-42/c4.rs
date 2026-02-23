@@ -17,10 +17,69 @@ fn main() -> Result<(), Box<dyn Error>> {
         .description("A Rust developer using c4rs to model their architecture".into())
         .build()?;
 
-    // --- c4rs-core components ---
+    // --- Library Consumer's Project Code ---
+    // The consumer's own codebase that depends on c4rs
 
-    // Root-level modules
-    let lib_rs = CodeElement::builder()
+    let project_lib_rs = CodeElement::builder()
+        .name("lib.rs".into())
+        .description("Consumer's crate root, public API".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("my-project/src/lib.rs".into())
+        .build()?;
+
+    let project_models_rs = CodeElement::builder()
+        .name("models.rs".into())
+        .description("Domain models and C4 element definitions".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("my-project/src/models.rs".into())
+        .build()?;
+
+    let project_diagrams_rs = CodeElement::builder()
+        .name("diagrams.rs".into())
+        .description("C4 view configurations and diagram definitions".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("my-project/src/diagrams.rs".into())
+        .build()?;
+
+    let project_api_component = Component::builder()
+        .name("Public API".into())
+        .description("Public API modules exposing c4rs types".into())
+        .technology("Rust".into())
+        .add_code_element(project_lib_rs)
+        .build()?;
+
+    let project_models_component = Component::builder()
+        .name("Domain Models".into())
+        .description("Domain-specific C4 model definitions".into())
+        .technology("Rust".into())
+        .add_code_element(project_models_rs)
+        .build()?;
+
+    let project_diagrams_component = Component::builder()
+        .name("View Config".into())
+        .description("Diagram and view configurations".into())
+        .technology("Rust".into())
+        .add_code_element(project_diagrams_rs)
+        .build()?;
+
+    let project_container = Container::builder()
+        .name("my-project".into())
+        .description("Consumer's project that depends on c4rs".into())
+        .container_type(ContainerType::WebApplication)
+        .technology("Rust".into())
+        .add_component(project_api_component)
+        .add_component(project_models_component)
+        .add_component(project_diagrams_component)
+        .build()?;
+
+    // --- c4rs-core (Container) ---
+    // The core library crate - this is a deployable unit (library)
+
+    // Root-level modules - these expose the public API
+    let core_lib_rs = CodeElement::builder()
         .name("lib.rs".into())
         .description("Crate root, public exports".into())
         .code_type(CodeType::Module)
@@ -28,7 +87,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .file_path("c4rs-core/src/lib.rs".into())
         .build()?;
 
-    let constants_rs = CodeElement::builder()
+    let core_constants_rs = CodeElement::builder()
         .name("constants.rs".into())
         .description("Validation limits (MAX_NAME_LENGTH, etc.)".into())
         .code_type(CodeType::Module)
@@ -36,7 +95,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .file_path("c4rs-core/src/constants.rs".into())
         .build()?;
 
-    let validation_rs = CodeElement::builder()
+    let core_validation_rs = CodeElement::builder()
         .name("validation.rs".into())
         .description("Input validation functions".into())
         .code_type(CodeType::Module)
@@ -44,7 +103,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .file_path("c4rs-core/src/validation.rs".into())
         .build()?;
 
-    // c4 module
+    // c4 module - exposes the core C4 types
     let c4_mod_rs = CodeElement::builder()
         .name("c4/mod.rs".into())
         .description("Module declarations and re-exports".into())
@@ -109,17 +168,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         .file_path("c4rs-core/src/c4/relationship.rs".into())
         .build()?;
 
-    let root_modules = Component::builder()
-        .name("Root Modules".into())
-        .description("lib.rs, constants.rs, validation.rs".into())
+    // Components = modules that expose public API
+    let root_modules_component = Component::builder()
+        .name("Root API".into())
+        .description("lib.rs, constants.rs, validation.rs - root module exports".into())
         .technology("Rust".into())
-        .add_code_element(lib_rs)
-        .add_code_element(constants_rs)
-        .add_code_element(validation_rs)
+        .add_code_element(core_lib_rs)
+        .add_code_element(core_constants_rs)
+        .add_code_element(core_validation_rs)
         .build()?;
 
-    let c4_module = Component::builder()
-        .name("c4 Module".into())
+    let c4_module_component = Component::builder()
+        .name("C4 Types".into())
         .description(
             "Core C4 types: Element, Person, SoftwareSystem, Container, Component, etc.".into(),
         )
@@ -139,52 +199,89 @@ fn main() -> Result<(), Box<dyn Error>> {
         .description("Core C4 model types, traits, validation, and builders".into())
         .container_type(ContainerType::Other("Library".into()))
         .technology("Rust".into())
-        .add_component(root_modules)
-        .add_component(c4_module)
+        .add_component(root_modules_component)
+        .add_component(c4_module_component)
         .build()?;
 
-    // --- c4rs-structurizr-dsl components ---
+    // --- c4rs-structurizr-dsl (Container) ---
+    // DSL serialization module
 
-    let dsl_serializer = Component::builder()
-        .name("DslSerializer".into())
-        .description("Consuming-builder facade for assembling a complete workspace".into())
+    // Code elements = implementation details (not public API modules)
+    let serializer_code = CodeElement::builder()
+        .name("serializer.rs".into())
+        .description("DslSerializer and consuming-builder facade".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-structurizr-dsl/src/serializer.rs".into())
+        .build()?;
+
+    let workspace_code = CodeElement::builder()
+        .name("workspace.rs".into())
+        .description("WorkspaceSerializer - walks model and emits DSL".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-structurizr-dsl/src/workspace.rs".into())
+        .build()?;
+
+    let identifier_code = CodeElement::builder()
+        .name("identifier.rs".into())
+        .description("IdentifierGenerator - auto-generates DSL identifiers".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-structurizr-dsl/src/identifier.rs".into())
+        .build()?;
+
+    let writer_code = CodeElement::builder()
+        .name("writer.rs".into())
+        .description("DslWriter - indentation-aware string builder".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-structurizr-dsl/src/writer.rs".into())
+        .build()?;
+
+    let views_code = CodeElement::builder()
+        .name("views.rs".into())
+        .description("ViewsSerializer - renders view blocks".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-structurizr-dsl/src/views.rs".into())
+        .build()?;
+
+    let styles_code = CodeElement::builder()
+        .name("styles.rs".into())
+        .description("StylesSerializer - renders style blocks".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-structurizr-dsl/src/styles.rs".into())
+        .build()?;
+
+    // This is the public API module for the DSL crate
+    let dsl_mod_rs = CodeElement::builder()
+        .name("lib.rs".into())
+        .description("Public exports for structurizr-dsl crate".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs-structurizr-dsl/src/lib.rs".into())
+        .build()?;
+
+    // Components = modules that expose public API
+    let dsl_public_api_component = Component::builder()
+        .name("Public API".into())
+        .description("lib.rs - public exports (DslSerializer, etc.)".into())
         .technology("Rust".into())
+        .add_code_element(dsl_mod_rs)
         .build()?;
 
-    let workspace_serializer = Component::builder()
-        .name("WorkspaceSerializer".into())
-        .description("Core serialization engine that walks the model and emits DSL".into())
+    let dsl_impl_component = Component::builder()
+        .name("Implementation".into())
+        .description("Internal serialization implementation details".into())
         .technology("Rust".into())
-        .build()?;
-
-    let identifier_generator = Component::builder()
-        .name("IdentifierGenerator".into())
-        .description("Auto-generates unique DSL identifiers from element names".into())
-        .technology("Rust".into())
-        .build()?;
-
-    let dsl_writer = Component::builder()
-        .name("DslWriter".into())
-        .description("Indentation-aware string builder for DSL output".into())
-        .technology("Rust".into())
-        .build()?;
-
-    let views_serializer = Component::builder()
-        .name("ViewsSerializer".into())
-        .description("Renders view blocks (systemContext, container, component, etc.)".into())
-        .technology("Rust".into())
-        .build()?;
-
-    let styles_serializer = Component::builder()
-        .name("StylesSerializer".into())
-        .description("Renders element and relationship style blocks".into())
-        .technology("Rust".into())
-        .build()?;
-
-    let askama_templates = Component::builder()
-        .name("Askama Templates".into())
-        .description("Inline Askama templates for DSL fragment rendering".into())
-        .technology("Askama".into())
+        .add_code_element(serializer_code)
+        .add_code_element(workspace_code)
+        .add_code_element(identifier_code)
+        .add_code_element(writer_code)
+        .add_code_element(views_code)
+        .add_code_element(styles_code)
         .build()?;
 
     let dsl_container = Container::builder()
@@ -192,25 +289,37 @@ fn main() -> Result<(), Box<dyn Error>> {
         .description("Structurizr DSL serialization module".into())
         .container_type(ContainerType::Other("Library".into()))
         .technology("Rust".into())
-        .add_component(dsl_serializer)
-        .add_component(workspace_serializer)
-        .add_component(identifier_generator)
-        .add_component(dsl_writer)
-        .add_component(views_serializer)
-        .add_component(styles_serializer)
-        .add_component(askama_templates)
+        .add_component(dsl_public_api_component)
+        .add_component(dsl_impl_component)
         .build()?;
 
-    // --- Umbrella crate ---
+    // --- Umbrella crate (Container) ---
+    // This is the main c4rs crate that re-exports everything
+
+    let umbrella_lib_rs = CodeElement::builder()
+        .name("lib.rs".into())
+        .description("Umbrella crate root, re-exports from core and dsl".into())
+        .code_type(CodeType::Module)
+        .language("Rust".into())
+        .file_path("c4rs/src/lib.rs".into())
+        .build()?;
+
+    let umbrella_component = Component::builder()
+        .name("Public API".into())
+        .description("Re-exports core types and DslSerializer".into())
+        .technology("Rust".into())
+        .add_code_element(umbrella_lib_rs)
+        .build()?;
 
     let umbrella_container = Container::builder()
         .name("c4rs".into())
         .description("Umbrella crate that re-exports core types and DSL serializer".into())
         .container_type(ContainerType::Other("Library".into()))
         .technology("Rust".into())
+        .add_component(umbrella_component)
         .build()?;
 
-    // --- The system ---
+    // --- The c4rs system ---
 
     let c4rs_system = SoftwareSystem::builder()
         .name("c4rs".into())
@@ -222,6 +331,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         .add_container(dsl_container)
         .build()?;
 
+    // --- Library Consumer's Project (external system) ---
+
+    let project_system = SoftwareSystem::builder()
+        .name("my-project".into())
+        .description("Library consumer's project using c4rs".into())
+        .add_container(project_container)
+        .build()?;
+
     // --- External systems ---
 
     let structurizr = SoftwareSystem::builder()
@@ -231,22 +348,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // --- Serialize ---
 
-    // Auto-generated identifiers (first letter of each word, lowercased):
-    //   "Library Consumer"      -> "lc"
-    //   "c4rs" (system)         -> "c"
-    //   "c4rs" (umbrella ctr)  -> "c1"  (collision with system)
-    //   "c4rs-core" (ctr)      -> "c2"  (collision)
-    //   "c4rs-structurizr-dsl" -> "c3"  (collision)
-    //   "Structurizr"          -> "s1"  (collision with StylesSerializer component "s")
-
     let dsl = DslSerializer::new()
         .with_name("c4rs Architecture")
         .with_description("C4 model of the c4rs Rust library itself")
         .add_person(library_consumer)
+        .add_software_system(project_system)
         .add_software_system(c4rs_system)
         .add_software_system(structurizr)
-        // Library Consumer uses the c4rs system
-        .add_relationship("lc", "c", "Uses", Some("Cargo dependency"))
+        // Library Consumer writes project code
+        .add_relationship("lc", "m.m1", "Writes and maintains", Some("Rust code"))
+        // Project uses c4rs library
+        .add_relationship("m.m1", "c.c1", "Uses", Some("Cargo dependency"))
         // c4rs (umbrella) re-exports from c4rs-core
         .add_relationship("c.c1", "c.c2", "Re-exports types from", None)
         // c4rs (umbrella) re-exports from c4rs-structurizr-dsl
@@ -254,7 +366,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // c4rs-structurizr-dsl depends on c4rs-core
         .add_relationship("c.c3", "c.c2", "Depends on", Some("Cargo path dep"))
         // c4rs produces DSL consumed by Structurizr
-        .add_relationship("c", "s1", "Produces DSL for", Some("Structurizr DSL"))
+        .add_relationship("c", "s", "Produces DSL for", Some("Structurizr DSL"))
         // System landscape view
         .add_view(
             ViewConfiguration::builder()
@@ -282,7 +394,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .include_elements(vec!["*".into()])
                 .build(),
         )
-        // Component view of c4rs-core (use container identifier c.c2)
+        // Container view of project
+        .add_view(
+            ViewConfiguration::builder()
+                .view_type(ViewType::Container)
+                .element_identifier("m".into())
+                .title("my-project Containers".into())
+                .include_elements(vec!["*".into()])
+                .build(),
+        )
+        // Component view of c4rs-core
         .add_view(
             ViewConfiguration::builder()
                 .view_type(ViewType::Component)
@@ -296,7 +417,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             ViewConfiguration::builder()
                 .view_type(ViewType::Component)
                 .element_identifier("c.c3".into())
-                .title("c4rs-structurizr-dsl".into())
+                .title("c4rs-structurizr-dsl Components".into())
                 .include_elements(vec!["*".into()])
                 .build(),
         )
