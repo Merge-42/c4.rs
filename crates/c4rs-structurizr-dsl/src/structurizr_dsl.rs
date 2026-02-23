@@ -2,11 +2,8 @@ use crate::error::DslError;
 use crate::styles::{ElementStyle, RelationshipStyle};
 use crate::views_serializer::ViewConfiguration;
 use crate::workspace_serializer::WorkspaceSerializer;
-use c4rs_core::c4::{Person, SoftwareSystem};
+use c4rs_core::c4::{Element, Person, SoftwareSystem};
 
-/// Convenience facade over `WorkspaceSerializer` that provides a
-/// consuming builder API for constructing and serializing a complete
-/// Structurizr DSL workspace.
 #[derive(Debug, Default)]
 pub struct DslSerializer {
     inner: WorkspaceSerializer,
@@ -29,12 +26,12 @@ impl DslSerializer {
         self
     }
 
-    pub fn add_person(mut self, person: Person) -> Self {
+    pub fn add_person(mut self, person: &Person) -> Self {
         self.inner = self.inner.add_person(person);
         self
     }
 
-    pub fn add_software_system(mut self, system: SoftwareSystem) -> Self {
+    pub fn add_software_system(mut self, system: &SoftwareSystem) -> Self {
         self.inner = self.inner.add_software_system(system);
         self
     }
@@ -56,14 +53,14 @@ impl DslSerializer {
 
     pub fn add_relationship(
         mut self,
-        source_id: &str,
-        target_id: &str,
+        source: &impl Element,
+        target: &impl Element,
         description: &str,
         technology: Option<&str>,
     ) -> Self {
         self.inner = self
             .inner
-            .add_relationship(source_id, target_id, description, technology);
+            .add_relationship(source, target, description, technology);
         self
     }
 

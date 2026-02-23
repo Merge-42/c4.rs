@@ -76,14 +76,14 @@ fn test_golden_self_diagram_output() {
         .description("Core C4 model types, traits, validation, and builders".into())
         .container_type(ContainerType::Other("Library".into()))
         .technology("Rust".into())
-        .add_component(element_trait)
-        .add_component(context_types)
-        .add_component(container_type)
-        .add_component(component_type)
-        .add_component(code_element_type)
-        .add_component(relationship_type)
-        .add_component(validation)
-        .add_component(builders)
+        .add_component(&element_trait)
+        .add_component(&context_types)
+        .add_component(&container_type)
+        .add_component(&component_type)
+        .add_component(&code_element_type)
+        .add_component(&relationship_type)
+        .add_component(&validation)
+        .add_component(&builders)
         .build()
         .unwrap();
 
@@ -141,13 +141,13 @@ fn test_golden_self_diagram_output() {
         .description("Structurizr DSL serialization module".into())
         .container_type(ContainerType::Other("Library".into()))
         .technology("Rust".into())
-        .add_component(dsl_serializer)
-        .add_component(workspace_serializer)
-        .add_component(identifier_generator)
-        .add_component(dsl_writer)
-        .add_component(views_serializer)
-        .add_component(styles_serializer)
-        .add_component(askama_templates)
+        .add_component(&dsl_serializer)
+        .add_component(&workspace_serializer)
+        .add_component(&identifier_generator)
+        .add_component(&dsl_writer)
+        .add_component(&views_serializer)
+        .add_component(&styles_serializer)
+        .add_component(&askama_templates)
         .build()
         .unwrap();
 
@@ -164,9 +164,9 @@ fn test_golden_self_diagram_output() {
         .description(
             "Rust library for defining C4 architecture models with pluggable serialization".into(),
         )
-        .add_container(umbrella_container)
-        .add_container(core_container)
-        .add_container(dsl_container)
+        .add_container(&umbrella_container)
+        .add_container(&core_container)
+        .add_container(&dsl_container)
         .build()
         .unwrap();
 
@@ -179,14 +179,39 @@ fn test_golden_self_diagram_output() {
     let dsl = DslSerializer::new()
         .with_name("c4rs Architecture")
         .with_description("C4 model of the c4rs Rust library itself")
-        .add_person(library_consumer)
-        .add_software_system(c4rs_system)
-        .add_software_system(structurizr)
-        .add_relationship("lc", "c", "Uses", Some("Cargo dependency"))
-        .add_relationship("c.c1", "c.c2", "Re-exports types from", None)
-        .add_relationship("c.c1", "c.c3", "Re-exports serializer from", None)
-        .add_relationship("c.c3", "c.c2", "Depends on", Some("Cargo path dep"))
-        .add_relationship("c", "s1", "Produces DSL for", Some("Structurizr DSL"))
+        .add_person(&library_consumer)
+        .add_software_system(&c4rs_system)
+        .add_software_system(&structurizr)
+        .add_relationship(
+            &library_consumer,
+            &c4rs_system,
+            "Uses",
+            Some("Cargo dependency"),
+        )
+        .add_relationship(
+            &umbrella_container,
+            &core_container,
+            "Re-exports types from",
+            None,
+        )
+        .add_relationship(
+            &umbrella_container,
+            &dsl_container,
+            "Re-exports serializer from",
+            None,
+        )
+        .add_relationship(
+            &dsl_container,
+            &core_container,
+            "Depends on",
+            Some("Cargo path dep"),
+        )
+        .add_relationship(
+            &c4rs_system,
+            &structurizr,
+            "Produces DSL for",
+            Some("Structurizr DSL"),
+        )
         .add_view(
             ViewConfiguration::builder()
                 .view_type(ViewType::SystemLandscape)
@@ -359,7 +384,7 @@ fn test_golden_smoke_test_1_output() {
         .name("API".into())
         .description("Backend API service".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Web App".into())
                 .description("Frontend application".into())
                 .container_type(ContainerType::WebApplication)
@@ -367,7 +392,7 @@ fn test_golden_smoke_test_1_output() {
                 .unwrap(),
         )
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Database".into())
                 .description("PostgreSQL database".into())
                 .container_type(ContainerType::Database)
@@ -376,7 +401,7 @@ fn test_golden_smoke_test_1_output() {
                 .unwrap(),
         )
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("API Service".into())
                 .description("Backend API".into())
                 .container_type(ContainerType::Api)
@@ -390,7 +415,7 @@ fn test_golden_smoke_test_1_output() {
         .name("Web Portal".into())
         .description("Customer web portal".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Frontend".into())
                 .description("React frontend".into())
                 .container_type(ContainerType::WebApplication)
@@ -410,10 +435,10 @@ fn test_golden_smoke_test_1_output() {
     let dsl = DslSerializer::new()
         .with_name("Example System")
         .with_description("An example C4 model")
-        .add_person(person)
-        .add_software_system(api_system)
-        .add_software_system(web_system)
-        .add_relationship("u", "a", "Uses", None)
+        .add_person(&person)
+        .add_software_system(&api_system)
+        .add_software_system(&web_system)
+        .add_relationship(&person, &api_system, "Uses", None)
         .add_view(ctx_view)
         .add_element_style(
             ElementStyle::builder()
@@ -482,8 +507,8 @@ fn test_golden_system_landscape_no_identifier() {
     let dsl = DslSerializer::new()
         .with_name("Landscape Test")
         .with_description("Test")
-        .add_person(person)
-        .add_software_system(system)
+        .add_person(&person)
+        .add_software_system(&system)
         .add_view(
             ViewConfiguration::builder()
                 .view_type(ViewType::SystemLandscape)
@@ -495,7 +520,6 @@ fn test_golden_system_landscape_no_identifier() {
         .serialize()
         .unwrap();
 
-    // SystemLandscape must not emit an identifier between the keyword and title
     assert!(dsl.contains(r#"systemLandscape "Landscape" {"#));
     assert!(!dsl.contains("systemLandscape *"));
 }
@@ -509,7 +533,7 @@ fn test_golden_relationship_style_requires_tag() {
         .unwrap();
 
     let dsl = DslSerializer::new()
-        .add_person(person)
+        .add_person(&person)
         .add_relationship_style(
             RelationshipStyle::builder()
                 .identifier("Relationship".into())
@@ -519,41 +543,40 @@ fn test_golden_relationship_style_requires_tag() {
         .serialize()
         .unwrap();
 
-    // relationship must have a tag identifier
     assert!(dsl.contains(r#"relationship "Relationship" {"#));
     assert!(!dsl.contains("relationship {\n"));
 }
 
 #[test]
-fn test_golden_hierarchical_relationship_identifiers_preserved() {
+fn test_golden_hierarchical_relationship_identifiers_resolved() {
+    let api_container = Container::builder()
+        .name("API".into())
+        .description("API".into())
+        .container_type(ContainerType::Api)
+        .build()
+        .unwrap();
+
+    let db_container = Container::builder()
+        .name("DB".into())
+        .description("Database".into())
+        .container_type(ContainerType::Database)
+        .build()
+        .unwrap();
+
     let system = SoftwareSystem::builder()
         .name("System".into())
         .description("A system".into())
-        .add_container(
-            Container::builder()
-                .name("API".into())
-                .description("API".into())
-                .container_type(ContainerType::Api)
-                .build()
-                .unwrap(),
-        )
-        .add_container(
-            Container::builder()
-                .name("DB".into())
-                .description("Database".into())
-                .container_type(ContainerType::Database)
-                .build()
-                .unwrap(),
-        )
+        .add_container(&api_container)
+        .add_container(&db_container)
         .build()
         .unwrap();
 
     let dsl = DslSerializer::new()
-        .add_software_system(system)
-        .add_relationship("s.a", "s.d", "Reads from", Some("SQL"))
+        .add_software_system(&system)
+        .add_relationship(&api_container, &db_container, "Reads from", Some("SQL"))
         .serialize()
         .unwrap();
 
-    // Dot-separated hierarchical identifiers must not be mangled
+    // The serializer resolves container IDs to their hierarchical paths
     assert!(dsl.contains(r#"s.a -> s.d "Reads from" "SQL""#));
 }

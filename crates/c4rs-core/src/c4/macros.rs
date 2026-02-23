@@ -3,6 +3,9 @@ macro_rules! impl_element {
     // Variant 1: Fixed location (Location::Internal)
     ($struct:ident, $type_variant:expr, fixed) => {
         impl $crate::c4::Element for $struct {
+            fn id(&self) -> &$crate::c4::ElementId {
+                &self.id
+            }
             fn name(&self) -> &str {
                 &self.name
             }
@@ -17,6 +20,9 @@ macro_rules! impl_element {
             }
         }
         impl $struct {
+            pub fn id(&self) -> &$crate::c4::ElementId {
+                &self.id
+            }
             pub fn name(&self) -> &str {
                 &self.name
             }
@@ -31,6 +37,9 @@ macro_rules! impl_element {
     // Variant 2: Optional location (from self.location field)
     ($struct:ident, $type_variant:expr, optional) => {
         impl $crate::c4::Element for $struct {
+            fn id(&self) -> &$crate::c4::ElementId {
+                &self.id
+            }
             fn name(&self) -> &str {
                 &self.name
             }
@@ -47,6 +56,9 @@ macro_rules! impl_element {
             }
         }
         impl $struct {
+            pub fn id(&self) -> &$crate::c4::ElementId {
+                &self.id
+            }
             pub fn name(&self) -> &str {
                 &self.name
             }

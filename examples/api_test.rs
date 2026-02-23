@@ -57,7 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .name("E-Commerce".into())
         .description("Online store".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Web".into())
                 .description("Frontend".into())
                 .container_type(ContainerType::WebApplication)

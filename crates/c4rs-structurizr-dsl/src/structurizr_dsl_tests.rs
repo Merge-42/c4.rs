@@ -19,7 +19,7 @@ fn test_serialize_single_person() {
         .unwrap();
 
     let serializer = DslSerializer::new();
-    let result = serializer.add_person(person).serialize().unwrap();
+    let result = serializer.add_person(&person).serialize().unwrap();
 
     assert!(result.contains(r#"u = person "User" "A system user""#));
 }
@@ -36,7 +36,7 @@ fn test_serialize_full_model() {
         .name("API".into())
         .description("Backend".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Web App".into())
                 .description("Frontend".into())
                 .container_type(ContainerType::WebApplication)
@@ -44,7 +44,7 @@ fn test_serialize_full_model() {
                 .unwrap(),
         )
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Database".into())
                 .description("Data store".into())
                 .container_type(ContainerType::Database)
@@ -57,8 +57,8 @@ fn test_serialize_full_model() {
 
     let serializer = DslSerializer::new();
     let result = serializer
-        .add_person(person)
-        .add_software_system(system)
+        .add_person(&person)
+        .add_software_system(&system)
         .serialize()
         .unwrap();
 
@@ -83,7 +83,7 @@ fn test_serialize_with_views() {
         .include_elements(vec!["*".to_string()])
         .build();
     let result = serializer
-        .add_person(person)
+        .add_person(&person)
         .add_view(view)
         .serialize()
         .unwrap();
@@ -103,7 +103,7 @@ fn test_serialize_with_styles() {
 
     let serializer = DslSerializer::new();
     let result = serializer
-        .add_person(person)
+        .add_person(&person)
         .add_element_style(
             ElementStyle::builder()
                 .identifier("Person".into())
@@ -131,7 +131,7 @@ fn test_complete_workspace_serialization() {
         .name("API".into())
         .description("Backend API service".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Web App".into())
                 .description("Frontend".into())
                 .container_type(ContainerType::WebApplication)
@@ -151,8 +151,8 @@ fn test_complete_workspace_serialization() {
     let result = DslSerializer::new()
         .with_name("Example System")
         .with_description("An example C4 model")
-        .add_person(person)
-        .add_software_system(system)
+        .add_person(&person)
+        .add_software_system(&system)
         .add_view(view)
         .add_element_style(
             ElementStyle::builder()
@@ -189,7 +189,7 @@ fn test_playground_format_structure() {
         .name("BankApp".into())
         .description("Banking App".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Web App".into())
                 .description("Frontend".into())
                 .container_type(ContainerType::WebApplication)
@@ -209,9 +209,9 @@ fn test_playground_format_structure() {
     let result = DslSerializer::new()
         .with_name("Test Workspace")
         .with_description("Test")
-        .add_person(person)
-        .add_software_system(system)
-        .add_relationship("u", "b", "Uses", None)
+        .add_person(&person)
+        .add_software_system(&system)
+        .add_relationship(&person, &system, "Uses", None)
         .add_view(view)
         .serialize()
         .unwrap();
@@ -231,7 +231,7 @@ fn test_nested_container_serialization() {
         .name("BankApp".into())
         .description("Banking App".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Web App".into())
                 .description("Frontend".into())
                 .container_type(ContainerType::WebApplication)
@@ -244,7 +244,7 @@ fn test_nested_container_serialization() {
     let result = DslSerializer::new()
         .with_name("Nested Test")
         .with_description("Test")
-        .add_software_system(system)
+        .add_software_system(&system)
         .serialize()
         .unwrap();
 
@@ -260,14 +260,14 @@ fn test_circular_relationships() {
         .build()
         .unwrap();
 
-    let system1: SoftwareSystem = SoftwareSystem::builder()
-        .name("SystemA".into())
+    let system_a: SoftwareSystem = SoftwareSystem::builder()
+        .name("Alpha Service".into())
         .description("System A".into())
         .build()
         .unwrap();
 
-    let system2: SoftwareSystem = SoftwareSystem::builder()
-        .name("SystemB".into())
+    let system_b: SoftwareSystem = SoftwareSystem::builder()
+        .name("Bravo Service".into())
         .description("System B".into())
         .build()
         .unwrap();
@@ -275,20 +275,20 @@ fn test_circular_relationships() {
     let result = DslSerializer::new()
         .with_name("Circular Test")
         .with_description("Test")
-        .add_person(person)
-        .add_software_system(system1)
-        .add_software_system(system2)
-        .add_relationship("person", "a", "Uses", None)
-        .add_relationship("a", "b", "Communicates with", Some("HTTP"))
-        .add_relationship("b", "person", "Sends data to", None)
-        .add_relationship("b", "a", "Receives from", Some("HTTP"))
+        .add_person(&person)
+        .add_software_system(&system_a)
+        .add_software_system(&system_b)
+        .add_relationship(&person, &system_a, "Uses", None)
+        .add_relationship(&system_a, &system_b, "Communicates with", Some("HTTP"))
+        .add_relationship(&system_b, &person, "Sends data to", None)
+        .add_relationship(&system_b, &system_a, "Receives from", Some("HTTP"))
         .serialize()
         .unwrap();
 
-    assert!(result.contains("person -> a \"Uses\""));
-    assert!(result.contains("a -> b \"Communicates with\" \"HTTP\""));
-    assert!(result.contains("b -> person \"Sends data to\""));
-    assert!(result.contains("b -> a \"Receives from\" \"HTTP\""));
+    assert!(result.contains("u -> as \"Uses\""));
+    assert!(result.contains("as -> bs \"Communicates with\" \"HTTP\""));
+    assert!(result.contains("bs -> u \"Sends data to\""));
+    assert!(result.contains("bs -> as \"Receives from\" \"HTTP\""));
 }
 
 #[test]
@@ -303,7 +303,7 @@ fn test_special_characters_in_names() {
         .name("API-Service_v2".into())
         .description("Backend API (version 2.0)".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Web/App".into())
                 .description("Frontend".into())
                 .container_type(ContainerType::WebApplication)
@@ -316,8 +316,8 @@ fn test_special_characters_in_names() {
     let result = DslSerializer::new()
         .with_name("Special Chars Test")
         .with_description("Test with special characters")
-        .add_person(person)
-        .add_software_system(system)
+        .add_person(&person)
+        .add_software_system(&system)
         .serialize()
         .unwrap();
 
@@ -339,7 +339,7 @@ fn test_relationship_with_technology() {
         .name("API-Service_v2".into())
         .description("Backend API (version 2.0)".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Web/App".into())
                 .description("Frontend".into())
                 .container_type(ContainerType::WebApplication)
@@ -352,10 +352,10 @@ fn test_relationship_with_technology() {
     let result = DslSerializer::new()
         .with_name("Tech Test")
         .with_description("Test")
-        .add_person(person)
-        .add_software_system(system)
-        .add_relationship("u", "a", "Uses", Some("HTTPS"))
-        .add_relationship("a", "u", "Responds to", Some("JSON/HTTPS"))
+        .add_person(&person)
+        .add_software_system(&system)
+        .add_relationship(&person, &system, "Uses", Some("HTTPS"))
+        .add_relationship(&system, &person, "Responds to", Some("JSON/HTTPS"))
         .serialize()
         .unwrap();
 
@@ -386,9 +386,9 @@ fn test_multiple_identical_element_names() {
     let result = DslSerializer::new()
         .with_name("Duplicate Names Test")
         .with_description("Test")
-        .add_person(person1)
-        .add_person(person2)
-        .add_person(person3)
+        .add_person(&person1)
+        .add_person(&person2)
+        .add_person(&person3)
         .serialize()
         .unwrap();
 
@@ -409,7 +409,7 @@ fn test_golden_file_complete_workspace() {
         .name("API".into())
         .description("Backend API service".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Web App".into())
                 .description("Frontend".into())
                 .container_type(ContainerType::WebApplication)
@@ -429,8 +429,8 @@ fn test_golden_file_complete_workspace() {
     let result = DslSerializer::new()
         .with_name("Example System")
         .with_description("An example C4 model")
-        .add_person(person)
-        .add_software_system(system)
+        .add_person(&person)
+        .add_software_system(&system)
         .add_view(view)
         .add_element_style(
             ElementStyle::builder()

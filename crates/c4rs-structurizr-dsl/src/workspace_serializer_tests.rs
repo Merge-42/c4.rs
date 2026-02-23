@@ -4,9 +4,6 @@ use c4rs_core::c4::{Person, SoftwareSystem};
 #[test]
 fn test_workspace_serializer_empty() {
     let result = WorkspaceSerializer::new().serialize().unwrap();
-    println!("=== OUTPUT ===");
-    println!("{}", result);
-    println!("=== END ===");
     assert!(result.starts_with("workspace "));
     assert!(result.contains("!identifiers"));
     assert!(result.contains("hierarchical"));
@@ -21,7 +18,7 @@ fn test_workspace_serializer_with_person() {
         .build()
         .unwrap();
     let result = WorkspaceSerializer::new()
-        .add_person(person)
+        .add_person(&person)
         .serialize()
         .unwrap();
     assert!(result.contains("u = person"));
@@ -35,7 +32,7 @@ fn test_workspace_serializer_with_software_system() {
         .build()
         .unwrap();
     let result = WorkspaceSerializer::new()
-        .add_software_system(system)
+        .add_software_system(&system)
         .serialize()
         .unwrap();
     assert!(result.contains("ss = softwareSystem"));
@@ -54,8 +51,8 @@ fn test_identifier_uniqueness() {
         .build()
         .unwrap();
     let result = WorkspaceSerializer::new()
-        .add_person(person1)
-        .add_person(person2)
+        .add_person(&person1)
+        .add_person(&person2)
         .serialize()
         .unwrap();
     assert!(result.contains("u = person"));
@@ -113,8 +110,8 @@ fn test_us1_workspace_with_multiple_elements() {
         .unwrap();
 
     let result = WorkspaceSerializer::new()
-        .add_person(person)
-        .add_software_system(system)
+        .add_person(&person)
+        .add_software_system(&system)
         .serialize()
         .unwrap();
 
@@ -143,8 +140,8 @@ fn test_us1_workspace_blocks_properly_formed() {
         .unwrap();
 
     let result = WorkspaceSerializer::new()
-        .add_person(person)
-        .add_software_system(system)
+        .add_person(&person)
+        .add_software_system(&system)
         .serialize()
         .unwrap();
 
@@ -171,8 +168,8 @@ fn test_us2_element_syntax() {
         .unwrap();
 
     let result = WorkspaceSerializer::new()
-        .add_person(person)
-        .add_software_system(system)
+        .add_person(&person)
+        .add_software_system(&system)
         .serialize()
         .unwrap();
 
@@ -202,8 +199,8 @@ fn test_us2_identifier_generation_collision() {
         .unwrap();
 
     let result = WorkspaceSerializer::new()
-        .add_person(person1)
-        .add_person(person2)
+        .add_person(&person1)
+        .add_person(&person2)
         .serialize()
         .unwrap();
 
@@ -226,7 +223,7 @@ fn test_us2_software_system_identifier() {
         .unwrap();
 
     let result = WorkspaceSerializer::new()
-        .add_software_system(system)
+        .add_software_system(&system)
         .serialize()
         .unwrap();
 
@@ -251,8 +248,8 @@ fn test_us2_multiple_software_systems() {
         .unwrap();
 
     let result = WorkspaceSerializer::new()
-        .add_software_system(system1)
-        .add_software_system(system2)
+        .add_software_system(&system1)
+        .add_software_system(&system2)
         .serialize()
         .unwrap();
 
@@ -268,8 +265,20 @@ fn test_us2_multiple_software_systems() {
 
 #[test]
 fn test_us3_relationship_syntax() {
+    let user = Person::builder()
+        .name("User".into())
+        .description("A user".into())
+        .build()
+        .unwrap();
+    let system = SoftwareSystem::builder()
+        .name("Software System".into())
+        .description("A system".into())
+        .build()
+        .unwrap();
     let result = WorkspaceSerializer::new()
-        .add_relationship("u", "ss", "Uses", None)
+        .add_person(&user)
+        .add_software_system(&system)
+        .add_relationship(&user, &system, "Uses", None)
         .serialize()
         .unwrap();
 
@@ -281,8 +290,20 @@ fn test_us3_relationship_syntax() {
 
 #[test]
 fn test_us3_relationship_with_technology() {
+    let user = Person::builder()
+        .name("User".into())
+        .description("A user".into())
+        .build()
+        .unwrap();
+    let system = SoftwareSystem::builder()
+        .name("Software System".into())
+        .description("A system".into())
+        .build()
+        .unwrap();
     let result = WorkspaceSerializer::new()
-        .add_relationship("u", "ss", "Uses", Some("HTTPS"))
+        .add_person(&user)
+        .add_software_system(&system)
+        .add_relationship(&user, &system, "Uses", Some("HTTPS"))
         .serialize()
         .unwrap();
 
@@ -294,9 +315,27 @@ fn test_us3_relationship_with_technology() {
 
 #[test]
 fn test_us3_multiple_relationships() {
+    let user = Person::builder()
+        .name("User".into())
+        .description("A user".into())
+        .build()
+        .unwrap();
+    let api = SoftwareSystem::builder()
+        .name("API".into())
+        .description("API service".into())
+        .build()
+        .unwrap();
+    let db = SoftwareSystem::builder()
+        .name("Database".into())
+        .description("Data store".into())
+        .build()
+        .unwrap();
     let result = WorkspaceSerializer::new()
-        .add_relationship("u", "a", "Uses", Some("HTTPS"))
-        .add_relationship("a", "d", "Queries", Some("TCP"))
+        .add_person(&user)
+        .add_software_system(&api)
+        .add_software_system(&db)
+        .add_relationship(&user, &api, "Uses", Some("HTTPS"))
+        .add_relationship(&api, &db, "Queries", Some("TCP"))
         .serialize()
         .unwrap();
 
@@ -312,14 +351,32 @@ fn test_us3_multiple_relationships() {
 
 #[test]
 fn test_us3_relationship_order() {
+    let alpha = SoftwareSystem::builder()
+        .name("Alpha".into())
+        .description("First".into())
+        .build()
+        .unwrap();
+    let bravo = SoftwareSystem::builder()
+        .name("Bravo".into())
+        .description("Second".into())
+        .build()
+        .unwrap();
+    let charlie = SoftwareSystem::builder()
+        .name("Charlie".into())
+        .description("Third".into())
+        .build()
+        .unwrap();
     let result = WorkspaceSerializer::new()
-        .add_relationship("s2", "s1", "Depends on", None)
-        .add_relationship("s1", "s3", "Calls", None)
+        .add_software_system(&alpha)
+        .add_software_system(&bravo)
+        .add_software_system(&charlie)
+        .add_relationship(&bravo, &alpha, "Depends on", None)
+        .add_relationship(&alpha, &charlie, "Calls", None)
         .serialize()
         .unwrap();
 
-    let pos1 = result.find("s2 -> s1").unwrap();
-    let pos2 = result.find("s1 -> s3").unwrap();
+    let pos1 = result.find("b -> a").unwrap();
+    let pos2 = result.find("a -> c").unwrap();
     assert!(pos1 < pos2, "Relationships should appear in order added");
 }
 
@@ -338,9 +395,9 @@ fn test_us7_brace_balance() {
         .unwrap();
 
     let result = WorkspaceSerializer::new()
-        .add_person(person)
-        .add_software_system(system)
-        .add_relationship("u", "a", "Uses", None)
+        .add_person(&person)
+        .add_software_system(&system)
+        .add_relationship(&person, &system, "Uses", None)
         .serialize()
         .unwrap();
 
@@ -361,7 +418,7 @@ fn test_special_characters_in_person_name() {
         .build()
         .unwrap();
     let result = WorkspaceSerializer::new()
-        .add_person(person)
+        .add_person(&person)
         .serialize()
         .unwrap();
     assert!(result.contains(r#"User \"Admin\""#));
@@ -375,7 +432,7 @@ fn test_special_characters_in_description() {
         .build()
         .unwrap();
     let result = WorkspaceSerializer::new()
-        .add_person(person)
+        .add_person(&person)
         .serialize()
         .unwrap();
     assert!(result.contains(r#"\"test\""#));
@@ -389,7 +446,7 @@ fn test_backslash_in_name() {
         .build()
         .unwrap();
     let result = WorkspaceSerializer::new()
-        .add_software_system(system)
+        .add_software_system(&system)
         .serialize()
         .unwrap();
     assert!(result.contains(r#"API\\Backend"#));
@@ -397,8 +454,20 @@ fn test_backslash_in_name() {
 
 #[test]
 fn test_relationship_with_special_chars() {
+    let user = Person::builder()
+        .name("User".into())
+        .description("A user".into())
+        .build()
+        .unwrap();
+    let api = SoftwareSystem::builder()
+        .name("API".into())
+        .description("API".into())
+        .build()
+        .unwrap();
     let result = WorkspaceSerializer::new()
-        .add_relationship("u", "a", "Uses \"HTTPS\"", Some("JSON\\API"))
+        .add_person(&user)
+        .add_software_system(&api)
+        .add_relationship(&user, &api, "Uses \"HTTPS\"", Some("JSON\\API"))
         .serialize()
         .unwrap();
     assert!(result.contains(r#""Uses \"HTTPS\""#));

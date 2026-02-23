@@ -12,5 +12,7 @@ pub use code::CodeElement;
 pub use component::{Component, ComponentError};
 pub use container::{Container, ContainerError};
 pub use context::{Person, PersonError, SoftwareSystem, SoftwareSystemError};
-pub use element::{CodeType, ContainerType, Element, ElementType, InteractionStyle, Location};
+pub use element::{
+    CodeType, ContainerType, Element, ElementId, ElementType, InteractionStyle, Location,
+};
 pub use relationship::{Relationship, RelationshipError, create_relationship};

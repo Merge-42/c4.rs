@@ -11,7 +11,10 @@ fn test_integration_single_person() {
         .build()
         .unwrap();
 
-    let dsl = DslSerializer::new().add_person(person).serialize().unwrap();
+    let dsl = DslSerializer::new()
+        .add_person(&person)
+        .serialize()
+        .unwrap();
 
     assert!(dsl.contains("workspace {"));
     assert!(dsl.contains("model {"));
@@ -40,8 +43,8 @@ fn test_integration_full_model() {
         .unwrap();
 
     let dsl = DslSerializer::new()
-        .add_person(person)
-        .add_software_system(system)
+        .add_person(&person)
+        .add_software_system(&system)
         .serialize()
         .unwrap();
 

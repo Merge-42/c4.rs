@@ -1,5 +1,5 @@
 use super::container::Container;
-use super::element::{ElementType, Location};
+use super::element::{ElementId, ElementType, Location};
 use super::macros::impl_element;
 use crate::constants::limits::{MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TECHNOLOGY_LENGTH};
 use crate::validation::{validate_max_length, validate_non_empty};
@@ -10,6 +10,8 @@ use bon::Builder;
 pub struct Person {
     name: String,
     description: String,
+    #[builder(skip = ElementId::from_name(&name))]
+    id: ElementId,
     location: Option<Location>,
     technology: Option<String>,
 }
@@ -47,12 +49,14 @@ pub struct SoftwareSystem {
     containers: Vec<Container>,
     name: String,
     description: String,
+    #[builder(skip = ElementId::from_name(&name))]
+    id: ElementId,
     location: Option<Location>,
 }
 
 impl<S: software_system_builder::IsComplete> SoftwareSystemBuilder<S> {
-    pub fn add_container(mut self, container: Container) -> Self {
-        self.containers.push(container);
+    pub fn add_container(mut self, container: &Container) -> Self {
+        self.containers.push(container.clone());
         self
     }
     pub fn build(self) -> Result<SoftwareSystem, SoftwareSystemError> {
@@ -69,8 +73,8 @@ impl SoftwareSystem {
     pub fn containers(&self) -> &[Container] {
         &self.containers
     }
-    pub fn add_container(&mut self, container: Container) {
-        self.containers.push(container);
+    pub fn add_container(&mut self, container: &Container) {
+        self.containers.push(container.clone());
     }
 }
 
@@ -97,6 +101,16 @@ mod tests {
             .build()
             .unwrap();
         assert_eq!(p.name(), "A");
+        assert_eq!(p.id().as_str(), "a");
+    }
+    #[test]
+    fn test_person_auto_id_multi_word() {
+        let p = Person::builder()
+            .name("Library Consumer".into())
+            .description("B".into())
+            .build()
+            .unwrap();
+        assert_eq!(p.id().as_str(), "lc");
     }
     #[test]
     fn test_person_empty_name() {
@@ -126,5 +140,15 @@ mod tests {
             .build()
             .unwrap();
         assert_eq!(s.name(), "E");
+        assert_eq!(s.id().as_str(), "e");
+    }
+    #[test]
+    fn test_software_system_auto_id() {
+        let s = SoftwareSystem::builder()
+            .name("My Cool System".into())
+            .description("D".into())
+            .build()
+            .unwrap();
+        assert_eq!(s.id().as_str(), "mcs");
     }
 }

@@ -1,4 +1,4 @@
-use super::element::{CodeType, ElementType};
+use super::element::{CodeType, ElementId, ElementType};
 use crate::constants::limits::{
     MAX_DESCRIPTION_LENGTH, MAX_FILE_PATH_LENGTH, MAX_LANGUAGE_LENGTH, MAX_NAME_LENGTH,
 };
@@ -10,6 +10,8 @@ use bon::Builder;
 pub struct CodeElement {
     name: String,
     description: String,
+    #[builder(skip = ElementId::from_name(&name))]
+    id: ElementId,
     code_type: CodeType,
     language: Option<String>,
     file_path: Option<String>,
@@ -70,5 +72,6 @@ mod tests {
             .build()
             .unwrap();
         assert_eq!(c.name(), "calc");
+        assert_eq!(c.id().as_str(), "c");
     }
 }

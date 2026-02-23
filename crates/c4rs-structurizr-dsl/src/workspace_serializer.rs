@@ -1,21 +1,22 @@
 use crate::{
     StylesSerializer, ViewConfiguration, ViewsSerializer,
     error::DslError,
-    identifier_generator::IdentifierGenerator,
     styles::{ElementStyle, RelationshipStyle},
     templates::helpers::escape_dsl_string,
     writer::{self, DslWriter},
 };
-use c4rs_core::c4::{Component, Container, Person, SoftwareSystem};
-use std::collections::HashSet;
+use c4rs_core::c4::{Component, Container, Element, ElementId, Person, SoftwareSystem};
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug)]
 pub struct WorkspaceSerializer {
     writer: DslWriter,
     used_identifiers: HashSet<String>,
+    /// Maps an element's ElementId to its resolved hierarchical DSL path.
+    id_to_path: HashMap<ElementId, String>,
     persons: Vec<Person>,
     software_systems: Vec<SoftwareSystem>,
-    relationships: Vec<SerializedRelationship>,
+    relationships: Vec<StoredRelationship>,
     views_serializer: ViewsSerializer,
     styles_serializer: StylesSerializer,
     name: Option<String>,
@@ -23,11 +24,11 @@ pub struct WorkspaceSerializer {
 }
 
 #[derive(Debug)]
-pub(crate) struct SerializedRelationship {
-    pub(crate) source_id: String,
-    pub(crate) target_id: String,
-    pub(crate) description: String,
-    pub(crate) technology: Option<String>,
+struct StoredRelationship {
+    source_id: ElementId,
+    target_id: ElementId,
+    description: String,
+    technology: Option<String>,
 }
 
 impl Default for WorkspaceSerializer {
@@ -41,6 +42,7 @@ impl WorkspaceSerializer {
         Self {
             writer: DslWriter::new(),
             used_identifiers: HashSet::new(),
+            id_to_path: HashMap::new(),
             persons: Vec::new(),
             software_systems: Vec::new(),
             relationships: Vec::new(),
@@ -61,26 +63,26 @@ impl WorkspaceSerializer {
         self
     }
 
-    pub fn add_person(mut self, person: Person) -> Self {
-        self.persons.push(person);
+    pub fn add_person(mut self, person: &Person) -> Self {
+        self.persons.push(person.clone());
         self
     }
 
-    pub fn add_software_system(mut self, system: SoftwareSystem) -> Self {
-        self.software_systems.push(system);
+    pub fn add_software_system(mut self, system: &SoftwareSystem) -> Self {
+        self.software_systems.push(system.clone());
         self
     }
 
     pub fn add_relationship(
         mut self,
-        source_id: &str,
-        target_id: &str,
+        source: &impl Element,
+        target: &impl Element,
         description: &str,
         technology: Option<&str>,
     ) -> Self {
-        self.relationships.push(SerializedRelationship {
-            source_id: source_id.to_string(),
-            target_id: target_id.to_string(),
+        self.relationships.push(StoredRelationship {
+            source_id: source.id().clone(),
+            target_id: target.id().clone(),
             description: description.to_string(),
             technology: technology.map(|s| s.to_string()),
         });
@@ -112,7 +114,6 @@ impl WorkspaceSerializer {
     }
 
     pub fn serialize(mut self) -> Result<String, DslError> {
-        // Render styles and inject into views if needed
         let styles_dsl = self.styles_serializer.serialize()?;
         if !styles_dsl.is_empty() {
             self.views_serializer
@@ -121,6 +122,7 @@ impl WorkspaceSerializer {
 
         self.writer.clear();
         self.used_identifiers.clear();
+        self.id_to_path.clear();
         self.write_workspace_header()?;
         self.write_model_section()?;
         self.writer.unindent();
@@ -145,25 +147,41 @@ impl WorkspaceSerializer {
         Ok(())
     }
 
-    fn write_model_section(&mut self) -> Result<(), DslError> {
-        let person_names: Vec<String> = self.persons.iter().map(|p| p.name().to_string()).collect();
-        let system_names: Vec<String> = self
-            .software_systems
-            .iter()
-            .map(|s| s.name().to_string())
-            .collect();
+    fn resolve_identifier(element_id: &ElementId, used: &mut HashSet<String>) -> String {
+        let base = element_id.as_str().to_string();
+        let mut identifier = base.clone();
+        let mut counter = 1;
+        while used.contains(&identifier) {
+            identifier = format!("{}{}", base, counter);
+            counter += 1;
+        }
+        used.insert(identifier.clone());
+        identifier
+    }
 
-        for (person, name) in self.persons.iter().zip(person_names.iter()) {
-            let identifier = IdentifierGenerator::generate_unique(name, &self.used_identifiers);
-            self.used_identifiers.insert(identifier.clone());
+    /// Look up the hierarchical DSL path for an ElementId, falling back to the
+    /// raw id string if the element was not registered (e.g. external refs).
+    fn resolve_path(&self, id: &ElementId) -> String {
+        self.id_to_path
+            .get(id)
+            .cloned()
+            .unwrap_or_else(|| id.as_str().to_string())
+    }
+
+    fn write_model_section(&mut self) -> Result<(), DslError> {
+        for person in &self.persons {
+            let identifier = Self::resolve_identifier(person.id(), &mut self.used_identifiers);
+            self.id_to_path
+                .insert(person.id().clone(), identifier.clone());
             let dsl = Self::serialize_person(person, &identifier)?;
             self.writer.add_line(&dsl);
         }
 
-        for (system, name) in self.software_systems.iter().zip(system_names.iter()) {
+        for system in &self.software_systems {
             let system_identifier =
-                IdentifierGenerator::generate_unique(name, &self.used_identifiers);
-            self.used_identifiers.insert(system_identifier.clone());
+                Self::resolve_identifier(system.id(), &mut self.used_identifiers);
+            self.id_to_path
+                .insert(system.id().clone(), system_identifier.clone());
 
             let has_containers = !system.containers().is_empty();
 
@@ -172,13 +190,13 @@ impl WorkspaceSerializer {
 
             if has_containers {
                 self.writer.indent();
-                let containers = system.containers();
-                let container_names: Vec<String> =
-                    containers.iter().map(|c| c.name().to_string()).collect();
-                for (container, cname) in containers.iter().zip(container_names.iter()) {
+                for container in system.containers() {
                     let container_identifier =
-                        IdentifierGenerator::generate_unique(cname, &self.used_identifiers);
-                    self.used_identifiers.insert(container_identifier.clone());
+                        Self::resolve_identifier(container.id(), &mut self.used_identifiers);
+                    let hierarchical_path =
+                        format!("{}.{}", system_identifier, container_identifier);
+                    self.id_to_path
+                        .insert(container.id().clone(), hierarchical_path);
 
                     let has_components = !container.components().is_empty();
                     let container_dsl =
@@ -188,11 +206,16 @@ impl WorkspaceSerializer {
                     if has_components {
                         self.writer.indent();
                         for component in container.components() {
-                            let component_identifier = IdentifierGenerator::generate_unique(
-                                component.name(),
-                                &self.used_identifiers,
+                            let component_identifier = Self::resolve_identifier(
+                                component.id(),
+                                &mut self.used_identifiers,
                             );
-                            self.used_identifiers.insert(component_identifier.clone());
+                            let hierarchical_path = format!(
+                                "{}.{}.{}",
+                                system_identifier, container_identifier, component_identifier
+                            );
+                            self.id_to_path
+                                .insert(component.id().clone(), hierarchical_path);
                             let component_dsl =
                                 Self::serialize_component(component, &component_identifier)?;
                             self.writer.add_line(&component_dsl);
@@ -207,9 +230,11 @@ impl WorkspaceSerializer {
         }
 
         for rel in &self.relationships {
+            let source_path = self.resolve_path(&rel.source_id);
+            let target_path = self.resolve_path(&rel.target_id);
             let dsl = writer::format_relationship(
-                &rel.source_id,
-                &rel.target_id,
+                &source_path,
+                &target_path,
                 &rel.description,
                 rel.technology.as_deref(),
             );

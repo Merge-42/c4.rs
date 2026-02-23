@@ -1,7 +1,68 @@
 use std::fmt;
+use std::sync::atomic::{AtomicU64, Ordering};
 
-/// Common trait for all C4 elements.
+static NEXT_ID: AtomicU64 = AtomicU64::new(1);
+
+/// Stable identifier for a C4 element, auto-generated from the element name.
+///
+/// Each element gets a unique `ElementId` at build time. The id contains a
+/// name-derived slug (used for DSL output) and a unique internal sequence
+/// number (used to distinguish elements with the same name).
+///
+/// Users cannot construct this directly — it is created automatically when
+/// building an element via its builder. Use `element.id()` to obtain a
+/// reference for passing into relationship declarations.
+#[derive(Debug, Clone)]
+pub struct ElementId {
+    slug: String,
+    seq: u64,
+}
+
+impl ElementId {
+    pub(crate) fn from_name(name: &str) -> Self {
+        Self {
+            slug: name
+                .split_whitespace()
+                .filter(|s| !s.is_empty())
+                .map(|s| {
+                    s.chars()
+                        .next()
+                        .unwrap_or_default()
+                        .to_lowercase()
+                        .to_string()
+                })
+                .collect(),
+            seq: NEXT_ID.fetch_add(1, Ordering::Relaxed),
+        }
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.slug
+    }
+}
+
+impl PartialEq for ElementId {
+    fn eq(&self, other: &Self) -> bool {
+        self.seq == other.seq
+    }
+}
+
+impl Eq for ElementId {}
+
+impl std::hash::Hash for ElementId {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.seq.hash(state);
+    }
+}
+
+impl fmt::Display for ElementId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.slug)
+    }
+}
+
 pub trait Element {
+    fn id(&self) -> &ElementId;
     fn name(&self) -> &str;
     fn description(&self) -> &str;
     fn element_type(&self) -> ElementType;

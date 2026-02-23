@@ -1,5 +1,5 @@
 use super::code::CodeElement;
-use super::element::ElementType;
+use super::element::{ElementId, ElementType};
 use super::macros::impl_element;
 use crate::constants::limits::{
     MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_RESPONSIBILITY_LENGTH, MAX_TECHNOLOGY_LENGTH,
@@ -14,14 +14,16 @@ pub struct Component {
     code_elements: Vec<CodeElement>,
     name: String,
     description: String,
+    #[builder(skip = ElementId::from_name(&name))]
+    id: ElementId,
     #[builder(default)]
     responsibilities: Vec<String>,
     technology: Option<String>,
 }
 
 impl<S: component_builder::IsComplete> ComponentBuilder<S> {
-    pub fn add_code_element(mut self, code_element: CodeElement) -> Self {
-        self.code_elements.push(code_element);
+    pub fn add_code_element(mut self, code_element: &CodeElement) -> Self {
+        self.code_elements.push(code_element.clone());
         self
     }
     pub fn build(self) -> Result<Component, ComponentError> {
@@ -54,8 +56,8 @@ impl Component {
     pub fn code_elements(&self) -> &[CodeElement] {
         &self.code_elements
     }
-    pub fn add_code_element(&mut self, code_element: CodeElement) {
-        self.code_elements.push(code_element);
+    pub fn add_code_element(&mut self, code_element: &CodeElement) {
+        self.code_elements.push(code_element.clone());
     }
 }
 
@@ -93,5 +95,6 @@ mod tests {
             .build()
             .unwrap();
         assert_eq!(c.name(), "Handler");
+        assert_eq!(c.id().as_str(), "h");
     }
 }

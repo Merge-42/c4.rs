@@ -12,14 +12,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         .name("API".into())
         .description("Backend API service".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Web App".into())
                 .description("Frontend application".into())
                 .container_type(ContainerType::WebApplication)
                 .build()?,
         )
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Database".into())
                 .description("PostgreSQL database".into())
                 .container_type(ContainerType::Database)
@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .build()?,
         )
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("API Service".into())
                 .description("Backend API".into())
                 .container_type(ContainerType::Api)
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .name("Web Portal".into())
         .description("Customer web portal".into())
         .add_container(
-            Container::builder()
+            &Container::builder()
                 .name("Frontend".into())
                 .description("React frontend".into())
                 .container_type(ContainerType::WebApplication)
@@ -59,10 +59,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dsl = DslSerializer::new()
         .with_name("Example System")
         .with_description("An example C4 model")
-        .add_person(person)
-        .add_software_system(api_system)
-        .add_software_system(web_system)
-        .add_relationship("u", "a", "Uses", None)
+        .add_person(&person)
+        .add_software_system(&api_system)
+        .add_software_system(&web_system)
+        .add_relationship(&person, &api_system, "Uses", None)
         .add_view(ctx_view)
         .add_element_style(
             c4rs::ElementStyle::builder()

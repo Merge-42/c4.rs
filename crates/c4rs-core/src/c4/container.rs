@@ -1,5 +1,5 @@
 use super::component::Component;
-use super::element::{ContainerType, ElementType};
+use super::element::{ContainerType, ElementId, ElementType};
 use super::macros::impl_element;
 use crate::constants::limits::{MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TECHNOLOGY_LENGTH};
 use crate::validation::{validate_max_length, validate_non_empty};
@@ -12,13 +12,15 @@ pub struct Container {
     components: Vec<Component>,
     name: String,
     description: String,
+    #[builder(skip = ElementId::from_name(&name))]
+    id: ElementId,
     container_type: ContainerType,
     technology: Option<String>,
 }
 
 impl<S: container_builder::IsComplete> ContainerBuilder<S> {
-    pub fn add_component(mut self, component: Component) -> Self {
-        self.components.push(component);
+    pub fn add_component(mut self, component: &Component) -> Self {
+        self.components.push(component.clone());
         self
     }
     pub fn build(self) -> Result<Container, ContainerError> {
@@ -46,8 +48,8 @@ impl Container {
     pub fn components(&self) -> &[Component] {
         &self.components
     }
-    pub fn add_component(&mut self, component: Component) {
-        self.components.push(component);
+    pub fn add_component(&mut self, component: &Component) {
+        self.components.push(component.clone());
     }
 }
 
@@ -80,5 +82,6 @@ mod tests {
             .build()
             .unwrap();
         assert_eq!(c.name(), "API");
+        assert_eq!(c.id().as_str(), "a");
     }
 }
